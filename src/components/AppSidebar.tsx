@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, AlertTriangle, LayoutDashboard, FileText, Settings, ChevronRight, LogOut, Radar } from 'lucide-react';
+import { BarChart3, AlertTriangle, LogOut, Radar } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -16,15 +16,8 @@ import {
 } from '@/components/ui/sidebar';
 
 const mainMenu = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard, hasChevron: true },
   { title: 'Análise de Imagens', url: '/classificacao', icon: AlertTriangle },
   { title: 'Análise de Índices', url: '/indices', icon: BarChart3 },
-];
-
-const cadastrosMenu = [
-  { title: 'Contratos', url: '/contratos', icon: FileText },
-  { title: 'Equipamentos', url: '/equipamentos', icon: Radar },
-  { title: 'Configurações', url: '/configuracoes', icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -62,13 +55,12 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild isActive={isActive}>
                       <NavLink
                         to={item.url}
-                        end={item.url === '/'}
+                        end
                         className="flex items-center gap-3 px-5 py-2.5 text-sm transition-colors rounded-lg mx-2"
                         activeClassName="bg-sidebar-accent text-primary font-semibold"
                       >
                         <item.icon className="w-4 h-4" />
                         <span className="flex-1">{item.title}</span>
-                        {item.hasChevron && <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -78,33 +70,6 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] text-muted-foreground/60 uppercase tracking-widest px-5 mb-1">
-            Cadastros
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {cadastrosMenu.map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild isActive={isActive}>
-                      <NavLink
-                        to={item.url}
-                        end
-                        className="flex items-center gap-3 px-5 py-2.5 text-sm transition-colors rounded-lg mx-2"
-                        activeClassName="bg-sidebar-accent text-primary font-semibold"
-                      >
-                        <item.icon className="w-4 h-4" />
-                        <span>{item.title}</span>
-                      </NavLink>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="px-5 pb-5">
