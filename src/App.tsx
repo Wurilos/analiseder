@@ -5,10 +5,10 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
-import Index from "./pages/Index";
 import ClassificacaoPage from "./pages/Classificacao";
 import IndicesPage from "./pages/Indices";
 import NotFound from "./pages/NotFound";
+import { Navigate } from "react-router-dom";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +27,7 @@ const App = () => (
               </header>
               <div className="p-6">
                 <Routes>
-                  <Route path="/" element={<Index />} />
+                  <Route path="/" element={<Navigate to="/classificacao" replace />} />
                   <Route path="/classificacao" element={<ClassificacaoPage />} />
                   <Route path="/indices" element={<IndicesPage />} />
                   <Route path="*" element={<NotFound />} />
