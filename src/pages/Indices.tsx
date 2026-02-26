@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Download, Settings, Eye, EyeOff } from 'lucide-react';
+import { Download, Settings, Eye, EyeOff, BarChart3, ListChecks, AlertTriangle, TrendingDown, DollarSign, Receipt, BadgeDollarSign, Percent } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UploadCard } from '@/components/UploadCard';
@@ -218,18 +218,18 @@ const IndicesPage: React.FC = () => {
 
       {/* KPIs */}
       <KPIGrid>
-        <KPICard label="Total de Linhas" value={String(kpis.count)} color="text-neon-cyan" />
-        <KPICard label="ID Médio" value={kpis.avg !== null ? pct(kpis.avg) : '—'} color="text-neon-cyan" />
-        <KPICard label="Abaixo da Meta" value={String(kpis.below)} color="text-neon-amber" />
-        <KPICard label="Pior ID" value={kpis.worst !== null ? pct(kpis.worst) : '—'} color="text-neon-red" />
+        <KPICard label="Total de Linhas" value={String(kpis.count)} color="cyan" icon={ListChecks} />
+        <KPICard label="ID Médio" value={kpis.avg !== null ? pct(kpis.avg) : '—'} color="cyan" icon={BarChart3} />
+        <KPICard label="Abaixo da Meta" value={String(kpis.below)} color="amber" icon={AlertTriangle} />
+        <KPICard label="Pior ID" value={kpis.worst !== null ? pct(kpis.worst) : '—'} color="red" icon={TrendingDown} />
       </KPIGrid>
 
       {viewMode === 'equipamento' && kpis.totalContratual > 0 && (
         <KPIGrid>
-          <KPICard label="💰 Valor Contratual" value={formatMoeda(kpis.totalContratual)} color="text-neon-cyan" icon="💰" />
-          <KPICard label="💵 Valor a Receber" value={formatMoeda(kpis.totalReceber)} color="text-neon-green" icon="💵" />
-          <KPICard label="💸 Desconto Total" value={formatMoeda(kpis.totalDesconto)} color="text-neon-red" icon="💸" />
-          <KPICard label="📊 % Desconto" value={kpis.totalContratual > 0 ? ((kpis.totalDesconto / kpis.totalContratual) * 100).toFixed(1) + '%' : '—'} color="text-neon-amber" />
+          <KPICard label="Valor Contratual" value={formatMoeda(kpis.totalContratual)} color="cyan" icon={DollarSign} />
+          <KPICard label="Valor a Receber" value={formatMoeda(kpis.totalReceber)} color="green" icon={Receipt} />
+          <KPICard label="Desconto Total" value={formatMoeda(kpis.totalDesconto)} color="red" icon={BadgeDollarSign} />
+          <KPICard label="% Desconto" value={kpis.totalContratual > 0 ? ((kpis.totalDesconto / kpis.totalContratual) * 100).toFixed(1) + '%' : '—'} color="amber" icon={Percent} />
         </KPIGrid>
       )}
 
