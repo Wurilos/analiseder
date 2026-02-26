@@ -61,11 +61,13 @@ export const INDICES_COL_MAP = {
   IEVri: 32,
   IEVdt: 39,
   ILPd: 42,
-  ILPn: 45,
-  IEF: 46,
-  ICV: 49,
-  IDF: 54,
-  ID: 55,
+    ILPn: 45,
+    IEF: 46,
+    ICV: 49,
+    NHt: 52,
+    NHo: 53,
+    IDF: 54,
+    ID: 55,
 } as const;
 
 /** Nomes descritivos dos índices */

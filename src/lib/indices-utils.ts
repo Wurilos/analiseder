@@ -38,6 +38,8 @@ export function parseIndicesFile(buffer: ArrayBuffer): IndicesRow[] {
       ILPn: safeNum(row[INDICES_COL_MAP.ILPn]),
       IEF: safeNum(row[INDICES_COL_MAP.IEF]),
       ICV: safeNum(row[INDICES_COL_MAP.ICV]),
+      NHt: safeNum(row[INDICES_COL_MAP.NHt]),
+      NHo: safeNum(row[INDICES_COL_MAP.NHo]),
       IDF: safeNum(row[INDICES_COL_MAP.IDF]),
       ID: safeNum(row[INDICES_COL_MAP.ID]),
     }));
@@ -178,7 +180,7 @@ export function groupIndicesByEquipment(rows: IndicesRow[]): IndicesRow[] {
     arrays: Record<string, number[]>;
   }> = {};
 
-  const indexKeys = ['ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn', 'IEF', 'ICV', 'IDF', 'ID'] as const;
+  const indexKeys = ['ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn', 'IEF', 'ICV', 'NHt', 'NHo', 'IDF', 'ID'] as const;
 
   rows.forEach((r) => {
     const equip = normStr(r.Equipamento);

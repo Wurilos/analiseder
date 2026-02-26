@@ -56,6 +56,8 @@ export interface IndicesRow {
   ILPn: number | null;
   IEF: number | null;
   ICV: number | null;
+  NHt: number | null;
+  NHo: number | null;
   IDF: number | null;
   ID: number | null;
   // Computed fields for grouped mode
@@ -65,6 +67,11 @@ export interface IndicesRow {
   ValorReceber?: number | null;
   Desconto?: number | null;
   MaiorProblema?: MaiorProblemaInfo;
+}
+
+export interface ExcecaoCobrancaConfig {
+  tipo: string;
+  faixas: number;
 }
 
 export interface MaiorProblemaInfo {
