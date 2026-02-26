@@ -3,7 +3,7 @@ import React from 'react';
 interface SectionCardProps {
   title: string;
   badge?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   className?: string;
   emptyIcon?: React.ReactNode;
   emptyText?: string;
