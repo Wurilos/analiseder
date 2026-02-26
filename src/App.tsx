@@ -24,7 +24,6 @@ const App = () => (
             <main className="flex-1 overflow-x-hidden">
               <header className="h-12 flex items-center border-b border-border px-4 sticky top-0 z-50 backdrop-blur-sm bg-background/80">
                 <SidebarTrigger className="mr-4" />
-                <span className="text-xs text-muted-foreground font-mono">SpliceMetrics v1.0</span>
               </header>
               <div className="p-6">
                 <Routes>
