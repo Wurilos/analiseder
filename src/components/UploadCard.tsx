@@ -30,7 +30,7 @@ export const UploadCard: React.FC<UploadCardProps> = ({ title, description, hint
       className="card-glass rounded-2xl p-6"
     >
       <div
-        className="border-2 border-dashed border-border rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 hover:border-primary/50 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_hsla(195,100%,50%,0.15)] bg-[radial-gradient(800px_200px_at_15%_30%,hsla(195,100%,50%,0.06),transparent_60%),radial-gradient(800px_200px_at_85%_30%,hsla(263,84%,58%,0.06),transparent_60%)]"
+        className="border-2 border-dashed border-border rounded-2xl p-10 text-center cursor-pointer transition-all duration-300 hover:border-primary/40 hover:-translate-y-0.5 hover:shadow-md"
         onClick={() => inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); }}
         onDrop={handleDrop}

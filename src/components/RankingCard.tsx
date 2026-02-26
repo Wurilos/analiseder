@@ -17,7 +17,7 @@ export const RankingCard: React.FC<RankingCardProps> = ({ title, items, gradient
 
   return (
     <div className="card-glass rounded-2xl p-5 mb-4">
-      <h3 className={`text-base font-bold mb-4 ${gradient || 'text-gradient-danger'}`}>
+      <h3 className="text-base font-bold mb-4 text-destructive">
         {title}
       </h3>
       <div className="flex flex-col gap-2">

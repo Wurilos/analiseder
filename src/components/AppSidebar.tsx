@@ -27,14 +27,14 @@ export function AppSidebar() {
     <Sidebar className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className="px-5 pt-5 pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center">
-            <Radar className="w-5 h-5 text-primary" />
+          <div className="w-9 h-9 rounded-xl bg-sidebar-accent flex items-center justify-center">
+            <Radar className="w-5 h-5 text-sidebar-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-foreground tracking-tight">
+            <h1 className="text-base font-bold text-sidebar-foreground tracking-tight">
               RadarAnalytics
             </h1>
-            <p className="text-[11px] text-muted-foreground leading-none">
+            <p className="text-[11px] text-sidebar-foreground/60 leading-none">
               Análise de Imagens
             </p>
           </div>
