@@ -1,58 +1,64 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { BarChart3, AlertTriangle, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { LayoutDashboard, ClipboardCheck, Percent, CheckCircle, Image, Camera, Radio } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
+import { KPIGrid, KPICard } from '@/components/KPIGrid';
+import { SectionCard } from '@/components/SectionCard';
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center max-w-3xl"
-      >
-        <h1 className="text-5xl md:text-7xl font-black text-gradient-primary mb-4 leading-tight">
-          SpliceMetrics
-        </h1>
-        <p className="text-lg text-muted-foreground mb-12">
-          Plataforma unificada de análise de desempenho e classificação de infrações
-        </p>
+    <div>
+      <PageHeader
+        icon={LayoutDashboard}
+        title="Dashboard"
+        subtitle="Visão geral do sistema"
+      />
 
-        <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-          <Link to="/classificacao">
-            <motion.div
-              whileHover={{ scale: 1.03, y: -4 }}
-              className="card-glass rounded-2xl p-8 text-left group cursor-pointer transition-all hover:border-neon-purple/40"
-            >
-              <AlertTriangle className="w-10 h-10 text-neon-purple mb-4" />
-              <h2 className="text-xl font-bold mb-2">Classificação de Infrações</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Análise detalhada de infrações inválidas por motivo, responsabilidade Splice/DER e rankings.
-              </p>
-              <span className="text-xs text-neon-purple flex items-center gap-1 group-hover:gap-2 transition-all">
-                Acessar módulo <ArrowRight className="w-3 h-3" />
-              </span>
-            </motion.div>
-          </Link>
+      {/* KPIs */}
+      <KPIGrid cols={5}>
+        <KPICard label="Total de Análises" value="0" color="cyan" icon={ClipboardCheck} />
+        <KPICard label="% Problemas SPLICE" value="0%" color="amber" icon={Percent} />
+        <KPICard label="% Problemas DER" value="0%" color="red" icon={Percent} />
+        <KPICard label="% Imagens Válidas" value="0%" color="green" icon={CheckCircle} />
+        <KPICard label="Total de Imagens" value="0" color="cyan" icon={Image} />
+      </KPIGrid>
 
-          <Link to="/indices">
-            <motion.div
-              whileHover={{ scale: 1.03, y: -4 }}
-              className="card-glass rounded-2xl p-8 text-left group cursor-pointer transition-all hover:border-primary/40"
-            >
-              <BarChart3 className="w-10 h-10 text-primary mb-4" />
-              <h2 className="text-xl font-bold mb-2">Análise de Índices (ID)</h2>
-              <p className="text-sm text-muted-foreground mb-4">
-                Monitoramento de ID, IEF, ICV, IDF com impacto financeiro e visão executiva.
-              </p>
-              <span className="text-xs text-primary flex items-center gap-1 group-hover:gap-2 transition-all">
-                Acessar módulo <ArrowRight className="w-3 h-3" />
-              </span>
-            </motion.div>
-          </Link>
-        </div>
-      </motion.div>
+      {/* Content Grid */}
+      <div className="grid md:grid-cols-2 gap-5 mb-5">
+        <SectionCard
+          title="Classificação Geral"
+          badge="0 imagens"
+          isEmpty={true}
+          emptyIcon={<Camera className="w-10 h-10" />}
+          emptyText="Nenhuma imagem processada"
+        />
+        <SectionCard
+          title="Por Equipamento"
+          isEmpty={true}
+          emptyIcon={<Radio className="w-10 h-10" />}
+          emptyText="Nenhum dado disponível"
+        />
+      </div>
+
+      <div className="grid md:grid-cols-3 gap-5">
+        <SectionCard
+          title="Imagens por Contrato"
+          isEmpty={true}
+          emptyIcon={<ClipboardCheck className="w-10 h-10" />}
+          emptyText="Nenhum contrato vinculado"
+        />
+        <SectionCard
+          title="Equipamentos por Contrato"
+          isEmpty={true}
+          emptyIcon={<Radio className="w-10 h-10" />}
+          emptyText="Nenhum dado disponível"
+        />
+        <SectionCard
+          title="Confiança da IA"
+          isEmpty={true}
+          emptyIcon={<LayoutDashboard className="w-10 h-10" />}
+          emptyText="Sem dados de confiança"
+        />
+      </div>
     </div>
   );
 };
