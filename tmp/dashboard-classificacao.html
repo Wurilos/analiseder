@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Análise de Classificação de Infrações</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#0a0e1a; --bg2:#131827; --border:rgba(255,255,255,.1); 
+      --txt:#e0e6f0; --muted:rgba(255,255,255,.6); --muted2:rgba(255,255,255,.4);
+      --cyan:#00d4ff; --green:#00e38c; --amber:#ffb020; --red:#ff3b6b; --purple:#7c3aed;
+      --mono:'SF Mono','Monaco','Inconsolata','Fira Code',monospace;
+    }
+    *{margin:0; padding:0; box-sizing:border-box}
+    body{
+      font-family:system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--txt);
+      line-height:1.6; padding:20px
+    }
+    .container{max-width:1600px; margin:0 auto}
+    .header{text-align:center; margin-bottom:40px}
+    h1{
+      font-size:clamp(28px, 5vw, 42px); font-weight:800; margin-bottom:8px;
+      background:linear-gradient(135deg, var(--cyan), var(--purple)); 
+      -webkit-background-clip:text; background-clip:text; color:transparent
+    }
+    .subtitle{color:var(--muted); font-size:14px}
+    
+    .card{
+      background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+      padding:24px; margin-bottom:20px
+    }
+    
+    .upload{
+      border:2px dashed var(--border); text-align:center; padding:60px 24px;
+      cursor:pointer; transition:all .3s; margin-bottom:30px
+    }
+    .upload:hover{border-color:var(--cyan); background:rgba(0,212,255,.05)}
+    .upload h3{margin-bottom:8px; color:var(--cyan)}
+    .upload p{color:var(--muted); font-size:13px}
+    
+    .kpis{
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); 
+      gap:16px; margin-bottom:20px
+    }
+    .kpi{text-align:center; padding:20px}
+    .kpi .label{font-size:12px; color:var(--muted); text-transform:uppercase; 
+                 letter-spacing:.05em; margin-bottom:8px}
+    .kpi .value{font-size:32px; font-weight:900; font-family:var(--mono)}
+    .value.cyan{color:var(--cyan)}
+    .value.green{color:var(--green)}
+    .value.amber{color:var(--amber)}
+    .value.red{color:var(--red)}
+    
+    .btn{
+      background:rgba(255,255,255,.05); border:1px solid var(--border); color:var(--txt);
+      padding:10px 18px; border-radius:8px; cursor:pointer; font-size:13px;
+      font-family:inherit; transition:all .2s
+    }
+    .btn:hover{background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.3)}
+    .btn.primary{background:var(--cyan); color:#000; border-color:var(--cyan)}
+    .btn.primary:hover{background:#00b8e6}
+    
+    table{width:100%; border-collapse:collapse; font-size:13px}
+    th{
+      background:rgba(255,255,255,.03); padding:12px 10px; text-align:left;
+      font-weight:600; border-bottom:2px solid var(--border); position:sticky; top:0;
+      backdrop-filter:blur(10px); z-index:10
+    }
+    td{padding:10px; border-bottom:1px solid rgba(255,255,255,.05)}
+    tr:hover{background:rgba(255,255,255,.03)}
+    
+    .tag{
+      display:inline-block; padding:4px 10px; border-radius:6px; font-size:11px;
+      font-weight:600; font-family:var(--mono)
+    }
+    .tag.green{background:rgba(0,227,140,.2); color:var(--green)}
+    .tag.amber{background:rgba(255,176,32,.2); color:var(--amber)}
+    .tag.red{background:rgba(255,59,107,.2); color:var(--red)}
+    .tag.cyan{background:rgba(0,212,255,.2); color:var(--cyan)}
+    .tag.purple{background:rgba(124,58,237,.2); color:var(--purple)}
+    
+    .tableWrap{max-height:600px; overflow:auto; border-radius:8px}
+    .mono{font-family:var(--mono)}
+    
+    .pager{
+      display:flex; justify-content:space-between; align-items:center; 
+      padding:16px 0; margin-top:16px
+    }
+    .mini{font-size:12px; color:var(--muted)}
+    
+    .filters{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:16px}
+    .field{display:flex; flex-direction:column; gap:4px}
+    .field label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+    .field select, .field input{
+      border:1px solid var(--border); background:rgba(255,255,255,.03); color:var(--txt);
+      padding:8px 10px; border-radius:8px; font-size:13px; font-family:inherit
+    }
+    .field select option{background:var(--bg2); color:var(--txt); padding:8px}
+    
+    .chart{
+      background:rgba(255,255,255,.02); border-radius:8px; padding:16px; margin-top:16px
+    }
+    .chart-title{font-size:14px; font-weight:600; margin-bottom:12px; color:var(--muted)}
+    .bar-container{display:flex; align-items:center; gap:12px; margin-bottom:8px}
+    .bar-label{min-width:180px; font-size:12px; color:var(--txt)}
+    .bar-track{flex:1; height:24px; background:rgba(255,255,255,.05); border-radius:6px; overflow:hidden; position:relative}
+    .bar-fill{height:100%; transition:width .3s; display:flex; align-items:center; justify-content:flex-end; padding:0 8px}
+    .bar-value{font-size:11px; font-weight:700; font-family:var(--mono); color:#000}
+    
+    .resp-tag{
+      font-size:10px; padding:2px 6px; border-radius:4px; font-weight:600; margin-left:8px
+    }
+    .resp-splice{background:var(--purple); color:#fff}
+    .resp-der{background:var(--amber); color:#000}
+    
+    .pillbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:20px}
+    .pill{
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      padding:8px 16px; border-radius:20px; font-size:13px; display:flex; gap:8px; align-items:center
+    }
+    
+    .modalBack{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,.8); 
+      backdrop-filter:blur(4px); z-index:999; align-items:center; justify-content:center; padding:20px
+    }
+    .modal{
+      background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+      max-width:800px; width:100%; max-height:90vh; overflow-y:auto
+    }
+    .modalHead{
+      padding:24px; border-bottom:1px solid var(--border); display:flex; 
+      justify-content:space-between; align-items:flex-start; position:sticky; top:0;
+      background:var(--bg2); backdrop-filter:blur(10px); z-index:10
+    }
+    .modalHead h2{font-size:24px; margin-bottom:4px}
+    .modalHead p{font-size:13px; color:var(--muted)}
+    .close{
+      background:rgba(255,59,107,.2); border:1px solid var(--red); color:var(--red);
+      padding:8px 14px; border-radius:8px; cursor:pointer; font-size:12px; font-weight:600
+    }
+    .close:hover{background:rgba(255,59,107,.3)}
+    .modalBody{padding:24px}
+    .box{
+      background:rgba(255,255,255,.02); border:1px solid var(--border);
+      border-radius:12px; padding:16px; margin-bottom:16px
+    }
+    .box h4{margin-bottom:12px; font-size:14px; color:var(--cyan)}
+    
+    .layout{display:grid; grid-template-columns:1fr 300px; gap:20px; align-items:start}
+    .main-content{min-width:0}
+    
+    .sidebar{position:sticky; top:20px}
+    .ranking{
+      background:var(--bg2); border:1px solid var(--border); border-radius:12px;
+      padding:16px; margin-bottom:16px
+    }
+    .ranking h3{font-size:16px; margin-bottom:12px; color:var(--purple)}
+    .ranking-list{display:grid; gap:8px}
+    .ranking-item{
+      background:rgba(255,255,255,.02); border:1px solid var(--border);
+      border-radius:8px; padding:10px; cursor:pointer; transition:all .2s
+    }
+    .ranking-item:hover{background:rgba(255,255,255,.05); border-color:rgba(124,58,237,.5)}
+    .ranking-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px}
+    .ranking-position{
+      background:rgba(124,58,237,.2); color:var(--purple); font-weight:700;
+      font-size:11px; padding:2px 8px; border-radius:6px; font-family:var(--mono)
+    }
+    .ranking-value{font-weight:700; font-family:var(--mono); font-size:13px; color:var(--red)}
+    .ranking-equip{font-size:12px; font-weight:600; margin-bottom:2px}
+    .ranking-meta{font-size:10px; color:var(--muted2)}
+    
+    /* Gráficos Dashboard */
+    .dashboard-charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .chart-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    
+    .chart-title {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      text-align: center;
+    }
+    
+    .chart-main-value {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    
+    .chart-number {
+      font-size: 42px;
+      font-weight: 900;
+      font-family: var(--mono);
+      line-height: 1;
+    }
+    
+    .chart-label {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+    
+    .chart-bar {
+      margin-bottom: 16px;
+    }
+    
+    .chart-bar-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 12px;
+    }
+    
+    .chart-bar-label {
+      color: var(--txt);
+      font-weight: 600;
+    }
+    
+    .chart-bar-value {
+      font-family: var(--mono);
+      font-weight: 700;
+    }
+    
+    .chart-bar-track {
+      width: 100%;
+      height: 28px;
+      background: rgba(255,255,255,.05);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: 14px;
+      transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(0,0,0,.8);
+    }
+    
+    .chart-bar-fill.green {
+      background: linear-gradient(90deg, var(--green), #00ff9d);
+    }
+    
+    .chart-bar-fill.red {
+      background: linear-gradient(90deg, var(--red), #ff6b8f);
+    }
+    
+    .chart-bar-fill.purple {
+      background: linear-gradient(90deg, var(--purple), #9f5aff);
+    }
+    
+    .chart-bar-fill.amber {
+      background: linear-gradient(90deg, var(--amber), #ffc446);
+    }
+    
+    .chart-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .chart-stat {
+      text-align: center;
+    }
+    
+    .chart-stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      font-family: var(--mono);
+      line-height: 1;
+    }
+    
+    .chart-stat-label {
+      font-size: 11px;
+      color: var(--muted2);
+      margin-top: 4px;
+    }
+    
+    @media (max-width: 1200px) {
+      .layout{grid-template-columns:1fr; gap:20px}
+      .sidebar{position:relative; top:0}
+      .dashboard-charts {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📊 Análise de Classificação de Infrações</h1>
+      <p class="subtitle">Análise detalhada de infrações inválidas por motivo de classificação</p>
+    </div>
+
+    <div class="card upload" id="drop">
+      <h3>📂 Arraste a planilha de classificação aqui (ou clique)</h3>
+      <p>Arquivo: ClassificacaoInfracaoInvalida.xlsx</p>
+      <p style="margin-top:8px; font-size:12px; color:var(--muted2)">
+        <span class="resp-tag resp-splice">Splice</span> Imagem, Enquadramento, Sinalização de Trânsito
+        <span class="resp-tag resp-der">DER</span> Demais classificações
+      </p>
+    </div>
+    <input type="file" id="file" accept=".xlsx,.xls" style="display:none" />
+
+    <div id="dashboard" style="display:none">
+      
+      <div class="pillbar">
+        <div class="pill">
+          <span>Total de Equipamentos:</span>
+          <strong id="totalEquip">0</strong>
+        </div>
+        <button class="btn primary" id="btnExport">📥 Exportar Análise (CSV)</button>
+      </div>
+
+      <!-- Dashboard de Gráficos -->
+      <div class="dashboard-charts" id="dashboardCharts" style="display:none">
+        <!-- Gráfico 1: Visão Geral -->
+        <div class="chart-card">
+          <div class="chart-title">📊 Visão Geral do Contrato</div>
+          <div class="chart-main-value">
+            <div class="chart-number cyan" id="chartTotal">0</div>
+            <div class="chart-label">Total de Imagens</div>
+          </div>
+          <div class="chart-bar">
+            <div class="chart-bar-header">
+              <span class="chart-bar-label">✅ Válidas</span>
+              <span class="chart-bar-value green" id="chartValidasLabel">0</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill green" id="chartValidasBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="chart-bar">
+            <div class="chart-bar-header">
+              <span class="chart-bar-label">❌ Inválidas</span>
+              <span class="chart-bar-value red" id="chartInvalidasLabel">0</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill red" id="chartInvalidasBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico 2: Responsabilidade Splice -->
+        <div class="chart-card">
+          <div class="chart-title">🟣 Responsabilidade Splice</div>
+          <div class="chart-main-value">
+            <div class="chart-number purple" id="chartSpliceTotal">0</div>
+            <div class="chart-label">Infrações Splice</div>
+          </div>
+          <div class="chart-bar">
+            <div class="chart-bar-header">
+              <span class="chart-bar-label">% do Total</span>
+              <span class="chart-bar-value purple" id="chartSplicePercLabel">0%</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill purple" id="chartSpliceBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="chart-stats">
+            <div class="chart-stat">
+              <div class="chart-stat-value purple" id="chartSpliceImagemVal">0</div>
+              <div class="chart-stat-label">Imagem</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-value purple" id="chartSpliceEnqVal">0</div>
+              <div class="chart-stat-label">Enquadramento</div>
+            </div>
+            <div class="chart-stat" style="grid-column: 1 / -1;">
+              <div class="chart-stat-value purple" id="chartSpliceSinalVal">0</div>
+              <div class="chart-stat-label">Sinalização</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico 3: Responsabilidade DER -->
+        <div class="chart-card">
+          <div class="chart-title">🟡 Responsabilidade DER</div>
+          <div class="chart-main-value">
+            <div class="chart-number amber" id="chartDERTotal">0</div>
+            <div class="chart-label">Infrações DER</div>
+          </div>
+          <div class="chart-bar">
+            <div class="chart-bar-header">
+              <span class="chart-bar-label">% do Total</span>
+              <span class="chart-bar-value amber" id="chartDERPercLabel">0%</span>
+            </div>
+            <div class="chart-bar-track">
+              <div class="chart-bar-fill amber" id="chartDERBar" style="width:0%"></div>
+            </div>
+          </div>
+          <div class="chart-stats">
+            <div class="chart-stat">
+              <div class="chart-stat-value amber" id="chartDERAmbVal">0</div>
+              <div class="chart-stat-label">Ambiente</div>
+            </div>
+            <div class="chart-stat">
+              <div class="chart-stat-value amber" id="chartDERPlacaVal">0</div>
+              <div class="chart-stat-label">Placa</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="layout">
+        <div class="main-content">
+          <div class="card">
+            <h3 style="margin-bottom:16px">📋 Detalhes por Equipamento</h3>
+        
+        <div class="filters">
+          <div class="field">
+            <label>Rodovia</label>
+            <select id="fRodovia"><option value="">Todas</option></select>
+          </div>
+          <div class="field">
+            <label>Tipo</label>
+            <select id="fTipo"><option value="">Todos</option></select>
+          </div>
+          <div class="field">
+            <label>Responsabilidade</label>
+            <select id="fResp">
+              <option value="">Todas</option>
+              <option value="splice">Splice</option>
+              <option value="der">DER</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:220px">
+            <label>Buscar</label>
+            <input id="fSearch" type="text" placeholder="Equipamento, etc." />
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:16px">
+          <span style="font-size:12px; color:var(--muted)">Visualizar:</span>
+          <button class="btn" id="btnViewFaixa" style="padding:8px 14px; font-size:12px">Por Faixa</button>
+          <button class="btn" id="btnViewEquip" style="padding:8px 14px; font-size:12px">Por Equipamento</button>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Equipamento</th>
+                <th>Rodovia</th>
+                <th>Km</th>
+                <th>Faixa</th>
+                <th>Válidas</th>
+                <th>Inválidas</th>
+                <th>% Inválidas</th>
+                <th>% Inv. DER</th>
+                <th>% Inv. Splice</th>
+                <th>Maior Problema</th>
+                <th>Responsabilidade</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <div class="mini" id="pagerInfo">—</div>
+          <div style="display:flex; gap:10px">
+            <button class="btn" id="prev">◀</button>
+            <button class="btn" id="next">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:16px">📊 Distribuição de Problemas (Geral)</h3>
+        <div id="chartGeral"></div>
+      </div>
+    </div>
+
+    <!-- Sidebar com Rankings -->
+    <div class="sidebar">
+      <div class="ranking" id="rankingSpliceTotal" style="display:none">
+        <h3>🔴 Maiores Perdas Splice (Total)</h3>
+        <div class="ranking-list" id="rankingSpliceTotalList"></div>
+      </div>
+
+      <div class="ranking" id="rankingSplicePerc" style="display:none">
+        <h3>📊 Maiores Perdas Splice (%)</h3>
+        <div class="ranking-list" id="rankingSplicePercList"></div>
+      </div>
+    </div>
+  </div>
+
+    </div>
+
+  <!-- Modal Detalhes -->
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="modalHead">
+        <div>
+          <h2 id="mTitle">—</h2>
+          <p id="mSub">—</p>
+        </div>
+        <button class="close" onclick="closeModal()">Fechar</button>
+      </div>
+      <div class="modalBody">
+        
+        <div class="box">
+          <h4>📊 Resumo Geral</h4>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px">
+            <div>
+              <div class="mini">Infrações Válidas</div>
+              <div style="font-size:24px; font-weight:700; color:var(--green)" id="mValidas">—</div>
+            </div>
+            <div>
+              <div class="mini">Infrações Inválidas</div>
+              <div style="font-size:24px; font-weight:700; color:var(--red)" id="mInvalidas">—</div>
+            </div>
+            <div>
+              <div class="mini">% Inválidas</div>
+              <div style="font-size:24px; font-weight:700; color:var(--amber)" id="mPercInvalidas">—</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box">
+          <h4>🔍 Detalhamento por Motivo</h4>
+          <div id="mDetalhamento"></div>
+        </div>
+
+        <div class="box">
+          <h4>⚠️ Responsabilidade</h4>
+          <div id="mResponsabilidade"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+
+    const state = {
+      raw: [],
+      filtered: [],
+      page: 0,
+      pageSize: 25,
+      viewMode: 'faixa' // 'faixa' ou 'equipamento'
+    };
+
+    // Mapeamento de colunas
+    const COL_MAP = {
+      Operadora: 0,      // A
+      Rodovia: 2,        // C
+      Km: 3,             // D
+      Equipamento: 6,    // G
+      Tipo: 7,           // H
+      Faixa: 8,          // I
+      Validas: 9,        // J
+      // Motivos de classificação
+      Imagem: 10,        // K
+      Ambiente: 11,      // L
+      Enquadramento: 12, // M
+      SinalizacaoTransito: 13, // N
+      MudancaFaixa: 14,  // O
+      MaisVeiculos: 15,  // P
+      PlacaEstrangeira: 16, // Q
+      Placa: 17,         // R
+      VeiculoNaoEncontrado: 18, // S
+      MarcaModelo: 19    // T
+    };
+
+    // Classificação de responsabilidade
+    const SPLICE = ['Imagem', 'Enquadramento', 'SinalizacaoTransito'];
+    const DER = ['Ambiente', 'MudancaFaixa', 'MaisVeiculos', 'PlacaEstrangeira', 
+                 'Placa', 'VeiculoNaoEncontrado', 'MarcaModelo'];
+
+    const MOTIVOS = {
+      Imagem: 'Imagem',
+      Ambiente: 'Ambiente',
+      Enquadramento: 'Enquadramento',
+      SinalizacaoTransito: 'Sinalização de Trânsito',
+      MudancaFaixa: 'Mudança de Faixa',
+      MaisVeiculos: 'Mais de um Veículo',
+      PlacaEstrangeira: 'Placa Estrangeira',
+      Placa: 'Placa',
+      VeiculoNaoEncontrado: 'Veículo não encontrado',
+      MarcaModelo: 'Marca/Modelo ou Tipo'
+    };
+
+    function normStr(s){ return String(s||'').trim() }
+    function safeNum(v){ const n=Number(v); return isFinite(n)?n:null }
+    function fmt(n,d=0){ return n!==null?n.toFixed(d):'—' }
+
+    function groupByEquipment(rows) {
+      const groups = {};
+      
+      rows.forEach(r => {
+        const equip = normStr(r.Equipamento);
+        if (!equip) return;
+        
+        if (!groups[equip]) {
+          groups[equip] = {
+            Equipamento: equip,
+            Operadora: r.Operadora,
+            Rodovia: r.Rodovia,
+            Km: r.Km,
+            Tipo: r.Tipo,
+            faixas: [],
+            Validas: 0,
+            Motivos: {},
+            TotalInvalidas: 0,
+            Splice: 0,
+            DER: 0
+          };
+          
+          // Inicializar motivos
+          Object.keys(MOTIVOS).forEach(key => {
+            groups[equip].Motivos[key] = 0;
+          });
+        }
+        
+        const g = groups[equip];
+        g.faixas.push(r.Faixa);
+        g.Validas += r.Validas;
+        g.TotalInvalidas += r.TotalInvalidas;
+        g.Splice += r.Splice;
+        g.DER += r.DER;
+        
+        // Somar motivos
+        Object.keys(r.Motivos).forEach(key => {
+          g.Motivos[key] += r.Motivos[key];
+        });
+      });
+      
+      // Calcular estatísticas finais
+      return Object.values(groups).map(g => {
+        // Identificar maior problema
+        let maiorMotivo = null;
+        let maiorValor = 0;
+        Object.keys(g.Motivos).forEach(key => {
+          if (g.Motivos[key] > maiorValor) {
+            maiorValor = g.Motivos[key];
+            maiorMotivo = key;
+          }
+        });
+        
+        const total = g.Validas + g.TotalInvalidas;
+        
+        return {
+          ...g,
+          NumFaixas: g.faixas.length,
+          Faixa: g.faixas.join(', '),
+          PercInvalidas: total > 0 ? (g.TotalInvalidas / total) * 100 : 0,
+          PercDER: total > 0 ? (g.DER / total) * 100 : 0,
+          PercSplice: total > 0 ? (g.Splice / total) * 100 : 0,
+          MaiorMotivo: maiorMotivo,
+          MaiorValor: maiorValor,
+          RespPrincipal: g.Splice > g.DER ? 'Splice' : 'DER',
+          _isGrouped: true
+        };
+      });
+    }
+
+    $('drop').onclick = () => $('file').click();
+    $('file').onchange = e => { if(e.target.files[0]) parseFile(e.target.files[0]) };
+    
+    $('drop').ondragover = e => { e.preventDefault(); $('drop').style.borderColor='var(--cyan)' };
+    $('drop').ondragleave = () => { $('drop').style.borderColor='' };
+    $('drop').ondrop = e => {
+      e.preventDefault();
+      $('drop').style.borderColor='';
+      if(e.dataTransfer.files[0]) parseFile(e.dataTransfer.files[0]);
+    };
+
+    async function parseFile(file){
+      const buf = await file.arrayBuffer();
+      const wb = XLSX.read(buf, {type:'array'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
+      
+      // Dados começam na linha 5 (índice 4)
+      const dataStartRow = 4;
+      
+      const objs = rows.slice(dataStartRow).filter(row => {
+        return row[COL_MAP.Equipamento] && row[COL_MAP.Equipamento] !== '';
+      }).map(row => {
+        // Calcular totais
+        const validas = safeNum(row[COL_MAP.Validas]) || 0;
+        const motivos = {};
+        let totalInvalidas = 0;
+        
+        Object.keys(MOTIVOS).forEach(key => {
+          const val = safeNum(row[COL_MAP[key]]) || 0;
+          motivos[key] = val;
+          totalInvalidas += val;
+        });
+        
+        // Identificar maior problema
+        let maiorMotivo = null;
+        let maiorValor = 0;
+        Object.keys(motivos).forEach(key => {
+          if (motivos[key] > maiorValor) {
+            maiorValor = motivos[key];
+            maiorMotivo = key;
+          }
+        });
+        
+        // Calcular responsabilidades
+        const splice = SPLICE.reduce((sum, key) => sum + (motivos[key] || 0), 0);
+        const der = DER.reduce((sum, key) => sum + (motivos[key] || 0), 0);
+        
+        const total = validas + totalInvalidas;
+        
+        return {
+          Operadora: row[COL_MAP.Operadora],
+          Rodovia: row[COL_MAP.Rodovia],
+          Km: row[COL_MAP.Km],
+          Equipamento: row[COL_MAP.Equipamento],
+          Tipo: row[COL_MAP.Tipo],
+          Faixa: row[COL_MAP.Faixa],
+          Validas: validas,
+          Motivos: motivos,
+          TotalInvalidas: totalInvalidas,
+          PercInvalidas: total > 0 ? (totalInvalidas / total) * 100 : 0,
+          PercDER: total > 0 ? (der / total) * 100 : 0,
+          PercSplice: total > 0 ? (splice / total) * 100 : 0,
+          MaiorMotivo: maiorMotivo,
+          MaiorValor: maiorValor,
+          Splice: splice,
+          DER: der,
+          RespPrincipal: splice > der ? 'Splice' : 'DER'
+        };
+      });
+
+      state.raw = objs;
+      state.filtered = objs;
+      $('dashboard').style.display = 'block';
+      $('dashboardCharts').style.display = 'grid';
+      $('drop').style.display = 'none';
+      
+      updateViewButtons();
+      updateOptions();
+      applyFilters();
+      renderChartGeral();
+    }
+
+    function updateOptions(){
+      const rod = new Set(), tipo = new Set();
+      state.raw.forEach(r => {
+        const rodStr = normStr(r.Rodovia);
+        const tipoStr = normStr(r.Tipo);
+        if (rodStr) rod.add(rodStr);
+        if (tipoStr) tipo.add(tipoStr);
+      });
+      
+      const fill = (sel, values) => {
+        const prev = sel.value;
+        sel.innerHTML = '<option value="">Todos</option>';
+        [...values].filter(Boolean).sort().forEach(v=>{
+          const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+        });
+        sel.value = prev;
+      };
+      fill($('fRodovia'), rod);
+      fill($('fTipo'), tipo);
+    }
+
+    function applyFilters(){
+      const rod = $('fRodovia').value;
+      const tipo = $('fTipo').value;
+      const resp = $('fResp').value;
+      const q = normStr($('fSearch').value).toLowerCase();
+
+      let filtered = state.raw.filter(r=>{
+        if (rod && normStr(r.Rodovia) !== rod) return false;
+        if (tipo && normStr(r.Tipo) !== tipo) return false;
+        if (resp && r.RespPrincipal.toLowerCase() !== resp) return false;
+        if (q){
+          const hay = [r.Rodovia, r.Equipamento, r.Faixa].map(normStr).join(' ').toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      // Aplicar agrupamento se modo for 'equipamento'
+      if (state.viewMode === 'equipamento') {
+        filtered = groupByEquipment(filtered);
+      }
+
+      state.filtered = filtered;
+      state.page = 0;
+      render();
+      calcKPIs();
+      updateRankings();
+    }
+
+    $('fRodovia').onchange = applyFilters;
+    $('fTipo').onchange = applyFilters;
+    $('fResp').onchange = applyFilters;
+    $('fSearch').oninput = applyFilters;
+
+    $('btnViewFaixa').addEventListener('click', ()=>{
+      state.viewMode = 'faixa';
+      updateViewButtons();
+      applyFilters();
+    });
+
+    $('btnViewEquip').addEventListener('click', ()=>{
+      state.viewMode = 'equipamento';
+      updateViewButtons();
+      applyFilters();
+    });
+
+    function updateViewButtons() {
+      if (state.viewMode === 'faixa') {
+        $('btnViewFaixa').classList.add('primary');
+        $('btnViewEquip').classList.remove('primary');
+      } else {
+        $('btnViewFaixa').classList.remove('primary');
+        $('btnViewEquip').classList.add('primary');
+      }
+    }
+
+    function calcKPIs(){
+      $('totalEquip').textContent = state.filtered.length;
+      
+      const totValidas = state.filtered.reduce((sum, r) => sum + r.Validas, 0);
+      const totInvalidas = state.filtered.reduce((sum, r) => sum + r.TotalInvalidas, 0);
+      const totSplice = state.filtered.reduce((sum, r) => sum + r.Splice, 0);
+      const totDER = state.filtered.reduce((sum, r) => sum + r.DER, 0);
+      
+      // Calcular motivos Splice
+      const totImagem = state.filtered.reduce((sum, r) => sum + (r.Motivos?.Imagem || 0), 0);
+      const totEnq = state.filtered.reduce((sum, r) => sum + (r.Motivos?.Enquadramento || 0), 0);
+      const totSinal = state.filtered.reduce((sum, r) => sum + (r.Motivos?.SinalizacaoTransito || 0), 0);
+      
+      // Calcular motivos DER
+      const totAmbiente = state.filtered.reduce((sum, r) => sum + (r.Motivos?.Ambiente || 0), 0);
+      const totPlaca = state.filtered.reduce((sum, r) => sum + (r.Motivos?.Placa || 0), 0);
+      
+      const totGeral = totValidas + totInvalidas;
+      const percValidas = totGeral > 0 ? (totValidas / totGeral) * 100 : 0;
+      const percInvalidas = totGeral > 0 ? (totInvalidas / totGeral) * 100 : 0;
+      const percSplice = totGeral > 0 ? (totSplice / totGeral) * 100 : 0;
+      const percDER = totGeral > 0 ? (totDER / totGeral) * 100 : 0;
+      
+      // Atualizar Gráfico 1: Visão Geral
+      $('chartTotal').textContent = totGeral.toLocaleString('pt-BR');
+      $('chartValidasLabel').textContent = totValidas.toLocaleString('pt-BR') + ' (' + percValidas.toFixed(1) + '%)';
+      $('chartValidasBar').style.width = percValidas + '%';
+      $('chartInvalidasLabel').textContent = totInvalidas.toLocaleString('pt-BR') + ' (' + percInvalidas.toFixed(1) + '%)';
+      $('chartInvalidasBar').style.width = percInvalidas + '%';
+      
+      // Atualizar Gráfico 2: Splice
+      $('chartSpliceTotal').textContent = totSplice.toLocaleString('pt-BR');
+      $('chartSplicePercLabel').textContent = percSplice.toFixed(2) + '%';
+      $('chartSpliceBar').style.width = percSplice + '%';
+      $('chartSpliceImagemVal').textContent = totImagem.toLocaleString('pt-BR');
+      $('chartSpliceEnqVal').textContent = totEnq.toLocaleString('pt-BR');
+      $('chartSpliceSinalVal').textContent = totSinal.toLocaleString('pt-BR');
+      
+      // Atualizar Gráfico 3: DER
+      $('chartDERTotal').textContent = totDER.toLocaleString('pt-BR');
+      $('chartDERPercLabel').textContent = percDER.toFixed(2) + '%';
+      $('chartDERBar').style.width = percDER + '%';
+      $('chartDERAmbVal').textContent = totAmbiente.toLocaleString('pt-BR');
+      $('chartDERPlacaVal').textContent = totPlaca.toLocaleString('pt-BR');
+    }
+
+    function render(){
+      const start = state.page * state.pageSize;
+      const end = Math.min(start + state.pageSize, state.filtered.length);
+      const pageRows = state.filtered.slice(start, end);
+
+      $('pagerInfo').textContent = state.filtered.length
+        ? `Mostrando ${start+1}-${end} de ${state.filtered.length}`
+        : 'Nenhum resultado';
+
+      $('prev').disabled = state.page === 0;
+      $('next').disabled = end >= state.filtered.length;
+
+      const tb = $('tbody');
+      tb.innerHTML = '';
+      
+      pageRows.forEach(r=>{
+        const tr=document.createElement('tr');
+        tr.style.cursor='pointer';
+        tr.onclick = ()=>openModal(r);
+
+        const percInv = r.PercInvalidas;
+        const percCls = percInv > 20 ? 'red' : (percInv > 10 ? 'amber' : 'green');
+        
+        const percDER = r.PercDER || 0;
+        const percDERCls = percDER > 15 ? 'red' : (percDER > 8 ? 'amber' : 'green');
+        
+        const percSplice = r.PercSplice || 0;
+        const percSpliceCls = percSplice > 15 ? 'red' : (percSplice > 8 ? 'amber' : 'green');
+        
+        const maiorProblema = r.MaiorMotivo ? MOTIVOS[r.MaiorMotivo] : '—';
+        const respCls = r.RespPrincipal === 'Splice' ? 'purple' : 'amber';
+        
+        // Mostrar número de faixas se agrupado
+        const faixaDisplay = r._isGrouped 
+          ? `${r.NumFaixas} faixas (${r.Faixa})` 
+          : normStr(r.Faixa);
+
+        const cells = [
+          normStr(r.Equipamento),
+          normStr(r.Rodovia),
+          fmt(safeNum(r.Km), 1),
+          faixaDisplay,
+          r.Validas.toLocaleString('pt-BR'),
+          r.TotalInvalidas.toLocaleString('pt-BR'),
+          percInv.toFixed(1) + '%',
+          percDER.toFixed(1) + '%',
+          percSplice.toFixed(1) + '%',
+          maiorProblema,
+          r.RespPrincipal
+        ];
+
+        cells.forEach((c,i)=>{
+          const td=document.createElement('td');
+          if (i === 6) {
+            td.innerHTML = `<span class="tag ${percCls}">${c}</span>`;
+          } else if (i === 7) {
+            td.innerHTML = `<span class="tag ${percDERCls}">${c}</span>`;
+          } else if (i === 8) {
+            td.innerHTML = `<span class="tag ${percSpliceCls}">${c}</span>`;
+          } else if (i === 10) {
+            td.innerHTML = `<span class="tag ${respCls}">${c}</span>`;
+          } else {
+            td.textContent=c;
+          }
+          if ([2,4,5].includes(i)) td.classList.add('mono');
+          tr.appendChild(td);
+        });
+        tb.appendChild(tr);
+      });
+    }
+
+    $('prev').onclick = () => { if(state.page>0){ state.page--; render() }};
+    $('next').onclick = () => { 
+      if((state.page+1)*state.pageSize < state.filtered.length){ state.page++; render() }
+    };
+
+    function renderChartGeral(){
+      const totais = {};
+      Object.keys(MOTIVOS).forEach(key => {
+        totais[key] = state.raw.reduce((sum, r) => sum + r.Motivos[key], 0);
+      });
+      
+      const sorted = Object.entries(totais).sort((a, b) => b[1] - a[1]);
+      const max = sorted[0][1];
+      
+      const chartEl = $('chartGeral');
+      chartEl.innerHTML = '';
+      
+      sorted.forEach(([key, val]) => {
+        if (val === 0) return;
+        
+        const isResp = SPLICE.includes(key);
+        const color = isResp ? 'var(--purple)' : 'var(--amber)';
+        const width = (val / max) * 100;
+        
+        const container = document.createElement('div');
+        container.className = 'bar-container';
+        container.innerHTML = `
+          <div class="bar-label">
+            ${MOTIVOS[key]}
+            <span class="resp-tag ${isResp ? 'resp-splice' : 'resp-der'}">${isResp ? 'Splice' : 'DER'}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${width}%; background:${color}">
+              <span class="bar-value">${val.toLocaleString('pt-BR')}</span>
+            </div>
+          </div>
+        `;
+        chartEl.appendChild(container);
+      });
+      
+      updateRankings();
+    }
+
+    function updateRankings() {
+      // Usar dados filtrados, mas forçar modo equipamento se não estiver
+      let dados = state.filtered;
+      if (state.viewMode === 'faixa') {
+        dados = groupByEquipment(state.filtered);
+      }
+      
+      // Ranking por Total de Perdas Splice
+      const porTotal = [...dados]
+        .filter(r => r.Splice > 0)
+        .sort((a, b) => b.Splice - a.Splice)
+        .slice(0, 10);
+      
+      if (porTotal.length > 0) {
+        $('rankingSpliceTotal').style.display = 'block';
+        const listEl = $('rankingSpliceTotalList');
+        listEl.innerHTML = '';
+        
+        porTotal.forEach((r, idx) => {
+          const item = document.createElement('div');
+          item.className = 'ranking-item';
+          item.onclick = () => openModal(r);
+          
+          item.innerHTML = `
+            <div class="ranking-header">
+              <div class="ranking-position">#${idx + 1}</div>
+              <div class="ranking-value">${r.Splice.toLocaleString('pt-BR')}</div>
+            </div>
+            <div class="ranking-equip">${normStr(r.Equipamento)}</div>
+            <div class="ranking-meta">${normStr(r.Rodovia)} • ${r._isGrouped ? r.NumFaixas + ' faixas' : r.Faixa}</div>
+          `;
+          
+          listEl.appendChild(item);
+        });
+      } else {
+        $('rankingSpliceTotal').style.display = 'none';
+      }
+      
+      // Ranking por % de Perdas Splice
+      const porPerc = [...dados]
+        .filter(r => r.Splice > 0 && r.Validas > 0)
+        .map(r => ({
+          ...r,
+          PercSplice: (r.Splice / (r.Validas + r.TotalInvalidas)) * 100
+        }))
+        .sort((a, b) => b.PercSplice - a.PercSplice)
+        .slice(0, 10);
+      
+      if (porPerc.length > 0) {
+        $('rankingSplicePerc').style.display = 'block';
+        const listEl = $('rankingSplicePercList');
+        listEl.innerHTML = '';
+        
+        porPerc.forEach((r, idx) => {
+          const item = document.createElement('div');
+          item.className = 'ranking-item';
+          item.onclick = () => openModal(r);
+          
+          item.innerHTML = `
+            <div class="ranking-header">
+              <div class="ranking-position">#${idx + 1}</div>
+              <div class="ranking-value">${r.PercSplice.toFixed(1)}%</div>
+            </div>
+            <div class="ranking-equip">${normStr(r.Equipamento)}</div>
+            <div class="ranking-meta">${normStr(r.Rodovia)} • ${r.Splice} perdas</div>
+          `;
+          
+          listEl.appendChild(item);
+        });
+      } else {
+        $('rankingSplicePerc').style.display = 'none';
+      }
+    }
+
+    function openModal(row){
+      const faixaInfo = row._isGrouped 
+        ? `${row.NumFaixas} faixas (${row.Faixa})` 
+        : normStr(row.Faixa);
+      
+      $('mTitle').textContent = `${normStr(row.Equipamento)} - ${faixaInfo}`;
+      $('mSub').textContent = `${normStr(row.Rodovia)} • Km ${fmt(safeNum(row.Km), 1)}`;
+      
+      $('mValidas').textContent = row.Validas.toLocaleString('pt-BR');
+      $('mInvalidas').textContent = row.TotalInvalidas.toLocaleString('pt-BR');
+      $('mPercInvalidas').textContent = row.PercInvalidas.toFixed(1) + '%';
+      
+      // Detalhamento
+      const detEl = $('mDetalhamento');
+      detEl.innerHTML = '';
+      
+      const sorted = Object.entries(row.Motivos).sort((a, b) => b[1] - a[1]);
+      const max = sorted[0][1];
+      
+      sorted.forEach(([key, val]) => {
+        if (val === 0) return;
+        
+        const isResp = SPLICE.includes(key);
+        const color = isResp ? 'var(--purple)' : 'var(--amber)';
+        const width = max > 0 ? (val / max) * 100 : 0;
+        
+        const container = document.createElement('div');
+        container.className = 'bar-container';
+        container.innerHTML = `
+          <div class="bar-label">
+            ${MOTIVOS[key]}
+            <span class="resp-tag ${isResp ? 'resp-splice' : 'resp-der'}">${isResp ? 'Splice' : 'DER'}</span>
+          </div>
+          <div class="bar-track">
+            <div class="bar-fill" style="width:${width}%; background:${color}">
+              <span class="bar-value">${val}</span>
+            </div>
+          </div>
+        `;
+        detEl.appendChild(container);
+      });
+      
+      // Responsabilidade
+      const respEl = $('mResponsabilidade');
+      const totalResp = row.Splice + row.DER;
+      const percSplice = totalResp > 0 ? (row.Splice / totalResp) * 100 : 0;
+      const percDER = totalResp > 0 ? (row.DER / totalResp) * 100 : 0;
+      
+      respEl.innerHTML = `
+        <div style="display:grid; gap:12px">
+          <div class="bar-container">
+            <div class="bar-label">
+              <span class="resp-tag resp-splice">Splice</span>
+              ${percSplice.toFixed(1)}%
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${percSplice}%; background:var(--purple)">
+                <span class="bar-value">${row.Splice}</span>
+              </div>
+            </div>
+          </div>
+          <div class="bar-container">
+            <div class="bar-label">
+              <span class="resp-tag resp-der">DER</span>
+              ${percDER.toFixed(1)}%
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${percDER}%; background:var(--amber)">
+                <span class="bar-value">${row.DER}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      $('modalBack').style.display='flex';
+    }
+
+    function closeModal(){ $('modalBack').style.display='none' }
+
+    $('btnExport').onclick = () => {
+      let csv = 'Equipamento,Rodovia,Km,Faixa,Tipo,Validas,Invalidas,%Invalidas,%DER,%Splice,MaiorProblema,Splice,DER,RespPrincipal\n';
+      state.filtered.forEach(r => {
+        csv += `${r.Equipamento},${r.Rodovia},${r.Km},${r.Faixa},${r.Tipo},${r.Validas},${r.TotalInvalidas},${r.PercInvalidas.toFixed(2)},${r.PercDER.toFixed(2)},${r.PercSplice.toFixed(2)},${r.MaiorMotivo ? MOTIVOS[r.MaiorMotivo] : ''},${r.Splice},${r.DER},${r.RespPrincipal}\n`;
+      });
+      
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'analise-classificacao-infracoes.csv';
+      a.click();
+    };
+  </script>
+</body>
+</html>

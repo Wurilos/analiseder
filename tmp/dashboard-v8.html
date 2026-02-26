@@ -1,0 +1,2772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dashboard ID • Análise de Índices</title>
+
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root{
+      --bg0:#070A12; --bg1:#0D1221; --bg2:#121A2E; --bg3:#17213A;
+      --txt:#EAF2FF; --muted:#9FB0CC; --muted2:#6F82A6;
+      --border:rgba(255,255,255,.10);
+      --cyan:#00D4FF; --purple:#7C3AED; --red:#FF3B6B; --amber:#FFB020; --green:#00E38C;
+      --shadow: 0 18px 50px rgba(0,0,0,.55);
+      --glow: 0 0 28px rgba(0,212,255,.22);
+      --radius:18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:var(--sans); color:var(--txt);
+      background: radial-gradient(1200px 700px at 20% 30%, rgba(124,58,237,.18), transparent 50%),
+                  radial-gradient(1200px 700px at 80% 15%, rgba(0,212,255,.16), transparent 50%),
+                  linear-gradient(135deg, var(--bg0), #0B1020 60%, #0A0F1E);
+      min-height:100vh;
+    }
+    .container{
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:20px;
+      max-width:1800px;
+      margin:0 auto;
+      padding:32px 18px 64px;
+    }
+    .main{flex:1}
+    .sidebar{
+      position:sticky;
+      top:20px;
+      height:fit-content;
+      max-height:calc(100vh - 40px);
+      overflow-y:auto;
+    }
+    .topbar{
+      display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
+      margin-bottom:18px;
+    }
+    .brand{display:flex; flex-direction:column; gap:6px}
+    .brand h1{
+      margin:0;
+      font-size: clamp(22px, 3vw, 34px);
+      letter-spacing:-.02em;
+      background:linear-gradient(135deg, var(--cyan), var(--purple));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      font-weight:850;
+    }
+    .brand p{margin:0; color:var(--muted); font-size:14px}
+    .pillbar{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{
+      border:1px solid var(--border); background:rgba(255,255,255,.03);
+      padding:10px 12px; border-radius:999px; display:flex; gap:10px; align-items:center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+    }
+    .pill strong{font-family:var(--mono); font-size:12px}
+    .pill span{color:var(--muted); font-size:12px}
+    .btn{
+      border:1px solid var(--border);
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      color:var(--txt); padding:10px 12px; border-radius:12px;
+      cursor:pointer; transition:.18s transform,.18s border-color,.18s box-shadow,.18s background;
+      font-weight:650; font-size:14px;
+    }
+    .btn:hover{transform:translateY(-1px); border-color:rgba(0,212,255,.35); box-shadow:var(--glow)}
+    .btn:active{transform:translateY(0)}
+    .btn.primary{
+      border-color:rgba(0,212,255,.45);
+      background:linear-gradient(135deg, rgba(0,212,255,.22), rgba(124,58,237,.18));
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .upload{padding:22px; display:flex; flex-direction:column; gap:12px; margin: 14px 0 18px}
+    .drop{
+      border:2px dashed rgba(255,255,255,.14);
+      border-radius:20px; padding:26px;
+      background: radial-gradient(800px 200px at 15% 30%, rgba(0,212,255,.10), transparent 60%),
+                  radial-gradient(800px 200px at 85% 30%, rgba(124,58,237,.10), transparent 60%),
+                  rgba(255,255,255,.02);
+      cursor:pointer;
+      transition:.2s border-color,.2s transform,.2s box-shadow;
+    }
+    .drop:hover{
+      border-color:rgba(0,212,255,.45);
+      transform:translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0,212,255,.15);
+    }
+    .drop h3{margin:0 0 6px; font-size:18px}
+    .drop p{margin:0; color:var(--muted); font-size:13px}
+
+    .kpis{
+      display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin-bottom:18px;
+      display:none;
+    }
+    .kpi{padding:18px}
+    .kpi .label{font-size:12px; color:var(--muted); margin-bottom:8px; text-transform:uppercase; letter-spacing:.02em}
+    .kpi .value{font-size:32px; font-weight:800; font-family:var(--mono); line-height:1}
+    .kpi .value.red{color:var(--red)}
+    .kpi .value.amber{color:var(--amber)}
+    .kpi .value.green{color:var(--green)}
+    .kpi .value.cyan{color:var(--cyan)}
+    .kpi .sub{margin-top:6px; font-size:12px; color:var(--muted2)}
+
+    .panel{padding:0; display:none}
+    .panelHead{padding:20px; border-bottom:1px solid var(--border)}
+    .panelHead h3{margin:0 0 14px; font-size:20px; font-weight:700}
+    .filters{display:flex; gap:12px; flex-wrap:wrap}
+    .field{display:flex; flex-direction:column; gap:4px; min-width:120px}
+    .field label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.02em}
+    .field select, .field input{
+      border:1px solid var(--border); background:rgba(255,255,255,.03); color:var(--txt);
+      padding:8px 10px; border-radius:8px; font-size:13px; font-family:inherit;
+    }
+    .field select option{
+      background:var(--bg2);
+      color:var(--txt);
+      padding:8px;
+    }
+    .field select:focus, .field input:focus{outline:2px solid rgba(0,212,255,.4); outline-offset:2px}
+
+    .tableWrap{overflow-x:auto; max-height:500px}
+    table{width:100%; border-collapse:collapse; font-size:13px}
+    thead{background:rgba(255,255,255,.05); position:sticky; top:0; z-index:10}
+    th{text-align:left; padding:12px 14px; font-weight:650; color:var(--muted); text-transform:uppercase; font-size:11px; letter-spacing:.03em; border-bottom:1px solid var(--border)}
+    td{padding:12px 14px; border-bottom:1px solid var(--border)}
+    tbody tr{transition:.15s background}
+    tbody tr:hover{background:rgba(0,212,255,.05); cursor:pointer}
+    td.mono{font-family:var(--mono)}
+
+    .tag{
+      display:inline-block; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:700; text-transform:uppercase;
+    }
+    .tag.red{background:rgba(255,59,107,.22); color:var(--red); border:1px solid rgba(255,59,107,.4)}
+    .tag.amber{background:rgba(255,176,32,.22); color:var(--amber); border:1px solid rgba(255,176,32,.4)}
+    .tag.green{background:rgba(0,227,140,.22); color:var(--green); border:1px solid rgba(0,227,140,.4)}
+
+    .pager{display:flex; justify-content:space-between; align-items:center; padding:18px; border-top:1px solid var(--border)}
+    .mini{font-size:12px; color:var(--muted)}
+
+    .modalBack{
+      position:fixed; inset:0; background:rgba(0,0,0,.70); backdrop-filter:blur(6px);
+      display:none; align-items:center; justify-content:center; z-index:9999; padding:20px;
+    }
+    .modal{
+      background:linear-gradient(180deg, var(--bg2), var(--bg1));
+      border:1px solid var(--border); border-radius:var(--radius);
+      max-width:1200px; width:100%; max-height:90vh; overflow:auto;
+      box-shadow:0 30px 80px rgba(0,0,0,.6);
+    }
+    .modalHead{
+      padding:24px;
+      border-bottom:1px solid var(--border);
+      display:flex; justify-content:space-between; align-items:flex-start; gap:20px;
+    }
+    .modalHead h2{margin:0 0 6px; font-size:22px; line-height:1.3}
+    .modalHead p{margin:0; color:var(--muted); font-size:13px}
+    .legend{display:flex; gap:14px; margin-top:10px; font-size:12px; color:var(--muted)}
+    .legend .dot{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px}
+    .dot.red{background:var(--red)}
+    .dot.amber{background:var(--amber)}
+    .dot.green{background:var(--green)}
+    .close{
+      padding:10px 16px; border-radius:10px; border:1px solid var(--border);
+      background:rgba(255,255,255,.04); color:var(--txt); cursor:pointer; font-weight:650; font-size:13px;
+      transition:.18s all;
+    }
+    .close:hover{background:rgba(255,255,255,.08); border-color:rgba(0,212,255,.35)}
+
+    .modalBody{padding:24px}
+    .split{display:grid; grid-template-columns:1fr 1fr; gap:18px}
+    .box{
+      background:rgba(255,255,255,.03); border:1px solid var(--border); border-radius:12px; padding:18px;
+    }
+    .box h4{margin:0 0 12px; font-size:15px; font-weight:700}
+
+    .impactList{display:flex; flex-direction:column; gap:10px}
+    .impactItem{
+      background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:12px;
+    }
+    .impactTop{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
+    .impactTop strong{font-size:13px}
+    .impactTop span{font-size:11px; color:var(--muted); font-family:var(--mono)}
+    .impactNote{font-size:11px; color:var(--muted2); margin-top:8px; line-height:1.4}
+    .bar{
+      height:6px; background:rgba(255,255,255,.10); border-radius:3px; overflow:hidden; position:relative;
+    }
+    .bar .fill{
+      position:absolute; left:0; top:0; bottom:0; border-radius:3px; transition:width .3s;
+    }
+    .fill.red{background:linear-gradient(90deg, var(--red), #FF6B9D)}
+    .fill.amber{background:linear-gradient(90deg, var(--amber), #FFC857)}
+    .fill.green{background:linear-gradient(90deg, var(--green), #00FFAA)}
+
+    .ranking{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:20px;
+      box-shadow:var(--shadow);
+    }
+    .ranking h3{
+      margin:0 0 16px;
+      font-size:18px;
+      font-weight:700;
+      background:linear-gradient(135deg, var(--red), var(--amber));
+      -webkit-background-clip:text;
+      background-clip:text;
+      color:transparent;
+    }
+    .ranking-list{display:flex; flex-direction:column; gap:10px}
+    .ranking-item{
+      background:rgba(255,255,255,.02);
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:12px;
+      transition:.2s all;
+      cursor:pointer;
+    }
+    .ranking-item:hover{
+      background:rgba(255,59,107,.08);
+      border-color:rgba(255,59,107,.3);
+      transform:translateX(4px);
+    }
+    .ranking-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px}
+    .ranking-position{font-family:var(--mono); font-size:18px; font-weight:800; color:var(--red)}
+    .ranking-id{font-family:var(--mono); font-size:16px; font-weight:700; color:var(--red)}
+    .ranking-equip{font-size:13px; font-weight:650; color:var(--txt); margin-bottom:4px}
+    .ranking-meta{font-size:11px; color:var(--muted2)}
+
+    @media (max-width: 1200px) {
+      .container{grid-template-columns: 1fr}
+      .sidebar{position:relative; top:0; max-height:none}
+      .split{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="main">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Dashboard ID • Análise de Índices</h1>
+          <p>Mapeamento fixo de colunas</p>
+        </div>
+        <div class="pillbar">
+          <div class="pill">
+            <span>Meta do ID:</span>
+            <strong id="metaTxt">0.80</strong>
+            <button class="btn" id="btnMeta" style="padding:6px 10px; font-size:11px">Alterar</button>
+          </div>
+          <button class="btn" id="btnGerenciarValores" style="padding:8px 12px; font-size:12px">⚙️ Gerenciar Valores</button>
+          <button class="btn" id="btnExcecoes" style="padding:8px 12px; font-size:12px">📝 Exceções de Cobrança</button>
+          <button class="btn" id="btnExportarExcel" style="padding:8px 12px; font-size:12px; background:var(--green); color:#000">📊 Exportar Excel</button>
+          <button class="btn" id="btnToggleExec" style="padding:8px 12px; font-size:12px">👔 Visão Executiva</button>
+        </div>
+      </div>
+
+      <div class="card upload">
+        <div class="drop" id="drop">
+          <h3>📂 Arraste sua planilha aqui (ou clique)</h3>
+          <p>Mapeamento: ICId=W, ICIn=AA, IEVri=AG, IEVdt=AN, ILPd=AQ, ILPn=AT, IEF=AU, ICV=AX, IDF=BC, ID=BD</p>
+          <p style="margin-top:8px; font-size:12px; color:var(--muted2)">💰 Lotes pré-cadastrados: DR-01, DR-02, DR-05, DR-08, DR-10, DR-12, DR-14</p>
+        </div>
+        <input type="file" id="file" accept=".xlsx,.xls" style="display:none" />
+      </div>
+
+      <div class="kpis" id="kpis">
+        <div class="card kpi">
+          <div class="label">Total de linhas</div>
+          <div class="value cyan" id="kpiRows">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">ID médio</div>
+          <div class="value cyan" id="kpiAvgId">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Abaixo da meta</div>
+          <div class="value amber" id="kpiBelow">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">Pior ID</div>
+          <div class="value red" id="kpiWorst">—</div>
+        </div>
+      </div>
+
+      <div class="kpis" id="kpisFinanceiros" style="display:none">
+        <div class="card kpi">
+          <div class="label">💰 Valor Contratual Total</div>
+          <div class="value cyan" id="kpiValorTotal">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">💵 Valor a Receber</div>
+          <div class="value green" id="kpiValorReceber">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">💸 Desconto Total</div>
+          <div class="value red" id="kpiDescontoTotal">—</div>
+        </div>
+        <div class="card kpi">
+          <div class="label">📊 % Desconto Médio</div>
+          <div class="value amber" id="kpiPercDesconto">—</div>
+        </div>
+      </div>
+
+      <div class="card panel" id="panel" style="display:none">
+        <div class="panelHead">
+          <h3>Equipamentos</h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px">
+            <div class="filters">
+              <div class="field">
+                <label>Rodovia</label>
+                <select id="fRodovia"><option value="">Todas</option></select>
+              </div>
+              <div class="field">
+                <label>Tipo</label>
+                <select id="fTipo"><option value="">Todos</option></select>
+              </div>
+              <div class="field">
+                <label>Faixa</label>
+                <select id="fFaixa"><option value="">Todas</option></select>
+              </div>
+              <div class="field" style="min-width:220px">
+                <label>Buscar</label>
+                <input id="fSearch" type="text" placeholder="Equipamento, etc." />
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center">
+              <span style="font-size:12px; color:var(--muted)">Visualizar:</span>
+              <button class="btn" id="btnViewFaixa" style="padding:8px 14px; font-size:12px">Por Faixa</button>
+              <button class="btn" id="btnViewEquip" style="padding:8px 14px; font-size:12px">Por Equipamento</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Rodovia</th>
+                <th>Km</th>
+                <th>Equipamento</th>
+                <th>Faixa</th>
+                <th>ID</th>
+                <th>IEF</th>
+                <th>ICV</th>
+                <th>IDF</th>
+                <th>Maior Problema</th>
+                <th id="thValor" style="display:none">💰 Desconto</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pager">
+          <div class="mini" id="pagerInfo">—</div>
+          <div style="display:flex; gap:10px">
+            <button class="btn" id="prev">◀</button>
+            <button class="btn" id="next">▶</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DASHBOARD EXECUTIVO -->
+      <div id="dashboardExecutivo" style="display:none">
+        
+        <!-- Botão de Voltar -->
+        <div style="margin-bottom:20px">
+          <button class="btn" id="btnVoltarDetalhado" style="padding:10px 16px; font-size:14px">
+            ← Voltar para Visão Detalhada
+          </button>
+        </div>
+
+        <!-- Resumo Visual Grande -->
+        <div class="card" style="padding:40px; margin-bottom:20px; text-align:center">
+          <h2 style="margin:0 0 30px; font-size:clamp(24px, 4vw, 42px); background:linear-gradient(135deg, var(--cyan), var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent">
+            Resumo Executivo
+          </h2>
+          
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:24px">
+            <!-- Status Geral / ID Médio -->
+            <div style="text-align:center">
+              <div style="font-size:14px; color:var(--muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:.1em">ID Médio Geral</div>
+              <div id="execStatus" style="font-size:56px; font-weight:900; font-family:var(--mono); line-height:1">—</div>
+              <div style="font-size:12px; color:var(--muted2); margin-top:8px">meta: <span id="execMetaTxt">80%</span></div>
+            </div>
+            
+            <!-- Total Equipamentos -->
+            <div style="text-align:center">
+              <div style="font-size:14px; color:var(--muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:.1em">Equipamentos</div>
+              <div id="execTotal" style="font-size:56px; font-weight:900; font-family:var(--mono); line-height:1; color:var(--cyan)">—</div>
+              <div id="execTotalSub" style="font-size:12px; color:var(--muted2); margin-top:8px">—</div>
+            </div>
+            
+            <!-- Críticos -->
+            <div style="text-align:center">
+              <div style="font-size:14px; color:var(--muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:.1em">Críticos</div>
+              <div id="execCriticos" style="font-size:56px; font-weight:900; font-family:var(--mono); line-height:1; color:var(--red)">—</div>
+              <div style="font-size:12px; color:var(--muted2); margin-top:8px">abaixo da meta</div>
+            </div>
+            
+            <!-- Impacto Financeiro -->
+            <div style="text-align:center" id="execFinanceiroCard">
+              <div style="font-size:14px; color:var(--muted); margin-bottom:12px; text-transform:uppercase; letter-spacing:.1em">Desconto Total</div>
+              <div id="execDesconto" style="font-size:56px; font-weight:900; font-family:var(--mono); line-height:1; color:var(--red)">—</div>
+              <div style="font-size:12px; color:var(--muted2); margin-top:8px">perda mensal</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cards de Atenção -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:20px; margin-bottom:20px">
+          
+          <!-- Equipamentos Críticos -->
+          <div class="card" style="padding:24px">
+            <h3 style="margin:0 0 16px; font-size:18px; color:var(--red)">🔴 Equipamentos Críticos</h3>
+            <div id="execListaCriticos" style="max-height:300px; overflow-y:auto"></div>
+          </div>
+          
+          <!-- Principais Problemas -->
+          <div class="card" style="padding:24px">
+            <h3 style="margin:0 0 16px; font-size:18px; color:var(--amber)">⚠️ Principais Problemas</h3>
+            <div id="execProblemas"></div>
+          </div>
+          
+          <!-- Maiores Custos -->
+          <div class="card" style="padding:24px" id="execCustosCard">
+            <h3 style="margin:0 0 16px; font-size:18px; color:var(--purple)">💸 Maiores Custos</h3>
+            <div id="execCustos" style="max-height:300px; overflow-y:auto"></div>
+          </div>
+        </div>
+
+        <!-- Distribuição Visual -->
+        <div class="card" style="padding:24px">
+          <h3 style="margin:0 0 20px; font-size:20px">📊 Distribuição de Status</h3>
+          <div id="execDistribuicao" style="display:flex; gap:20px; flex-wrap:wrap"></div>
+        </div>
+
+        <!-- Perdas Totais por Sub-Índice -->
+        <div class="card" style="padding:24px; margin-top:20px">
+          <h3 style="margin:0 0 20px; font-size:20px">💰 Perdas Totais por Sub-Índice</h3>
+          <div style="font-size:12px; color:var(--muted2); margin-bottom:16px">
+            💡 Somatória das perdas de todos os equipamentos agrupadas por índice
+          </div>
+          <div style="background:rgba(255,176,32,.1); border-left:4px solid var(--amber); padding:12px; margin-bottom:16px; border-radius:6px">
+            <div style="font-size:11px; color:var(--amber); font-weight:600; margin-bottom:6px">⚠️ IMPORTANTE: Interpretação Correta</div>
+            <div style="font-size:11px; color:var(--muted); line-height:1.5">
+              Este total (<strong>soma das perdas individuais</strong>) é diferente do <strong>Desconto Total</strong> mostrado acima porque cada perda é calculada simulando "<em>se APENAS este índice fosse 100%</em>". 
+              Como os índices são interdependentes (especialmente no cálculo do IEF que usa produto), a soma das melhorias individuais <strong>não é aditiva</strong>. 
+              Use estes valores para <strong>priorizar ações</strong>, não como perda real total.
+            </div>
+          </div>
+          <div id="execPerdasPorIndice"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="ranking" id="ranking" style="display:none">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+          <h3 style="margin:0">🔴 Piores Valores</h3>
+        </div>
+        
+        <div class="field" style="margin-bottom:12px">
+          <label style="font-size:12px">Índice:</label>
+          <select id="rankingIndice" style="width:100%; padding:6px; border-radius:6px; background:rgba(255,255,255,.03); border:1px solid var(--border); color:var(--txt); font-size:12px">
+            <option value="ID">ID - Índice de Desempenho</option>
+            <option value="IEF">IEF - Eficiência dos Equipamentos</option>
+            <option value="ICV">ICV - Classificação de Veículos</option>
+            <option value="IDF">IDF - Disponibilidade Operacional</option>
+            <option value="ICId">ICId - Captura Imagens Diurnas</option>
+            <option value="ICIn">ICIn - Captura Imagens Noturnas</option>
+            <option value="IEVri">IEVri - Envio/Registro de Imagens</option>
+            <option value="IEVdt">IEVdt - Envio no Prazo</option>
+            <option value="ILPd">ILPd - Leitura Placas Diurna</option>
+            <option value="ILPn">ILPn - Leitura Placas Noturna</option>
+          </select>
+        </div>
+        
+        <div class="ranking-list" id="rankingList"></div>
+      </div>
+
+      <div class="ranking" id="rankingFinanceiro" style="display:none; margin-top:20px">
+        <h3>💸 Maiores Descontos</h3>
+        <div class="ranking-list" id="rankingFinanceiroList"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalBack" id="modalExcecoes" style="display:none">
+    <div class="modal" style="max-width:900px">
+      <div class="modalHead">
+        <div>
+          <h2>📝 Exceções de Cobrança</h2>
+          <p>Configure equipamentos que devem ser cobrados com valores diferentes do padrão</p>
+        </div>
+        <button class="close" id="closeExcecoes">Fechar</button>
+      </div>
+      <div class="modalBody">
+        
+        <!-- Lista de Exceções Cadastradas -->
+        <div class="box" id="boxExcecoesCadastradas" style="margin-bottom:20px">
+          <h4>📋 Exceções Cadastradas (<span id="countExcecoes">0</span>)</h4>
+          <div id="listaExcecoes" style="max-height:200px; overflow-y:auto"></div>
+        </div>
+
+        <!-- Adicionar Novas Exceções -->
+        <div class="box">
+          <h4>➕ Adicionar Exceções</h4>
+          
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:16px">
+            
+            <!-- Coluna Esquerda: Seleção de Equipamentos -->
+            <div>
+              <label style="display:block; margin-bottom:8px; font-weight:600">
+                <input type="checkbox" id="selecionarTodos" style="margin-right:6px">
+                Selecionar Todos
+              </label>
+              <div style="border:1px solid var(--border); border-radius:8px; padding:8px; background:rgba(255,255,255,.02); max-height:400px; overflow-y:auto">
+                <div id="listaEquipamentos"></div>
+              </div>
+              <div style="margin-top:8px; font-size:12px; color:var(--muted2)">
+                <span id="countSelecionados">0</span> equipamentos selecionados
+              </div>
+            </div>
+
+            <!-- Coluna Direita: Configuração de Cobrança -->
+            <div>
+              <h4 style="margin:0 0 12px">Cobrar Como:</h4>
+              
+              <div class="field">
+                <label>Tipo</label>
+                <select id="excecaoTipo">
+                  <option value="">-- Selecione --</option>
+                  <option value="CEC">CEC</option>
+                  <option value="CEV">CEV</option>
+                  <option value="REC">REC</option>
+                  <option value="REV">REV</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Quantidade de Faixas</label>
+                <select id="excecaoFaixas">
+                  <option value="">-- Selecione --</option>
+                  <option value="2">2 faixas</option>
+                  <option value="3">3 faixas</option>
+                  <option value="4">4 faixas</option>
+                </select>
+              </div>
+
+              <div style="margin-top:20px; padding:16px; background:rgba(0,212,255,.05); border:1px solid rgba(0,212,255,.2); border-radius:8px">
+                <div style="font-size:13px; color:var(--muted); margin-bottom:8px">💡 Exemplo:</div>
+                <div style="font-size:12px; color:var(--txt)">
+                  Equipamento <strong>CEC250136</strong> é <strong>REC 2 faixas</strong><br>
+                  mas será cobrado como <strong>REC 4 faixas</strong>
+                </div>
+              </div>
+
+              <button class="btn primary" id="btnAplicarExcecoes" style="width:100%; margin-top:20px; padding:12px">
+                Aplicar Exceções aos Selecionados
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modalBack" id="modalValores" style="display:none">
+    <div class="modal">
+      <div class="modalHead">
+        <div>
+          <h2>⚙️ Gerenciar Tabela de Valores</h2>
+          <p>Configure os valores contratuais por lote, tipo e quantidade de faixas</p>
+        </div>
+        <button class="close" id="closeValores">Fechar</button>
+      </div>
+      <div class="modalBody">
+        <div class="box">
+          <h4>Lotes Cadastrados</h4>
+          <div id="lotesLista" style="display:grid; gap:14px"></div>
+          
+          <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border)">
+            <h4>Adicionar Novo Valor</h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:12px; margin-top:12px">
+              <div class="field">
+                <label>Lote (ex: DR-08)</label>
+                <input id="novoLote" type="text" placeholder="DR-08" />
+              </div>
+              <div class="field">
+                <label>Tipo</label>
+                <select id="novoTipo">
+                  <option value="CEC">CEC</option>
+                  <option value="CEV">CEV</option>
+                  <option value="REC">REC</option>
+                  <option value="REV">REV</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Faixas</label>
+                <input id="novoFaixas" type="number" min="1" max="10" value="2" />
+              </div>
+              <div class="field">
+                <label>Valor (R$)</label>
+                <input id="novoValor" type="number" step="0.01" placeholder="5000.00" />
+              </div>
+            </div>
+            <button class="btn primary" id="btnAdicionarValor" style="margin-top:12px">Adicionar Valor</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modalBack" id="modalBack">
+    <div class="modal">
+      <div class="modalHead">
+        <div>
+          <h2 id="mTitle">—</h2>
+          <p id="mSub">—</p>
+          <div class="legend">
+            <span><span class="dot red"></span>Crítico (&lt; meta)</span>
+            <span><span class="dot amber"></span>Atenção</span>
+            <span><span class="dot green"></span>OK</span>
+          </div>
+        </div>
+        <button class="close" id="mClose">Fechar</button>
+      </div>
+      <div class="modalBody">
+        <div class="split">
+          <div class="box">
+            <h4>Componentes do IEF</h4>
+            <div class="impactList" id="iefComponents"></div>
+          </div>
+
+          <div class="box">
+            <h4>Índices Principais</h4>
+            <div class="impactList">
+              <div class="impactItem">
+                <div class="impactTop">
+                  <strong>IEF</strong>
+                  <span id="iefVal">—</span>
+                </div>
+                <div class="bar"><div class="fill green" id="iefBar" style="width:0%"></div></div>
+                <div class="impactNote">IEF combina eficiência de leitura de placas e envio/registro de imagens.</div>
+              </div>
+              <div class="impactItem">
+                <div class="impactTop">
+                  <strong>ICV</strong>
+                  <span id="icvVal">—</span>
+                </div>
+                <div class="bar"><div class="fill green" id="icvBar" style="width:0%"></div></div>
+                <div class="impactNote">ICV vem de QVc/QVt (contagem de veículos válida vs total).</div>
+              </div>
+              <div class="impactItem">
+                <div class="impactTop">
+                  <strong>IDF</strong>
+                  <span id="idfVal">—</span>
+                </div>
+                <div class="bar"><div class="fill green" id="idfBar" style="width:0%"></div></div>
+                <div class="impactNote">IDF vem de NHo/NHt (horas operacionais vs. horas previstas).</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="box" style="margin-top:18px">
+          <h4>📉 Análise de Impacto no ID</h4>
+          <div id="impactAnalysis"></div>
+          <div style="margin-top:12px; font-size:11px; color:var(--muted2); line-height:1.5">
+            Mostra quanto cada índice está reduzindo o ID final. Quanto maior o impacto, mais prioritário é melhorar esse índice.
+          </div>
+        </div>
+
+        <div class="box" style="margin-top:18px">
+          <h4>💰 Impacto Financeiro</h4>
+          <div id="impactoFinanceiro"></div>
+        </div>
+
+        <div class="box" style="margin-top:18px">
+          <h4>ID Final</h4>
+          <div class="impactItem">
+            <div class="impactTop">
+              <strong>Índice de Disponibilidade</strong>
+              <span id="idVal" style="font-size:18px">—</span>
+            </div>
+            <div class="bar"><div class="fill green" id="idBar" style="width:0%"></div></div>
+            <div style="margin-top:10px; font-size:11px; color:var(--muted2)">
+              Meta atual: <strong id="metaDisplay">80%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    raw: [],
+    filtered: [],
+    page: 0,
+    pageSize: 25,
+    meta: 0.80,
+    viewMode: 'faixa', // 'faixa' ou 'equipamento'
+    dashboardMode: 'detalhado', // 'detalhado' ou 'executivo'
+    rankingIndice: 'ID', // Índice selecionado para ranking
+    // TABELA DE VALORES CONTRATUAIS POR EQUIPAMENTO
+    // Extraído da planilha Analise_de_IDl.xlsx
+    valoresContratuais: {
+      'CEC250182': 8964.77,
+      'CEV250390': 5999.63,
+      'REV250052': 7587.79,
+      'REV250055': 7587.79,
+      'CEV250253': 11598.5,
+      'CEV250254': 11598.5,
+      'CEC250123': 17355.47,
+      'CEV250281': 11598.5,
+      'CEV250255': 11598.5,
+      'CEC250124': 8964.77,
+      'CEV250258': 11598.5,
+      'CEV250338': 5999.63,
+      'CEC260191': 8964.77,
+      'CEC250156': 8964.77,
+      'CEV250259': 5999.63,
+      'CEC250184': 8964.77,
+      'CEV250260': 11598.5,
+      'CEV250285': 5999.63,
+      'CEV250188': 11598.5,
+      'CEV250289': 5999.63,
+      'CEV250261': 5999.63,
+      'CEV250262': 11598.5,
+      'CEV250263': 11598.5,
+      'CEV250290': 8955.28,
+      'CEV250283': 5999.63,
+      'CEC250185': 13315.86,
+      'CEV250152': 5116.21,
+      'CEV250287': 5116.21,
+      'CEV250257': 5116.21,
+      'CEV250286': 5116.21,
+      'CEV250256': 5116.21,
+      'CEV250277': 5116.21,
+      'CEV250276': 8496.36,
+      'CEV250274': 5116.21,
+      'CEV250340': 5116.21,
+      'CEV250148': 5116.21,
+      'CEV250288': 5116.21,
+      'CEV250149': 5116.21,
+      'CEV250150': 8496.36,
+      'CEV250339': 8496.36,
+      'CEC250073': 11186.88,
+      'CEV250391': 8496.36,
+      'CEV250282': 11075.66,
+      'CEV250146': 11075.66,
+      'CEC250074': 9304.23,
+      'CEC250138': 9304.23,
+      'CEC250127': 9304.23,
+      'CEC250181': 9304.23,
+      'CEC250125': 9304.23,
+      'CEC250134': 9304.23,
+      'CEC250106': 11186.88,
+      'CEV250341': 5116.21,
+      'CEC250131': 11186.88,
+      'CEC250187': 11186.88,
+      'CEC250136': 11186.88,
+      'CEC250126': 11186.88,
+      'CEC250132': 11186.88,
+      'CEV250151': 5669.67,
+      'CEV250127': 5669.67,
+      'CEV250122': 7907.77,
+      'CEV250128': 7907.77,
+      'CEV250123': 5669.67,
+      'CEV250248': 10521.82,
+      'CEV250153': 10521.82,
+      'CEV250129': 7907.77,
+      'CEV250216': 8137.63,
+      'CEV250217': 5669.67,
+      'CEV250130': 7907.77,
+      'CEV250131': 5669.67,
+      'CEV250218': 5669.67,
+      'CEV250229': 7907.77,
+      'CEC250070': 7907.77,
+      'CEV250219': 5669.67,
+      'CEV250220': 5669.67,
+      'CEV250140': 7907.77,
+      'CEV250381': 5669.67,
+      'CEV250371': 5669.67,
+      'CEV250138': 5669.67,
+      'CEV250249': 5669.67,
+      'CEV250132': 7907.77,
+      'CEV250382': 7907.77,
+      'CEV250222': 7907.77,
+      'CEV250223': 5669.67,
+      'CEV250133': 5669.67,
+      'CEV250147': 5669.67,
+      'CEV250230': 7907.77,
+      'CEV250224': 5669.67,
+      'CEV250239': 5669.67,
+      'CEV250134': 5669.67,
+      'CEV250135': 5669.67,
+      'CEV250136': 5669.67,
+      'CEV250137': 5669.67,
+      'CEV250124': 5669.67,
+      'CEV250125': 5669.67,
+      'CEV250225': 5669.67,
+      'CEV250226': 5669.67,
+      'CEV250240': 7907.77,
+      'CEV250241': 7907.77,
+      'CEC250121': 7907.77,
+      'CEV250139': 5669.67,
+      'CEV250221': 5669.67,
+      'REV250005': 5398.54,
+      'REV250006': 5398.54,
+      'CEV250043': 4271.97,
+      'CEV250011': 4271.97,
+      'CEV250060': 8507.69,
+      'CEV250044': 4271.97,
+      'CEV250045': 4271.97,
+      'CEV250046': 4271.97,
+      'CEV250042': 4271.97,
+      'CEV250047': 4271.97,
+      'CEC250025': 6256.77,
+      'CEV250048': 4271.97,
+      'CEV250144': 4271.97,
+      'CEC250027': 6256.77,
+      'CEC250114': 6256.77,
+      'CEC250028': 6256.77,
+      'CEC250029': 6256.77,
+      'CEC250039': 6256.77,
+      'CEV250114': 4271.97,
+      'CEV250214': 8507.69,
+      'CEV250049': 4271.97,
+      'CEV250062': 9342.62,
+      'CEV250063': 4271.97,
+      'CEV250066': 4271.97,
+      'CEV250064': 4271.97,
+      'CEC250033': 6256.77,
+      'CEV250065': 4271.97,
+      'CEC250034': 6256.77,
+      'CEC250032': 6256.77,
+      'CEC250040': 4271.97,
+      'CEC250072': 6256.77,
+      'CEC250035': 6256.77,
+      'CEC250041': 9342.62,
+      'CEV250073': 6262.15,
+      'CEC250105': 6256.77,
+      'CEC250115': 9342.62,
+      'CEC250117': 9342.62,
+      'CEC250116': 6256.77,
+      'CEC250036': 6256.77,
+      'CEV250067': 4271.97,
+      'CEC250042': 6256.77,
+      'CEV250068': 4271.97,
+      'CEC250037': 6256.77,
+      'CEV250069': 4271.97,
+      'CEC250043': 12075.53,
+      'CEV250116': 4271.97,
+      'CEC250044': 6256.77,
+      'CEC250038': 6256.77,
+      'CEC250075': 6256.77,
+      'CEV250070': 4271.97,
+      'CEV250071': 4271.97,
+      'CEV250392': 3503.92,
+      'CEV250383': 3503.92,
+      'CEV250142': 5112.5,
+      'REV250073': 4402.26,
+      'REV250053': 4402.26,
+      'REV250054': 4104.32,
+      'CEV250384': 3503.92,
+      'CEV250385': 3503.92,
+      'CEV250264': 3503.92,
+      'REV250083': 4104.32,
+      'REV250074': 4104.32,
+      'CEV250342': 5129.44,
+      'REC250005': 9115.08,
+      'REV260103': 8758.11,
+      'REV250058': 8758.11,
+      'REV250086': 8758.11,
+      'REV250059': 8758.11,
+      'REV250041': 8758.11,
+      'REC250010': 13017.72,
+      'CEV250445': 5129.44,
+      'CEC250159': 5112.5,
+      'CEC250188': 5112.5,
+      'CEV250242': 3503.92,
+      'CEV250353': 3503.92,
+      'REV250069': 4104.32,
+      'CEC250180': 5112.5,
+      'CEV250388': 3503.92,
+      'CEC250130': 5112.5,
+      'CEV250355': 3503.92,
+      'REV250090': 8758.11,
+      'REV250071': 8758.11,
+      'REC250011': 9115.08,
+      'CEC250176': 5112.5,
+      'REC250015': 6908.24,
+      'REV250062': 4104.32,
+      'CEV250356': 3503.92,
+      'CEV250243': 3503.92,
+      'CEV250245': 3503.92,
+      'CEV250265': 3503.92,
+      'CEC250178': 5112.5,
+      'CEV250366': 4104.32,
+      'REV250067': 4104.32,
+      'CEV250141': 3503.92,
+      'CEC250071': 12384.76,
+      'CEV250397': 3503.92,
+      'CEV250380': 3503.92,
+      'CEV250369': 5129.44,
+      'REV250082': 4104.32,
+      'CEV250405': 5129.44,
+      'REV250065': 8758.11,
+      'REC250009': 13017.72,
+      'REV250088': 8758.11,
+      'REV250066': 6617.23,
+      'REV250039': 4406.21,
+      'CEV250266': 5129.44,
+      'CEV250370': 5129.44,
+      'CEV250399': 6908.63,
+      'REC250014': 13017.72,
+      'CEV250407': 5129.44,
+      'CEV250372': 3503.92,
+      'REC250013': 6908.24,
+      'REV250081': 4104.32,
+      'REC250012': 6908.24,
+      'CEC250186': 5112.5,
+      'CEV250386': 5129.44,
+      'CEV250387': 5129.44,
+      'CEV260449': 5129.44,
+      'REV250060': 4104.32,
+      'CEV250403': 5129.44,
+      'REV250061': 8758.11,
+      'CEV250375': 3503.92,
+      'CEV250389': 3503.92,
+      'CEV250364': 3503.92,
+      'CEC250167': 5112.5,
+      'CEV250376': 3503.92,
+      'CEC250177': 5112.5,
+      'REV250085': 4104.32,
+      'REV250077': 4402.26,
+      'CEV250377': 3503.92,
+      'REV250098': 6617.23,
+      'CEC250162': 5112.5,
+      'REV250093': 4104.32,
+      'CEV250378': 5129.44,
+      'REV250063': 4104.32,
+      'REV250092': 4104.32,
+      'CEV250395': 5129.44,
+      'REV250068': 8758.11,
+      'REV250078': 8758.11,
+      'CEV250379': 3503.92,
+      'CEV250368': 5129.44,
+      'CEV250398': 5129.44,
+      'REV250089': 4402.26,
+      'REV250080': 8758.11,
+      'CEV250400': 5129.44,
+      'REV250064': 4104.32,
+      'CEV260450': 3503.92,
+      'REV250072': 8758.11,
+      'REV250091': 4104.32,
+      'REV250094': 8758.11,
+      'REV250079': 8758.11,
+      'REV250097': 8758.11,
+      'REV250095': 8758.11,
+      'CEV250393': 5129.44,
+      'REV250056': 8758.11,
+      'REV250057': 8758.11,
+      'REV250075': 8758.11,
+      'CEC250160': 5112.5,
+      'REV250084': 8758.11,
+      'REV250070': 8758.11,
+      'REV250087': 8758.11,
+      'CEV250446': 3503.92,
+      'CEV250358': 3503.92,
+      'CEV250402': 7635.02,
+      'CEV260451': 5129.44,
+      'CEV250447': 5129.44,
+      'CEC250189': 7635.02,
+      'REV250096': 4402.26,
+      'REV260102': 4406.21,
+      'CEV250406': 5129.44,
+      'CEV250367': 3503.92,
+      'CEV250373': 3503.92,
+      'REV250076': 4104.32,
+      'CEV250001': 6908.63,
+      'CEV250003': 3467.24,
+      'CEC250001': 3467.24,
+      'CEC250056': 5067.08,
+      'CEV250004': 3467.24,
+      'CEV250005': 3467.24,
+      'CEC250002': 5067.08,
+      'CEV250006': 3467.24,
+      'CEC250113': 5067.08,
+      'REV250007': 4406.21,
+      'CEV250337': 3467.24,
+      'REV250008': 6617.23,
+      'CEV250090': 3467.24,
+      'CEC250004': 5067.08,
+      'REV250011': 4104.32,
+      'REV250009': 4104.32,
+      'CEV250227': 3467.24,
+      'CEV250092': 3467.24,
+      'REC250002': 6574.37,
+      'CEV250091': 3467.24,
+      'REC250001': 6574.37,
+      'REV250010': 4406.21,
+      'CEC250057': 9872.34,
+      'CEV250093': 3467.24,
+      'CEV250112': 6908.63,
+      'CEV250094': 3467.24,
+      'CEV250072': 3467.24,
+      'REV250013': 4406.21,
+      'REV250012': 4406.21,
+      'CEV250095': 3467.24,
+      'CEV250096': 3467.24,
+      'CEV250097': 3467.24,
+      'CEC250064': 7635.02,
+      'CEC250048': 5067.08,
+      'CEC250058': 5067.08,
+      'CEV250117': 3467.24,
+      'CEV250098': 3467.24,
+      'CEC250050': 3467.24,
+      'CEV250099': 3467.24,
+      'CEC250049': 5067.08,
+      'CEC250059': 5067.08,
+      'CEV250102': 3467.24,
+      'CEV250100': 3467.24,
+      'CEV250101': 3467.24,
+      'CEV250085': 3467.24,
+      'CEC250060': 5067.08,
+      'CEV250103': 3467.24,
+      'CEC250063': 5067.08,
+      'CEV250104': 3467.24,
+      'CEV250105': 3467.24,
+      'CEV250106': 3467.24,
+      'REV250014': 4104.32,
+      'CEC250061': 5067.08,
+      'CEC250026': 5067.08,
+      'CEC250066': 5067.08,
+      'CEC250065': 5067.08,
+      'CEC250062': 5067.08,
+      'CEV250107': 3467.24,
+      'CEV250110': 3467.24,
+      'CEV250108': 6908.63,
+      'CEC250067': 5067.08,
+      'CEV250118': 3467.24,
+      'CEV250083': 3467.24,
+      'CEV250084': 6908.63,
+      'CEC250055': 9872.34,
+      'CEV250109': 3467.24,
+      'CEV250119': 3467.24,
+      'REC250003': 13017.72,
+      'CEC250069': 5067.08,
+      'CEV250120': 3467.24,
+      'CEV250121': 3467.24,
+      'CEC250101': 6362.24,
+      'CEV250143': 4343.22,
+      'CEV250173': 4343.22,
+      'CEV250174': 4343.22,
+      'CEV250330': 8604.09,
+      'REC250008': 10635.39,
+      'CEV250331': 4343.22,
+      'CEC250153': 9483.69,
+      'CEV250334': 4343.22,
+      'REV250050': 5482.87,
+      'REV250020': 5482.87,
+      'REV250044': 5482.87,
+      'REV250049': 5482.87,
+      'CEV250145': 4343.22,
+      'REV250042': 5482.87,
+      'CEV250352': 8604.09,
+      'REV250021': 5482.87,
+      'CEC250068': 6362.24,
+      'CEV250111': 4343.22,
+      'CEC250154': 6362.24,
+      'CEV250332': 4343.22,
+      'CEV250333': 4343.22,
+      'CEV250335': 4343.22,
+      'REV250051': 5121.02,
+      'CEV250269': 4343.22,
+      'CEV250284': 4343.22,
+      'CEV250215': 4343.22,
+      'CEV250278': 4343.22,
+      'CEV250271': 6298.43,
+      'REC250004': 8470.37,
+      'REV250018': 5121.02,
+      'REV250019': 5121.02,
+      'CEV250272': 4343.22,
+      'CEV250273': 4343.22,
+      'CEV250178': 4343.22,
+      'REV250043': 5121.02,
+      'REV250045': 6362.24,
+      'CEC250155': 6362.24,
+      'CEV250189': 4343.22,
+      'REV250016': 5121.02,
+      'CEV250270': 4343.22,
+      'CEV250279': 4343.22,
+      'REV250017': 5121.02,
+      'CEV250336': 4343.22
+    },
+    // Exceções de cobrança: { equipamento: { tipo: 'REC', faixas: 4 } }
+    excecoes: {}
+  };
+
+  // Mapeamento fixo de colunas (base 0)
+  // Nova estrutura: Rodovia=B, Km=C, Equipamento=F, Tipo=G, Faixa=H
+  const COL_MAP = {
+    Operadora: 0,   // A (para extrair lote)
+    Rodovia: 1,     // B
+    Km: 2,          // C
+    Equipamento: 5, // F
+    Tipo: 6,        // G
+    Faixa: 7,       // H
+    ICId: 22,       // W
+    ICIn: 26,       // AA
+    IEVri: 32,      // AG
+    IEVdt: 39,      // AN
+    ILPd: 42,       // AQ
+    ILPn: 45,       // AT
+    IEF: 46,        // AU
+    ICV: 49,        // AX
+    IDF: 54,        // BC
+    ID: 55          // BD
+  };
+
+  function pct(n){
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return (Number(n)*100).toFixed(1) + '%';
+  }
+  
+  function fmt(n, digits=2){
+    if (n === null || n === undefined || isNaN(n)) return '—';
+    return Number(n).toFixed(digits);
+  }
+
+  function normStr(v){ return (v ?? '').toString().trim(); }
+  
+  function safeNum(v){
+    if (v === null || v === undefined || v === '') return null;
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    const s = (''+v).replace(',', '.').replace(/[^0-9.\-]/g,'');
+    const n = Number(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function statusByMeta(v){
+    if (v === null || v === undefined) return {cls:'cyan', tag:'Sem dado'};
+    if (v < state.meta) return {cls:'red', tag:'Crítico'};
+    if (v < state.meta + 0.08) return {cls:'amber', tag:'Atenção'};
+    return {cls:'green', tag:'OK'};
+  }
+
+  function updateOptions(){
+    const rod = new Set(), tipo = new Set(), faixa = new Set();
+    state.raw.forEach(r => {
+      const rodStr = normStr(r.Rodovia);
+      const tipoStr = normStr(r.Tipo);
+      const faixaStr = normStr(r.Faixa);
+      
+      if (rodStr) rod.add(rodStr);
+      if (tipoStr) tipo.add(tipoStr);
+      if (faixaStr) faixa.add(faixaStr);
+    });
+    
+    const fill = (sel, values) => {
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">Todos</option>';
+      [...values].filter(Boolean).sort().forEach(v=>{
+        const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+      });
+      sel.value = prev;
+    };
+    fill($('fRodovia'), rod);
+    fill($('fTipo'), tipo);
+    fill($('fFaixa'), faixa);
+  }
+
+  function renderDashboardExecutivo() {
+    // Usar dados filtrados mas em modo equipamento
+    let dados = state.filtered;
+    if (state.viewMode === 'faixa') {
+      // Forçar agrupamento temporário para dashboard executivo
+      dados = groupByEquipment(state.filtered);
+    }
+
+    const ids = dados.map(r => safeNum(r.ID)).filter(v => v !== null);
+    const avg = ids.length ? ids.reduce((a,b)=>a+b,0)/ids.length : null;
+    const criticos = dados.filter(r => safeNum(r.ID) !== null && safeNum(r.ID) < state.meta);
+    
+    // Status Geral
+    const statusCor = avg >= state.meta ? 'green' : (avg >= state.meta - 0.1 ? 'amber' : 'red');
+    $('execStatus').textContent = avg !== null ? pct(avg) : '—';
+    $('execStatus').style.color = `var(--${statusCor})`;
+    $('execMetaTxt').textContent = (state.meta * 100).toFixed(0) + '%';
+    
+    // Total Equipamentos
+    $('execTotal').textContent = dados.length;
+    $('execTotalSub').textContent = state.viewMode === 'equipamento' 
+      ? 'equipamentos agrupados'
+      : 'faixas monitoradas';
+    
+    // Críticos
+    $('execCriticos').textContent = criticos.length;
+    
+    // Financeiro
+    const comValor = dados.filter(r => r.ValorContratual !== null);
+    const totalDesconto = comValor.reduce((sum, r) => sum + (r.Desconto || 0), 0);
+    
+    if (comValor.length > 0) {
+      $('execFinanceiroCard').style.display = 'block';
+      $('execDesconto').textContent = formatMoeda(totalDesconto).replace('R$', '').trim();
+      $('execCustosCard').style.display = 'block';
+    } else {
+      $('execFinanceiroCard').style.display = 'none';
+      $('execCustosCard').style.display = 'none';
+    }
+    
+    // Lista de Críticos
+    const listaCriticos = $('execListaCriticos');
+    listaCriticos.innerHTML = '';
+    
+    if (criticos.length === 0) {
+      listaCriticos.innerHTML = '<div style="color:var(--green); font-size:14px">✅ Nenhum equipamento crítico!</div>';
+    } else {
+      criticos.slice(0, 10).forEach(r => {
+        const div = document.createElement('div');
+        div.style.cssText = 'padding:10px; margin-bottom:8px; background:rgba(255,59,107,.1); border-left:3px solid var(--red); border-radius:6px; cursor:pointer';
+        div.onclick = () => openModal(r);
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+            <strong style="font-size:13px">${normStr(r.Equipamento)}</strong>
+            <span style="font-family:var(--mono); color:var(--red); font-weight:700">${pct(safeNum(r.ID))}</span>
+          </div>
+          <div style="font-size:11px; color:var(--muted2)">${normStr(r.Rodovia)} • Km ${fmt(safeNum(r.Km), 1)}</div>
+        `;
+        listaCriticos.appendChild(div);
+      });
+    }
+    
+    // Principais Problemas (análise dos índices mais baixos)
+    const problemas = {};
+    dados.forEach(r => {
+      const ief = safeNum(r.IEF);
+      const icv = safeNum(r.ICV);
+      const idf = safeNum(r.IDF);
+      
+      if (ief !== null && ief < 0.85) problemas.IEF = (problemas.IEF || 0) + 1;
+      if (icv !== null && icv < 0.95) problemas.ICV = (problemas.ICV || 0) + 1;
+      if (idf !== null && idf < 0.85) problemas.IDF = (problemas.IDF || 0) + 1;
+    });
+    
+    const problemasEl = $('execProblemas');
+    const problemasArray = Object.entries(problemas).sort((a, b) => b[1] - a[1]);
+    
+    if (problemasArray.length === 0) {
+      problemasEl.innerHTML = '<div style="color:var(--green); font-size:14px">✅ Todos os índices estão saudáveis!</div>';
+    } else {
+      problemasEl.innerHTML = problemasArray.map(([nome, qtd]) => {
+        const desc = {
+          IEF: 'Eficiência dos equipamentos',
+          ICV: 'Classificação de veículos',
+          IDF: 'Disponibilidade operacional'
+        }[nome];
+        const perc = ((qtd / dados.length) * 100).toFixed(1);
+        return `
+          <div style="padding:12px; margin-bottom:10px; background:rgba(255,176,32,.1); border-left:3px solid var(--amber); border-radius:6px">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+              <strong style="font-size:14px">${nome}</strong>
+              <span style="font-family:var(--mono); color:var(--amber); font-weight:700">${qtd} equip.</span>
+            </div>
+            <div style="font-size:11px; color:var(--muted2)">${desc} • ${perc}% do total</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Maiores Custos
+    if (comValor.length > 0) {
+      const maioresCustos = [...comValor]
+        .filter(r => r.Desconto > 0)
+        .sort((a, b) => b.Desconto - a.Desconto)
+        .slice(0, 10);
+      
+      const custosEl = $('execCustos');
+      custosEl.innerHTML = maioresCustos.map(r => {
+        return `
+          <div style="padding:10px; margin-bottom:8px; background:rgba(124,58,237,.1); border-left:3px solid var(--purple); border-radius:6px; cursor:pointer" onclick="window.openModalById('${normStr(r.Equipamento)}')">
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px">
+              <strong style="font-size:13px">${normStr(r.Equipamento)}</strong>
+              <span style="font-family:var(--mono); color:var(--purple); font-weight:700">${formatMoeda(r.Desconto)}</span>
+            </div>
+            <div style="font-size:11px; color:var(--muted2)">ID: ${pct(safeNum(r.ID))} • ${normStr(r.Rodovia)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // Distribuição de Status
+    const ok = dados.filter(r => safeNum(r.ID) >= state.meta + 0.08).length;
+    const atencao = dados.filter(r => {
+      const id = safeNum(r.ID);
+      return id !== null && id >= state.meta && id < state.meta + 0.08;
+    }).length;
+    const critico = criticos.length;
+    
+    const distEl = $('execDistribuicao');
+    const total = dados.length;
+    
+    distEl.innerHTML = `
+      <div style="flex:1; min-width:200px">
+        <div style="background:rgba(0,227,140,.15); border:1px solid var(--green); border-radius:12px; padding:20px; text-align:center">
+          <div style="font-size:48px; font-weight:900; color:var(--green)">${ok}</div>
+          <div style="font-size:14px; color:var(--muted); margin-top:8px">✅ OK (>${(state.meta*100 + 8).toFixed(0)}%)</div>
+          <div style="font-size:12px; color:var(--muted2); margin-top:4px">${total > 0 ? ((ok/total)*100).toFixed(1) : 0}% do total</div>
+        </div>
+      </div>
+      <div style="flex:1; min-width:200px">
+        <div style="background:rgba(255,176,32,.15); border:1px solid var(--amber); border-radius:12px; padding:20px; text-align:center">
+          <div style="font-size:48px; font-weight:900; color:var(--amber)">${atencao}</div>
+          <div style="font-size:14px; color:var(--muted); margin-top:8px">⚠️ Atenção (${(state.meta*100).toFixed(0)}-${(state.meta*100 + 8).toFixed(0)}%)</div>
+          <div style="font-size:12px; color:var(--muted2); margin-top:4px">${total > 0 ? ((atencao/total)*100).toFixed(1) : 0}% do total</div>
+        </div>
+      </div>
+      <div style="flex:1; min-width:200px">
+        <div style="background:rgba(255,59,107,.15); border:1px solid var(--red); border-radius:12px; padding:20px; text-align:center">
+          <div style="font-size:48px; font-weight:900; color:var(--red)">${critico}</div>
+          <div style="font-size:14px; color:var(--muted); margin-top:8px">🔴 Crítico (<${(state.meta*100).toFixed(0)}%)</div>
+          <div style="font-size:12px; color:var(--muted2); margin-top:4px">${total > 0 ? ((critico/total)*100).toFixed(1) : 0}% do total</div>
+        </div>
+      </div>
+    `;
+    
+    // Perdas Totais por Sub-Índice
+    const perdasPorIndiceEl = $('execPerdasPorIndice');
+    if (comValor.length === 0) {
+      perdasPorIndiceEl.innerHTML = '<div style="color:var(--muted2); font-size:14px; text-align:center">💡 Ative o modo "Por Equipamento" e configure valores contratuais</div>';
+    } else {
+      // Calcular perdas totais por índice
+      const perdasTotais = {
+        'IDF': 0, 'IEVri': 0, 'IEVdt': 0, 'ICId': 0, 'ICIn': 0, 
+        'ILPd': 0, 'ILPn': 0, 'ICV': 0
+      };
+      
+      comValor.forEach(equip => {
+        const perdas = calcularPerdaPorSubIndice(equip);
+        if (perdas) {
+          perdas.forEach(p => {
+            if (perdasTotais[p.nome] !== undefined) {
+              perdasTotais[p.nome] += p.perda;
+            }
+          });
+        }
+      });
+      
+      // Ordenar por valor de perda (maior → menor)
+      const perdasOrdenadas = Object.entries(perdasTotais)
+        .sort((a, b) => b[1] - a[1])
+        .filter(([_, valor]) => valor > 0);
+      
+      if (perdasOrdenadas.length === 0) {
+        perdasPorIndiceEl.innerHTML = '<div style="color:var(--green); font-size:14px; text-align:center">✅ Nenhuma perda identificada! Todos os índices estão em 100%!</div>';
+      } else {
+        const maxPerda = perdasOrdenadas[0][1];
+        const nomes = {
+          'IDF': 'Disponibilidade',
+          'IEVri': 'Envio Reg. Imagens',
+          'IEVdt': 'Envio Dados Tráfego',
+          'ICId': 'Captura Img. Diurnas',
+          'ICIn': 'Captura Img. Noturnas',
+          'ILPd': 'Leitura Placas Diurnas',
+          'ILPn': 'Leitura Placas Noturnas',
+          'ICV': 'Classificação Veículos'
+        };
+        
+        perdasPorIndiceEl.innerHTML = perdasOrdenadas.map(([indice, perda], idx) => {
+          const cor = perda > 5000 ? 'red' : (perda > 2000 ? 'amber' : (perda > 500 ? 'cyan' : 'green'));
+          const emoji = idx === 0 ? '🔴' : (idx === 1 ? '🟡' : (idx === 2 ? '🔵' : '🟢'));
+          const largura = (perda / maxPerda) * 100;
+          const perdaAnual = perda * 12;
+          
+          return `
+            <div style="margin-bottom:16px">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+                <div style="display:flex; align-items:center; gap:8px">
+                  <span style="font-size:16px">${emoji}</span>
+                  <div>
+                    <div style="font-size:14px; font-weight:700">${indice}</div>
+                    <div style="font-size:11px; color:var(--muted2)">${nomes[indice]}</div>
+                  </div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:var(--mono); font-weight:700; font-size:18px; color:var(--${cor})">${formatMoeda(perda)}</div>
+                  <div style="font-size:10px; color:var(--muted2)">R$ ${(perdaAnual / 1000).toFixed(1)}k/ano</div>
+                </div>
+              </div>
+              <div style="height:32px; background:rgba(255,255,255,.05); border-radius:16px; overflow:hidden; position:relative">
+                <div style="height:100%; width:${largura}%; background:linear-gradient(90deg, var(--${cor}), var(--${cor})88); border-radius:16px; transition:width 1s ease"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+        
+        // Adicionar total geral no final
+        const totalGeral = perdasOrdenadas.reduce((sum, [_, valor]) => sum + valor, 0);
+        
+        // Calcular desconto total real para comparação
+        const descontoTotalReal = comValor.reduce((sum, equip) => {
+          const id = safeNum(equip.ID);
+          const valor = equip.ValorContratual;
+          if (id !== null && valor) {
+            return sum + (valor * (1 - id));
+          }
+          return sum;
+        }, 0);
+        
+        perdasPorIndiceEl.innerHTML += `
+          <div style="margin-top:24px; padding:16px; background:rgba(124,58,237,.15); border:2px solid var(--purple); border-radius:12px">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px">
+              <div>
+                <strong style="font-size:16px">💰 Soma das Perdas Potenciais</strong>
+                <div style="font-size:10px; color:var(--muted); margin-top:4px">Se todos os índices fossem melhorados para 100%</div>
+              </div>
+              <div style="text-align:right">
+                <div style="font-family:var(--mono); font-weight:900; font-size:24px; color:var(--purple)">${formatMoeda(totalGeral)}</div>
+                <div style="font-size:12px; color:var(--muted2)">R$ ${((totalGeral * 12) / 1000).toFixed(1)}k por ano</div>
+              </div>
+            </div>
+            <div style="padding-top:12px; border-top:1px solid rgba(255,255,255,.1)">
+              <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px">
+                <span style="color:var(--muted)">💸 Desconto Total Real (atual):</span>
+                <span style="font-family:var(--mono); font-weight:700; color:var(--red)">${formatMoeda(descontoTotalReal)}</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:12px">
+                <span style="color:var(--muted)">📊 Diferença (sobreposição):</span>
+                <span style="font-family:var(--mono); font-weight:700; color:var(--amber)">${formatMoeda(totalGeral - descontoTotalReal)}</span>
+              </div>
+              <div style="font-size:10px; color:var(--muted2); margin-top:8px; font-style:italic">
+                * A diferença ocorre porque as perdas individuais são calculadas isoladamente e há interdependência entre os índices (especialmente no IEF que usa produto).
+              </div>
+            </div>
+          </div>
+        `;
+      }
+    }
+  }
+
+  window.openModalById = function(equipamento) {
+    const equip = state.filtered.find(r => normStr(r.Equipamento) === equipamento);
+    if (equip) openModal(equip);
+  };
+
+  function extractLote(operadora) {
+    // Extrai "DR-08" de "145/2023 - Lote 08 (Splice)" ou similar
+    const match = normStr(operadora).match(/(?:Lote|DR)[\s-]*(\d+)/i);
+    return match ? `DR-${match[1].padStart(2, '0')}` : null;
+  }
+
+  function getValorContratual(equipamento) {
+    // Busca direta na tabela de valores por equipamento
+    const eq = normStr(equipamento);
+    const valor = state.valoresContratuais[eq] || null;
+    
+    // Debug: mostrar primeira busca
+    if (!window._valorDebugShown) {
+      console.log('🔍 Buscando valor para:', equipamento);
+      console.log('   Normalizado:', eq);
+      console.log('   Valor encontrado:', valor);
+      console.log('   Total de equipamentos na tabela:', Object.keys(state.valoresContratuais).length);
+      window._valorDebugShown = true;
+    }
+    
+    return valor;
+  }
+
+  function formatMoeda(valor) {
+    if (valor === null || valor === undefined || isNaN(valor)) return '—';
+    return new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL',
+      minimumFractionDigits: 2
+    }).format(valor);
+  }
+
+  function identificarMaiorProblema(equipamento) {
+    // Identifica qual índice está mais prejudicando o ID do equipamento
+    const indices = [
+      { nome: 'IDF', val: safeNum(equipamento.IDF), desc: 'Disponibilidade', peso: 100 },
+      { nome: 'IEVri', val: safeNum(equipamento.IEVri), desc: 'Envio Imagens', peso: 28 },
+      { nome: 'IEVdt', val: safeNum(equipamento.IEVdt), desc: 'Envio Dados', peso: 28 },
+      { nome: 'ICId', val: safeNum(equipamento.ICId), desc: 'Captura Diurna', peso: 28 },
+      { nome: 'ICIn', val: safeNum(equipamento.ICIn), desc: 'Captura Noturna', peso: 28 },
+      { nome: 'ILPd', val: safeNum(equipamento.ILPd), desc: 'Leitura Diurna', peso: 7 },
+      { nome: 'ILPn', val: safeNum(equipamento.ILPn), desc: 'Leitura Noturna', peso: 7 },
+      { nome: 'ICV', val: safeNum(equipamento.ICV), desc: 'Classificação', peso: 10 }
+    ];
+    
+    const problemas = indices
+      .filter(i => i.val !== null && i.val < 1.0)
+      .map(i => ({
+        nome: i.nome,
+        valor: i.val,
+        gap: (1 - i.val) * 100,
+        gapPonderado: (1 - i.val) * i.peso,
+        descricao: i.desc,
+        peso: i.peso
+      }))
+      .sort((a, b) => b.gapPonderado - a.gapPonderado);
+    
+    if (problemas.length === 0) {
+      return { nome: 'Nenhum', valor: 1.0, gap: 0, severidade: 'ok' };
+    }
+    
+    const pior = problemas[0];
+    let severidade = 'ok';
+    if (pior.gapPonderado > 15) severidade = 'critico';
+    else if (pior.gapPonderado > 8) severidade = 'grave';
+    else if (pior.gapPonderado > 3) severidade = 'moderado';
+    else severidade = 'leve';
+    
+    return {
+      nome: pior.nome,
+      valor: pior.valor,
+      gap: pior.gap,
+      gapPonderado: pior.gapPonderado,
+      descricao: pior.descricao,
+      peso: pior.peso,
+      severidade: severidade
+    };
+  }
+
+  function calcularPerdaPorSubIndice(equipamento) {
+    const tipo = normStr(equipamento.Tipo);
+    const valorContratual = equipamento.ValorContratual;
+    const ID_atual = safeNum(equipamento.ID);
+    
+    if (!valorContratual || !ID_atual) return null;
+    
+    // PERDA TOTAL do equipamento
+    const perdaTotal = valorContratual * (1 - ID_atual);
+    
+    // Valores atuais dos sub-índices
+    const ICId = safeNum(equipamento.ICId);
+    const ICIn = safeNum(equipamento.ICIn);
+    const IEVri = safeNum(equipamento.IEVri);
+    const IEVdt = safeNum(equipamento.IEVdt);
+    const ILPd = safeNum(equipamento.ILPd);
+    const ILPn = safeNum(equipamento.ILPn);
+    const ICV = safeNum(equipamento.ICV);
+    const IDF = safeNum(equipamento.IDF);
+    
+    // Validar
+    if (ICId === null || ICIn === null || IEVri === null || IEVdt === null || 
+        ILPd === null || ILPn === null || ICV === null || IDF === null) {
+      return null;
+    }
+    
+    // PESOS de cada sub-índice na fórmula do ID
+    // Baseado na fórmula:
+    // IEF = 0.8 × [(ICId + ICIn)/2] × [(IEVri + IEVdt)/2] + 0.2 × [(ILPd + ILPn)/2]
+    // ID = IDF × (0.9 × IEF + 0.1 × ICV)  [para CEV]
+    //
+    // Pesos calculados:
+    // - ICId, ICIn, IEVri, IEVdt: 0.8 × 0.9 / 2 = 0.36 cada (36%)
+    // - ILPd, ILPn: 0.2 × 0.9 / 2 = 0.09 cada (9%)
+    // - ICV: 0.1 (10%)
+    // - IDF: 1.0 (100% - multiplicador)
+    
+    const indices = [
+      { nome: 'ICId', valor: ICId, peso: 0.36 },
+      { nome: 'ICIn', valor: ICIn, peso: 0.36 },
+      { nome: 'IEVri', valor: IEVri, peso: 0.36 },
+      { nome: 'IEVdt', valor: IEVdt, peso: 0.36 },
+      { nome: 'ILPd', valor: ILPd, peso: 0.09 },
+      { nome: 'ILPn', valor: ILPn, peso: 0.09 },
+      { nome: 'ICV', valor: ICV, peso: 0.10 },
+      { nome: 'IDF', valor: IDF, peso: 1.00 }
+    ];
+    
+    // Calcular gap ponderado de cada índice
+    let somaGapsPonderados = 0;
+    const perdas = [];
+    
+    indices.forEach(ind => {
+      const gap = Math.max(0, 1 - ind.valor);
+      const gapPonderado = gap * ind.peso;
+      somaGapsPonderados += gapPonderado;
+      
+      perdas.push({
+        nome: ind.nome,
+        atual: ind.valor,
+        gap: gap,
+        peso: ind.peso,
+        gapPonderado: gapPonderado,
+        perda: 0,  // será calculado abaixo
+        contribuicao: 0  // % de contribuição na perda total
+      });
+    });
+    
+    // Distribuir a perda total proporcionalmente aos gaps ponderados
+    perdas.forEach(p => {
+      if (somaGapsPonderados > 0) {
+        p.perda = perdaTotal * (p.gapPonderado / somaGapsPonderados);
+        p.contribuicao = (p.gapPonderado / somaGapsPonderados) * 100;
+      } else {
+        p.perda = 0;
+        p.contribuicao = 0;
+      }
+    });
+    
+    // Ordenar por perda (maior primeiro)
+    return perdas.sort((a, b) => b.perda - a.perda);
+  }
+
+  function groupByEquipment(rows) {
+    const groups = {};
+    
+    rows.forEach(r => {
+      const equip = normStr(r.Equipamento);
+      if (!equip) return;
+      
+      if (!groups[equip]) {
+        groups[equip] = {
+          Equipamento: equip,
+          Rodovia: r.Rodovia,
+          Km: r.Km,
+          Tipo: r.Tipo,
+          faixas: [],
+          // Arrays para calcular médias
+          ICIds: [], ICIns: [], IEVris: [], IEVdts: [], ILPds: [], ILPns: [],
+          IEFs: [], ICVs: [], IDFs: [], IDs: []
+        };
+      }
+      
+      const g = groups[equip];
+      g.faixas.push(r.Faixa);
+      
+      // Coletar valores válidos
+      const addIfValid = (arr, val) => {
+        const num = safeNum(val);
+        if (num !== null) arr.push(num);
+      };
+      
+      addIfValid(g.ICIds, r.ICId);
+      addIfValid(g.ICIns, r.ICIn);
+      addIfValid(g.IEVris, r.IEVri);
+      addIfValid(g.IEVdts, r.IEVdt);
+      addIfValid(g.ILPds, r.ILPd);
+      addIfValid(g.ILPns, r.ILPn);
+      addIfValid(g.IEFs, r.IEF);
+      addIfValid(g.ICVs, r.ICV);
+      addIfValid(g.IDFs, r.IDF);
+      addIfValid(g.IDs, r.ID);
+    });
+    
+    // Calcular médias
+    const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+    
+    return Object.values(groups).map(g => {
+      const avgID = avg(g.IDs);
+      const numFaixas = g.faixas.length;
+      const tipo = g.Tipo;
+      
+      // Buscar valor contratual direto pela tabela
+      const valorContratual = getValorContratual(g.Equipamento);
+      const valorReceber = (valorContratual && avgID !== null) ? valorContratual * avgID : null;
+      const desconto = (valorContratual && valorReceber !== null) ? valorContratual - valorReceber : null;
+      
+      // Debug: mostrar estatísticas
+      if (!window._valorStats) {
+        window._valorStats = { encontrados: 0, naoEncontrados: 0 };
+      }
+      if (valorContratual) {
+        window._valorStats.encontrados++;
+      } else {
+        window._valorStats.naoEncontrados++;
+        if (window._valorStats.naoEncontrados <= 5) {
+          console.warn(`⚠️ Valor não encontrado para: ${g.Equipamento}`);
+        }
+      }
+      
+      // Montar objeto temporário para identificar maior problema
+      const objTemp = {
+        ICId: avg(g.ICIds),
+        ICIn: avg(g.ICIns),
+        IEVri: avg(g.IEVris),
+        IEVdt: avg(g.IEVdts),
+        ILPd: avg(g.ILPds),
+        ILPn: avg(g.ILPns),
+        IEF: avg(g.IEFs),
+        ICV: avg(g.ICVs),
+        IDF: avg(g.IDFs),
+        ID: avgID
+      };
+      
+      const maiorProblema = identificarMaiorProblema(objTemp);
+      
+      return {
+        Equipamento: g.Equipamento,
+        Rodovia: g.Rodovia,
+        Km: g.Km,
+        Tipo: g.Tipo,
+        Faixa: g.faixas.join(', '),
+        NumFaixas: numFaixas,
+        ValorContratual: valorContratual,
+        ValorReceber: valorReceber,
+        Desconto: desconto,
+        ICId: objTemp.ICId,
+        ICIn: objTemp.ICIn,
+        IEVri: objTemp.IEVri,
+        IEVdt: objTemp.IEVdt,
+        ILPd: objTemp.ILPd,
+        ILPn: objTemp.ILPn,
+        IEF: objTemp.IEF,
+        ICV: objTemp.ICV,
+        IDF: objTemp.IDF,
+        ID: avgID,
+        MaiorProblema: maiorProblema,
+        _isGrouped: true
+      };
+    });
+    
+    // Debug: Mostrar estatísticas finais
+    if (window._valorStats) {
+      console.log('\n📊 RESUMO DE VALORES CONTRATUAIS:');
+      console.log(`   ✅ Encontrados: ${window._valorStats.encontrados}`);
+      console.log(`   ❌ Não encontrados: ${window._valorStats.naoEncontrados}`);
+      console.log(`   📈 Taxa de sucesso: ${((window._valorStats.encontrados / (window._valorStats.encontrados + window._valorStats.naoEncontrados)) * 100).toFixed(1)}%`);
+      window._valorStats = null; // Reset para próxima vez
+    }
+  }
+
+  function applyFilters(){
+    const rod = $('fRodovia').value;
+    const tipo = $('fTipo').value;
+    const faixa = $('fFaixa').value;
+    const q = normStr($('fSearch').value).toLowerCase();
+
+    let filtered = state.raw.filter(r=>{
+      if (rod && normStr(r.Rodovia) !== rod) return false;
+      if (tipo && normStr(r.Tipo) !== tipo) return false;
+      if (faixa && normStr(r.Faixa) !== faixa) return false;
+      if (q){
+        const hay = [r.Rodovia, r.Equipamento, r.Faixa].map(normStr).join(' ').toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    // Aplicar agrupamento se modo for 'equipamento'
+    if (state.viewMode === 'equipamento') {
+      filtered = groupByEquipment(filtered);
+    }
+
+    state.filtered = filtered;
+    state.page = 0;
+    render();
+    updateRanking();
+  }
+
+  function calcKPIs(){
+    const ids = state.filtered.map(r=>safeNum(r.ID)).filter(v=>v!==null);
+    const avg = ids.length ? ids.reduce((a,b)=>a+b,0)/ids.length : null;
+    const below = ids.filter(v=>v < state.meta).length;
+    const worst = ids.length ? Math.min(...ids) : null;
+
+    $('kpiRows').textContent = state.filtered.length;
+    $('kpiAvgId').textContent = avg!==null ? pct(avg) : '—';
+    $('kpiBelow').textContent = below;
+    $('kpiWorst').textContent = worst!==null ? pct(worst) : '—';
+
+    // KPIs Financeiros (apenas modo equipamento)
+    const isGrouped = state.viewMode === 'equipamento';
+    if (isGrouped) {
+      const comValor = state.filtered.filter(r => r.ValorContratual !== null);
+      const totalContratual = comValor.reduce((sum, r) => sum + r.ValorContratual, 0);
+      const totalReceber = comValor.reduce((sum, r) => sum + (r.ValorReceber || 0), 0);
+      const totalDesconto = comValor.reduce((sum, r) => sum + (r.Desconto || 0), 0);
+      const percDesconto = totalContratual > 0 ? (totalDesconto / totalContratual) * 100 : 0;
+
+      $('kpiValorTotal').textContent = formatMoeda(totalContratual);
+      $('kpiValorReceber').textContent = formatMoeda(totalReceber);
+      $('kpiDescontoTotal').textContent = formatMoeda(totalDesconto);
+      $('kpiPercDesconto').textContent = percDesconto.toFixed(1) + '%';
+
+      $('kpisFinanceiros').style.display = 'grid';
+    } else {
+      $('kpisFinanceiros').style.display = 'none';
+    }
+  }
+
+  function updateRanking(){
+    const indice = state.rankingIndice;
+    
+    const sorted = [...state.filtered]
+      .filter(r => safeNum(r[indice]) !== null)
+      .sort((a, b) => safeNum(a[indice]) - safeNum(b[indice]))
+      .slice(0, 10);
+
+    if (sorted.length === 0) {
+      $('ranking').style.display = 'none';
+      return;
+    }
+
+    $('ranking').style.display = 'block';
+    const list = $('rankingList');
+    list.innerHTML = '';
+
+    // Nomes descritivos dos índices
+    const nomeIndices = {
+      'ID': 'ID',
+      'IEF': 'IEF',
+      'ICV': 'ICV',
+      'IDF': 'IDF',
+      'ICId': 'ICId',
+      'ICIn': 'ICIn',
+      'IEVri': 'IEVri',
+      'IEVdt': 'IEVdt',
+      'ILPd': 'ILPd',
+      'ILPn': 'ILPn'
+    };
+
+    sorted.forEach((r, idx) => {
+      const valor = safeNum(r[indice]);
+      const item = document.createElement('div');
+      item.className = 'ranking-item';
+      item.onclick = () => openModal(r);
+      
+      item.innerHTML = `
+        <div class="ranking-header">
+          <div class="ranking-position">#${idx + 1}</div>
+          <div class="ranking-id">${pct(valor)}</div>
+        </div>
+        <div class="ranking-equip">${normStr(r.Equipamento)} - ${normStr(r.Faixa)}</div>
+        <div class="ranking-meta">${normStr(r.Rodovia)} • Km ${fmt(safeNum(r.Km), 1)}</div>
+      `;
+      
+      list.appendChild(item);
+    });
+
+    // Ranking Financeiro (apenas modo equipamento)
+    const isGrouped = state.viewMode === 'equipamento';
+    if (isGrouped) {
+      const comDesconto = [...state.filtered]
+        .filter(r => r.Desconto !== null && r.Desconto > 0)
+        .sort((a, b) => b.Desconto - a.Desconto)
+        .slice(0, 10);
+
+      if (comDesconto.length > 0) {
+        $('rankingFinanceiro').style.display = 'block';
+        const finList = $('rankingFinanceiroList');
+        finList.innerHTML = '';
+
+        comDesconto.forEach((r, idx) => {
+          const item = document.createElement('div');
+          item.className = 'ranking-item';
+          item.onclick = () => openModal(r);
+          
+          item.innerHTML = `
+            <div class="ranking-header">
+              <div class="ranking-position">#${idx + 1}</div>
+              <div class="ranking-id">${formatMoeda(r.Desconto)}</div>
+            </div>
+            <div class="ranking-equip">${normStr(r.Equipamento)} - ${r.NumFaixas} faixas</div>
+            <div class="ranking-meta">${normStr(r.Rodovia)} • ID: ${pct(safeNum(r.ID))}</div>
+          `;
+          
+          finList.appendChild(item);
+        });
+      } else {
+        $('rankingFinanceiro').style.display = 'none';
+      }
+    } else {
+      $('rankingFinanceiro').style.display = 'none';
+    }
+  }
+
+  function render(){
+    calcKPIs();
+    
+    // Mostrar/ocultar coluna de valor
+    const isGrouped = state.viewMode === 'equipamento';
+    $('thValor').style.display = isGrouped ? '' : 'none';
+
+    const start = state.page * state.pageSize;
+    const end = Math.min(start + state.pageSize, state.filtered.length);
+    const pageRows = state.filtered.slice(start, end);
+
+    $('pagerInfo').textContent = state.filtered.length
+      ? `Mostrando ${start+1}-${end} de ${state.filtered.length}`
+      : 'Nenhum resultado';
+
+    $('prev').disabled = state.page === 0;
+    $('next').disabled = end >= state.filtered.length;
+
+    const tb = $('tbody');
+    tb.innerHTML = '';
+    
+    pageRows.forEach(r=>{
+      const tr=document.createElement('tr');
+      tr.style.cursor='pointer';
+      tr.onclick = ()=>openModal(r);
+
+      const id = safeNum(r.ID);
+      const st = statusByMeta(id);
+      
+      // Mostrar número de faixas se agrupado
+      let faixaDisplay = r._isGrouped 
+        ? `${r.NumFaixas} faixas (${r.Faixa})` 
+        : normStr(r.Faixa);
+
+      // Calcular/obter maior problema
+      let maiorProblema = '—';
+      
+      if (r._isGrouped && r.MaiorProblema) {
+        const prob = r.MaiorProblema;
+        
+        if (prob.nome === 'Nenhum') {
+          maiorProblema = '✅ OK';
+        } else {
+          // Definir ícone baseado na severidade
+          let icone = '';
+          if (prob.severidade === 'critico') icone = '🔴';
+          else if (prob.severidade === 'grave') icone = '🟡';
+          else if (prob.severidade === 'moderado') icone = '🔵';
+          else icone = '🟢';
+          
+          maiorProblema = `${icone} ${prob.nome} (${pct(prob.valor)}, Gap: ${prob.gap.toFixed(1)}%)`;
+        }
+      } else if (!r._isGrouped) {
+        // Modo por faixa - cálculo simplificado
+        const ief = safeNum(r.IEF);
+        const icv = safeNum(r.ICV);
+        const idf = safeNum(r.IDF);
+        
+        if (ief !== null && icv !== null && idf !== null) {
+          const tipo = normStr(r.Tipo);
+          const isCEV = /CEV/i.test(tipo);
+          const pesoIEF = isCEV ? 0.9 : 0.7;
+          const pesoICV = 0.1;
+          
+          const perdaIDF = (1 - idf) * 100;
+          const perdaIEF = (1 - ief) * pesoIEF * 100;
+          const perdaICV = (1 - icv) * pesoICV * 100;
+          
+          const impactos = [
+            { nome: 'IDF', perda: perdaIDF },
+            { nome: 'IEF', perda: perdaIEF },
+            { nome: 'ICV', perda: perdaICV }
+          ].sort((a, b) => b.perda - a.perda);
+          
+          if (impactos[0].perda > 1) {
+            maiorProblema = `${impactos[0].nome} (-${impactos[0].perda.toFixed(0)}pts)`;
+          } else {
+            maiorProblema = 'OK';
+          }
+        }
+      }
+
+      const cells = [
+        normStr(r.Rodovia),
+        fmt(safeNum(r.Km), 3),
+        normStr(r.Equipamento),
+        faixaDisplay,
+        id!==null ? pct(id) : '—',
+        pct(safeNum(r.IEF)),
+        pct(safeNum(r.ICV)),
+        pct(safeNum(r.IDF)),
+        maiorProblema
+      ];
+      
+      // Adicionar coluna de desconto se agrupado
+      if (isGrouped) {
+        cells.push(r.Desconto !== null ? formatMoeda(r.Desconto) : '—');
+      }
+
+      cells.forEach((c,i)=>{
+        const td=document.createElement('td');
+        // Usar innerHTML para faixa (índice 3) e maior problema (índice 8) para exibir formatação
+        if (i===3 || i===8) {
+          td.innerHTML = c;
+        } else {
+          td.textContent = c;
+        }
+        if ([1,4,5,6,7].includes(i)) td.classList.add('mono');
+        if (i===4 && id !== null){
+          td.innerHTML = `<span class="tag ${st.cls}">${c}</span>`;
+        }
+        if (i===8 && c !== '—' && !c.includes('OK')) {
+          // Destacar maior problema com cor
+          const icone = c.charAt(0);
+          let cls = 'cyan';
+          if (icone === '🔴') cls = 'red';
+          else if (icone === '🟡') cls = 'amber';
+          else if (icone === '🔵') cls = 'cyan';
+          else if (icone === '🟢') cls = 'green';
+          
+          td.innerHTML = `<span class="tag ${cls}" style="font-size:10px">${c}</span>`;
+        }
+        if (i===9 && isGrouped && r.Desconto !== null) {
+          // Destacar desconto alto
+          const desconto = r.Desconto;
+          const cls = desconto > 3000 ? 'red' : (desconto > 1000 ? 'amber' : 'green');
+          td.innerHTML = `<span class="tag ${cls}">${c}</span>`;
+          td.classList.add('mono');
+        }
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  }
+
+  function openModal(row){
+    $('mTitle').textContent = `${normStr(row.Equipamento)} - ${normStr(row.Faixa)}`;
+    $('mSub').textContent = `${normStr(row.Rodovia)} • Km ${fmt(safeNum(row.Km), 3)}`;
+
+    // Calcular perdas por sub-índice (se houver valor contratual)
+    let perdasPorIndice = {};
+    if (row._isGrouped && row.ValorContratual) {
+      const perdas = calcularPerdaPorSubIndice(row);
+      if (perdas) {
+        perdas.forEach(p => {
+          perdasPorIndice[p.nome] = {
+            perda: p.perda,
+            contribuicao: p.contribuicao || 0
+          };
+        });
+      }
+    }
+
+    // Componentes do IEF com legendas
+    const iefComps = [
+      {nome:'ICId', val: safeNum(row.ICId), desc: 'ICId: captura de imagens diurnas.'},
+      {nome:'ICIn', val: safeNum(row.ICIn), desc: 'ICIn: captura de imagens noturnas.'},
+      {nome:'IEVri', val: safeNum(row.IEVri), desc: 'IEVri: envio/registro de imagens.'},
+      {nome:'IEVdt', val: safeNum(row.IEVdt), desc: 'IEVdt: envio de registros dentro do prazo.'},
+      {nome:'ILPd', val: safeNum(row.ILPd), desc: 'ILPd: leitura de placas diurna.'},
+      {nome:'ILPn', val: safeNum(row.ILPn), desc: 'ILPn: leitura de placas noturna.'}
+    ];
+
+    const iefEl = $('iefComponents');
+    iefEl.innerHTML = '';
+    iefComps.forEach(c=>{
+      const st = statusByMeta(c.val);
+      const width = c.val !== null ? Math.min(c.val * 100, 100) : 0;
+      const perdaInfo = perdasPorIndice[c.nome] || {perda: 0, contribuicao: 0};
+      const temPerda = perdaInfo.perda > 0;
+      
+      const it = document.createElement('div');
+      it.className = 'impactItem';
+      
+      // Calcular contribuição percentual da perda em relação ao total
+      let contextoPerda = '';
+      if (temPerda && c.val !== null && c.val < 1.0) {
+        const gap = 1.0 - c.val;
+        const gapPct = gap * 100;
+        const contribuicao = perdaInfo.contribuicao || 0;
+        contextoPerda = `<div style="font-size:10px; color:var(--muted); margin-top:2px">Gap: ${gapPct.toFixed(1)}% • Contribuição: ${contribuicao.toFixed(1)}% da perda</div>`;
+      }
+      
+      it.innerHTML = `
+        <div class="impactTop">
+          <strong>${c.nome}</strong>
+          <div style="text-align:right">
+            <span style="font-size:14px">${pct(c.val)}</span>
+            ${temPerda ? `<div style="font-size:11px; color:var(--red); margin-top:2px">-${formatMoeda(perdaInfo.perda)}/mês</div>` : ''}
+            ${contextoPerda}
+          </div>
+        </div>
+        <div class="bar"><div class="fill ${st.cls}" style="width:${width}%"></div></div>
+        <div class="impactNote">${c.desc}</div>
+      `;
+      iefEl.appendChild(it);
+    });
+
+    // Índices principais
+    const ief = safeNum(row.IEF);
+    const icv = safeNum(row.ICV);
+    const idf = safeNum(row.IDF);
+    const id = safeNum(row.ID);
+
+    $('iefVal').textContent = pct(ief);
+    $('iefBar').style.width = (ief !== null ? Math.min(ief*100, 100) : 0) + '%';
+    $('iefBar').className = 'fill ' + statusByMeta(ief).cls;
+
+    $('icvVal').textContent = pct(icv);
+    $('icvBar').style.width = (icv !== null ? Math.min(icv*100, 100) : 0) + '%';
+    $('icvBar').className = 'fill ' + statusByMeta(icv).cls;
+
+    $('idfVal').textContent = pct(idf);
+    $('idfBar').style.width = (idf !== null ? Math.min(idf*100, 100) : 0) + '%';
+    $('idfBar').className = 'fill ' + statusByMeta(idf).cls;
+
+    $('idVal').textContent = pct(id);
+    $('idBar').style.width = (id !== null ? Math.min(id*100, 100) : 0) + '%';
+    $('idBar').className = 'fill ' + statusByMeta(id).cls;
+    
+    $('metaDisplay').textContent = (state.meta * 100).toFixed(0) + '%';
+
+    // Análise de impacto
+    const impactAnalysisEl = $('impactAnalysis');
+    if (ief !== null && icv !== null && idf !== null && id !== null) {
+      // Fórmula: ID = IDF × (0.7×IEF + 0.1×ICV + 0.2×outras)
+      // Para simplificar, vamos calcular o impacto de cada um
+      const tipo = normStr(row.Tipo);
+      const isCEV = /CEV/i.test(tipo);
+      const pesoIEF = isCEV ? 0.9 : 0.7;
+      const pesoICV = 0.1;
+      
+      // Calcular perda por cada índice (quanto ele tira do ID)
+      const perdaIDF = (1 - idf) * 100; // Se IDF=0.8, perde 20%
+      const perdaIEF = (1 - ief) * pesoIEF * 100; // Se IEF=0.7, perde 30% * 0.7 = 21%
+      const perdaICV = (1 - icv) * pesoICV * 100; // Se ICV=1.0, perde 0% * 0.1 = 0%
+      
+      const impactos = [
+        { nome: 'IDF', perda: perdaIDF, valor: idf, desc: 'Disponibilidade operacional (horas)' },
+        { nome: 'IEF', perda: perdaIEF, valor: ief, desc: 'Eficiência dos equipamentos' },
+        { nome: 'ICV', perda: perdaICV, valor: icv, desc: 'Classificação de veículos' }
+      ].sort((a, b) => b.perda - a.perda);
+      
+      impactAnalysisEl.innerHTML = '<div class="impactList">' +
+        impactos.map((imp, idx) => {
+          const isTop = idx === 0 && imp.perda > 5;
+          const st = imp.perda > 20 ? 'red' : (imp.perda > 10 ? 'amber' : 'green');
+          const emoji = idx === 0 ? '🔴' : (idx === 1 ? '🟡' : '🟢');
+          return `
+            <div class="impactItem" style="${isTop ? 'border: 2px solid var(--red); background: rgba(255,59,107,.05);' : ''}">
+              <div class="impactTop">
+                <strong>${emoji} ${imp.nome} ${isTop ? '← MAIOR IMPACTO' : ''}</strong>
+                <span>-${imp.perda.toFixed(1)} pontos</span>
+              </div>
+              <div class="bar">
+                <div class="fill ${st}" style="width:${Math.min(imp.perda, 100)}%"></div>
+              </div>
+              <div class="impactNote">
+                ${imp.desc} • Valor atual: ${pct(imp.valor)}
+                ${isTop && imp.perda > 10 ? '<br><strong>⚠️ Priorize a melhoria deste índice para aumentar o ID!</strong>' : ''}
+              </div>
+            </div>
+          `;
+        }).join('') + '</div>';
+    } else {
+      impactAnalysisEl.innerHTML = '<div style="color:var(--muted); font-size:12px">Dados insuficientes para análise de impacto</div>';
+    }
+
+    // Impacto Financeiro
+    const impactoFinEl = $('impactoFinanceiro');
+    if (row._isGrouped && row.ValorContratual !== null) {
+      const economia = row.Desconto - (row.ValorContratual * (1 - state.meta));
+      
+      impactoFinEl.innerHTML = `
+        <div style="display:grid; gap:10px">
+          <div class="impactItem">
+            <div class="impactTop">
+              <strong>Equipamento / Tipo / Faixas</strong>
+              <span>${row.Equipamento} / ${normStr(row.Tipo)} / ${row.NumFaixas} faixas</span>
+            </div>
+          </div>
+          <div class="impactItem">
+            <div class="impactTop">
+              <strong>Valor Contratual (mensal)</strong>
+              <span>${formatMoeda(row.ValorContratual)}</span>
+            </div>
+          </div>
+          <div class="impactItem">
+            <div class="impactTop">
+              <strong>Valor a Receber (ID × Contratual)</strong>
+              <span style="color:var(--green)">${formatMoeda(row.ValorReceber)}</span>
+            </div>
+          </div>
+          <div class="impactItem" style="border:2px solid var(--red); background:rgba(255,59,107,.05)">
+            <div class="impactTop">
+              <strong>💸 Desconto (Perda)</strong>
+              <span style="color:var(--red); font-size:16px">${formatMoeda(row.Desconto)}</span>
+            </div>
+            <div class="impactNote">
+              ${economia > 0 ? `Melhore o ID para ${(state.meta * 100).toFixed(0)}% e economize ${formatMoeda(economia)}/mês` : 'Equipamento acima da meta!'}
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (!row._isGrouped) {
+      impactoFinEl.innerHTML = '<div style="color:var(--muted);font-size:12px">💡 Ative o modo "Por Equipamento" para ver análise financeira</div>';
+    } else {
+      impactoFinEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Lote não cadastrado na tabela de valores</div>';
+    }
+
+    $('modalBack').style.display='flex';
+  }
+
+  function closeModal(){ $('modalBack').style.display='none'; }
+
+  async function parseFile(file){
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, {type:'array'});
+    const ws = wb.Sheets[wb.SheetNames[0]];
+
+    const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:'', blankrows:false});
+    
+    // Encontrar linha com dados (pular headers)
+    let dataStartRow = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      // Procura primeira linha que tem valor numérico na coluna Km (índice 1)
+      if (row[COL_MAP.Km] && typeof row[COL_MAP.Km] === 'number') {
+        dataStartRow = i;
+        break;
+      }
+    }
+
+    console.log('Primeira linha de dados:', dataStartRow);
+    console.log('Amostra primeira linha:', rows[dataStartRow]);
+
+    const objs = rows.slice(dataStartRow).filter(row => {
+      // Filtrar linhas vazias
+      return row[COL_MAP.Equipamento] && row[COL_MAP.Equipamento] !== '';
+    }).map(row => ({
+      Operadora: row[COL_MAP.Operadora],
+      Rodovia: row[COL_MAP.Rodovia],
+      Km: row[COL_MAP.Km],
+      Equipamento: row[COL_MAP.Equipamento],
+      Tipo: row[COL_MAP.Tipo],
+      Faixa: row[COL_MAP.Faixa],
+      ICId: row[COL_MAP.ICId],
+      ICIn: row[COL_MAP.ICIn],
+      IEVri: row[COL_MAP.IEVri],
+      IEVdt: row[COL_MAP.IEVdt],
+      ILPd: row[COL_MAP.ILPd],
+      ILPn: row[COL_MAP.ILPn],
+      IEF: row[COL_MAP.IEF],
+      ICV: row[COL_MAP.ICV],
+      IDF: row[COL_MAP.IDF],
+      ID: row[COL_MAP.ID]
+    }));
+
+    console.log('Total de linhas:', objs.length);
+    console.log('Primeira linha processada:', objs[0]);
+
+    state.raw = objs;
+    updateOptions();
+    applyFilters();
+
+    $('kpis').style.display='grid';
+    $('panel').style.display='block';
+  }
+
+  $('drop').addEventListener('click', ()=> $('file').click());
+  $('file').addEventListener('change', (e)=>{
+    const f=e.target.files?.[0];
+    if (f) parseFile(f);
+  });
+
+  ['fRodovia','fTipo','fFaixa','fSearch'].forEach(id=>{
+    $(id).addEventListener('input', applyFilters);
+  });
+
+  $('prev').addEventListener('click', ()=>{ if(state.page>0){ state.page--; render(); }});
+  $('next').addEventListener('click', ()=>{
+    const maxPage = Math.floor((state.filtered.length-1)/state.pageSize);
+    if (state.page < maxPage){ state.page++; render(); }
+  });
+
+  $('mClose').addEventListener('click', closeModal);
+  $('modalBack').addEventListener('click', (e)=>{ if(e.target === $('modalBack')) closeModal(); });
+
+  $('btnMeta').addEventListener('click', ()=>{
+    const v = prompt('Meta do ID:', state.meta.toFixed(2));
+    const n = Number((v||'').replace(',','.'));
+    if (Number.isFinite(n) && n>0 && n<1){
+      state.meta = n;
+      $('metaTxt').textContent = n.toFixed(2);
+      render();
+      updateRanking();
+    }
+  });
+
+  $('btnViewFaixa').addEventListener('click', ()=>{
+    state.viewMode = 'faixa';
+    updateViewButtons();
+    applyFilters();
+  });
+
+  $('btnViewEquip').addEventListener('click', ()=>{
+    state.viewMode = 'equipamento';
+    updateViewButtons();
+    applyFilters();
+  });
+
+  $('btnGerenciarValores').addEventListener('click', ()=>{
+    renderTabelaValores();
+    $('modalValores').style.display = 'flex';
+  });
+
+  $('closeValores').addEventListener('click', ()=>{
+    $('modalValores').style.display = 'none';
+  });
+
+  $('btnAdicionarValor').addEventListener('click', ()=>{
+    const lote = normStr($('novoLote').value).toUpperCase();
+    const tipo = $('novoTipo').value;
+    const faixas = parseInt($('novoFaixas').value);
+    const valor = parseFloat($('novoValor').value);
+
+    if (!lote || !tipo || !faixas || !valor || isNaN(valor)) {
+      alert('Preencha todos os campos corretamente!');
+      return;
+    }
+
+    if (!state.tabelaValores[lote]) state.tabelaValores[lote] = {};
+    if (!state.tabelaValores[lote][tipo]) state.tabelaValores[lote][tipo] = {};
+    state.tabelaValores[lote][tipo][faixas] = valor;
+
+    renderTabelaValores();
+    $('novoLote').value = '';
+    $('novoValor').value = '';
+    
+    // Recalcular dados se já tem planilha carregada
+    if (state.raw.length > 0) applyFilters();
+    
+    alert(`✅ Valor adicionado: ${lote} - ${tipo} - ${faixas} faixas = ${formatMoeda(valor)}`);
+  });
+
+  $('btnToggleExec').addEventListener('click', ()=>{
+    state.dashboardMode = state.dashboardMode === 'detalhado' ? 'executivo' : 'detalhado';
+    toggleDashboard();
+  });
+
+  $('btnVoltarDetalhado').addEventListener('click', ()=>{
+    state.dashboardMode = 'detalhado';
+    toggleDashboard();
+  });
+
+  $('rankingIndice').addEventListener('change', (e)=>{
+    state.rankingIndice = e.target.value;
+    updateRanking();
+  });
+
+  $('btnExportarExcel').addEventListener('click', exportarParaExcel);
+
+  $('btnExcecoes').addEventListener('click', ()=>{
+    if (state.raw.length === 0) {
+      alert('⚠️ Faça upload de uma planilha primeiro!');
+      return;
+    }
+    renderModalExcecoes();
+    $('modalExcecoes').style.display = 'flex';
+  });
+
+  $('closeExcecoes').addEventListener('click', ()=>{
+    $('modalExcecoes').style.display = 'none';
+  });
+
+  $('btnAplicarExcecoes').addEventListener('click', ()=>{
+    const tipo = $('excecaoTipo').value;
+    const faixas = parseInt($('excecaoFaixas').value);
+    
+    if (!tipo || !faixas) {
+      alert('⚠️ Selecione o tipo e quantidade de faixas!');
+      return;
+    }
+    
+    const selecionados = Array.from(document.querySelectorAll('.checkbox-equip:checked'))
+      .map(cb => cb.value);
+    
+    if (selecionados.length === 0) {
+      alert('⚠️ Selecione pelo menos um equipamento!');
+      return;
+    }
+    
+    // Aplicar exceção para todos selecionados
+    selecionados.forEach(equip => {
+      state.excecoes[equip] = { tipo, faixas };
+    });
+    
+    // Atualizar interface
+    renderListaExcecoes();
+    renderModalExcecoes();
+    
+    // Desmarcar todos
+    document.querySelectorAll('.checkbox-equip').forEach(cb => cb.checked = false);
+    $('selecionarTodos').checked = false;
+    updateCountSelecionados();
+    
+    // Recalcular dados
+    if (state.raw.length > 0) applyFilters();
+    
+    alert(`✅ Exceção aplicada para ${selecionados.length} equipamento(s)!\nCobrados como: ${tipo} ${faixas} faixas`);
+  });
+
+  function toggleDashboard() {
+    if (state.dashboardMode === 'executivo') {
+      // Esconder detalhado
+      $('kpis').style.display = 'none';
+      $('kpisFinanceiros').style.display = 'none';
+      $('panel').style.display = 'none';
+      
+      // Mostrar executivo
+      $('dashboardExecutivo').style.display = 'block';
+      renderDashboardExecutivo();
+      
+      // Atualizar botão
+      $('btnToggleExec').textContent = '📊 Visão Detalhada';
+      $('btnToggleExec').classList.add('primary');
+    } else {
+      // Esconder executivo
+      $('dashboardExecutivo').style.display = 'none';
+      
+      // Mostrar detalhado
+      $('kpis').style.display = 'grid';
+      if (state.viewMode === 'equipamento') {
+        $('kpisFinanceiros').style.display = 'grid';
+      }
+      $('panel').style.display = 'block';
+      
+      // Atualizar botão
+      $('btnToggleExec').textContent = '👔 Visão Executiva';
+      $('btnToggleExec').classList.remove('primary');
+    }
+  }
+
+  function updateViewButtons() {
+    if (state.viewMode === 'faixa') {
+      $('btnViewFaixa').classList.add('primary');
+      $('btnViewEquip').classList.remove('primary');
+    } else {
+      $('btnViewFaixa').classList.remove('primary');
+      $('btnViewEquip').classList.add('primary');
+    }
+  }
+
+  function renderTabelaValores() {
+    const lista = $('lotesLista');
+    lista.innerHTML = '';
+
+    Object.keys(state.tabelaValores).sort().forEach(lote => {
+      const loteDiv = document.createElement('div');
+      loteDiv.style.cssText = 'background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:14px';
+      
+      let html = `<h4 style="margin:0 0 10px; color:var(--cyan)">${lote}</h4><div style="display:grid; gap:6px">`;
+      
+      Object.keys(state.tabelaValores[lote]).sort().forEach(tipo => {
+        Object.keys(state.tabelaValores[lote][tipo]).sort((a,b)=>a-b).forEach(faixas => {
+          const valor = state.tabelaValores[lote][tipo][faixas];
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.05)">
+              <span><strong>${tipo}</strong> - ${faixas} faixas</span>
+              <div style="display:flex; gap:8px; align-items:center">
+                <span style="font-family:var(--mono); color:var(--green)">${formatMoeda(valor)}</span>
+                <button class="btn" onclick="window.deleteValor('${lote}','${tipo}',${faixas})" style="padding:4px 8px; font-size:11px; background:rgba(255,59,107,.2); border-color:var(--red)">🗑️</button>
+              </div>
+            </div>
+          `;
+        });
+      });
+      
+      html += '</div>';
+      loteDiv.innerHTML = html;
+      lista.appendChild(loteDiv);
+    });
+  }
+
+  function renderModalExcecoes() {
+    // Garantir que temos modo equipamento para gerar lista correta
+    let equipamentos = [];
+    if (state.viewMode === 'faixa') {
+      equipamentos = groupByEquipment(state.raw);
+    } else {
+      equipamentos = state.filtered.filter(r => r._isGrouped);
+    }
+    
+    // Ordenar por equipamento
+    equipamentos.sort((a, b) => normStr(a.Equipamento).localeCompare(normStr(b.Equipamento)));
+    
+    // Renderizar lista de equipamentos com checkboxes
+    const listaEl = $('listaEquipamentos');
+    listaEl.innerHTML = '';
+    
+    equipamentos.forEach(eq => {
+      const equipNorm = normStr(eq.Equipamento);
+      const temExcecao = state.excecoes[equipNorm];
+      
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:8px; border-bottom:1px solid rgba(255,255,255,.05); display:flex; align-items:center; gap:8px';
+      
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = equipNorm;
+      checkbox.className = 'checkbox-equip';
+      checkbox.id = `chk_${equipNorm}`;
+      
+      const label = document.createElement('label');
+      label.htmlFor = `chk_${equipNorm}`;
+      label.style.cssText = 'flex:1; cursor:pointer; font-size:13px';
+      label.innerHTML = `
+        <strong>${equipNorm}</strong> - ${eq.Tipo} ${eq.NumFaixas} faixa(s)
+        ${temExcecao ? `<span style="color:var(--amber); font-size:11px"> ⚠️ Exceção: ${temExcecao.tipo} ${temExcecao.faixas} faixas</span>` : ''}
+      `;
+      
+      div.appendChild(checkbox);
+      div.appendChild(label);
+      listaEl.appendChild(div);
+    });
+    
+    // Renderizar exceções cadastradas
+    renderListaExcecoes();
+    
+    // Event listener para selecionar todos
+    $('selecionarTodos').onchange = function() {
+      document.querySelectorAll('.checkbox-equip').forEach(cb => {
+        cb.checked = this.checked;
+      });
+      updateCountSelecionados();
+    };
+    
+    // Event listeners para checkboxes individuais
+    document.querySelectorAll('.checkbox-equip').forEach(cb => {
+      cb.onchange = updateCountSelecionados;
+    });
+    
+    updateCountSelecionados();
+  }
+
+  function exportarParaExcel() {
+    if (state.filtered.length === 0) {
+      alert('⚠️ Nenhum dado para exportar! Faça upload de uma planilha primeiro.');
+      return;
+    }
+
+    // Preparar dados para exportação
+    const dadosExportar = state.filtered.map(r => {
+      // Se já está agrupado por equipamento, usar valores calculados
+      // Se não, calcular agora
+      let valorContratual = null;
+      let valorReceber = null;
+      let desconto = null;
+      
+      if (r._isGrouped && r.ValorContratual !== null) {
+        // Modo "Por Equipamento" - usar valores já calculados
+        valorContratual = r.ValorContratual;
+        valorReceber = r.ValorReceber;
+        desconto = r.Desconto;
+      } else if (r.Equipamento) {
+        // Modo "Por Faixa" - calcular valores para cada linha
+        valorContratual = getValorContratual(r.Equipamento);
+        const id = safeNum(r.ID);
+        if (valorContratual && id !== null) {
+          valorReceber = valorContratual * id;
+          desconto = valorContratual - valorReceber;
+        }
+      }
+      
+      return {
+        'Rodovia': normStr(r.Rodovia),
+        'Km': safeNum(r.Km),
+        'Equipamento': normStr(r.Equipamento),
+        'Faixa': normStr(r.Faixa),
+        'Tipo': normStr(r.Tipo),
+        'Operadora': normStr(r.Operadora || ''),
+        'ICId (%)': safeNum(r.ICId) !== null ? (safeNum(r.ICId) * 100).toFixed(2) : '',
+        'ICIn (%)': safeNum(r.ICIn) !== null ? (safeNum(r.ICIn) * 100).toFixed(2) : '',
+        'IEVri (%)': safeNum(r.IEVri) !== null ? (safeNum(r.IEVri) * 100).toFixed(2) : '',
+        'IEVdt (%)': safeNum(r.IEVdt) !== null ? (safeNum(r.IEVdt) * 100).toFixed(2) : '',
+        'ILPd (%)': safeNum(r.ILPd) !== null ? (safeNum(r.ILPd) * 100).toFixed(2) : '',
+        'ILPn (%)': safeNum(r.ILPn) !== null ? (safeNum(r.ILPn) * 100).toFixed(2) : '',
+        'IEF (%)': safeNum(r.IEF) !== null ? (safeNum(r.IEF) * 100).toFixed(2) : '',
+        'ICV (%)': safeNum(r.ICV) !== null ? (safeNum(r.ICV) * 100).toFixed(2) : '',
+        'IDF (%)': safeNum(r.IDF) !== null ? (safeNum(r.IDF) * 100).toFixed(2) : '',
+        'ID (%)': safeNum(r.ID) !== null ? (safeNum(r.ID) * 100).toFixed(2) : '',
+        // VALORES CONTRATUAIS - SEMPRE EXPORTAR
+        'Valor Contratual (R$)': valorContratual !== null ? valorContratual.toFixed(2) : '',
+        'Valor a Receber (R$)': valorReceber !== null ? valorReceber.toFixed(2) : '',
+        'Desconto (R$)': desconto !== null ? desconto.toFixed(2) : '',
+        // Informações adicionais do modo agrupado
+        ...(r._isGrouped ? {
+          'Num Faixas': r.NumFaixas
+        } : {}),
+        ...(r._isGrouped && r.MaiorProblema ? {
+          'Maior Problema': r.MaiorProblema.nome,
+          'Problema - Descrição': r.MaiorProblema.descricao || '',
+          'Problema - Valor Atual (%)': r.MaiorProblema.valor !== undefined ? (r.MaiorProblema.valor * 100).toFixed(2) : '',
+          'Problema - Gap (%)': r.MaiorProblema.gap !== undefined ? r.MaiorProblema.gap.toFixed(2) : '',
+          'Problema - Severidade': r.MaiorProblema.severidade || ''
+        } : {})
+      };
+    });
+
+    // Criar workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(dadosExportar);
+
+    // Ajustar largura das colunas
+    const colWidths = [
+      { wch: 12 }, // Rodovia
+      { wch: 8 },  // Km
+      { wch: 15 }, // Equipamento
+      { wch: 8 },  // Faixa
+      { wch: 8 },  // Tipo
+      { wch: 25 }, // Operadora
+      { wch: 10 }, // ICId
+      { wch: 10 }, // ICIn
+      { wch: 10 }, // IEVri
+      { wch: 10 }, // IEVdt
+      { wch: 10 }, // ILPd
+      { wch: 10 }, // ILPn
+      { wch: 10 }, // IEF
+      { wch: 10 }, // ICV
+      { wch: 10 }, // IDF
+      { wch: 10 }, // ID
+      { wch: 18 }, // Valor Contratual ⭐
+      { wch: 18 }, // Valor a Receber ⭐
+      { wch: 15 }, // Desconto ⭐
+      { wch: 12 }, // Num Faixas (só em modo equipamento)
+      { wch: 15 }, // Maior Problema
+      { wch: 20 }, // Descrição
+      { wch: 15 }, // Valor Atual
+      { wch: 12 }, // Gap
+      { wch: 12 }  // Severidade
+    ];
+    ws['!cols'] = colWidths;
+
+    // Adicionar worksheet ao workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Relatório Índices');
+    
+    // Gerar nome do arquivo com data/hora
+    const agora = new Date();
+    const dataHora = agora.toISOString().slice(0, 19).replace(/:/g, '-');
+    const modo = state.viewMode === 'equipamento' ? 'Equipamentos' : 'Faixas';
+    const nomeArquivo = `Relatorio_Indices_${modo}_${dataHora}.xlsx`;
+    
+    // Estatísticas da exportação
+    const totalLinhas = dadosExportar.length;
+    const comValor = dadosExportar.filter(d => d['Valor Contratual (R$)'] !== '').length;
+    const semValor = totalLinhas - comValor;
+    
+    console.log('\n📊 EXPORTAÇÃO PARA EXCEL:');
+    console.log(`   Total de linhas: ${totalLinhas}`);
+    console.log(`   ✅ Com valor contratual: ${comValor} (${((comValor / totalLinhas) * 100).toFixed(1)}%)`);
+    console.log(`   ❌ Sem valor contratual: ${semValor} (${((semValor / totalLinhas) * 100).toFixed(1)}%)`);
+    console.log(`   📁 Arquivo: ${nomeArquivo}`);
+
+    // Fazer download
+    XLSX.writeFile(wb, nomeArquivo);
+
+    // Feedback visual
+    const btn = $('btnExportarExcel');
+    const textoOriginal = btn.textContent;
+    btn.textContent = '✅ Exportado!';
+    btn.style.background = 'var(--cyan)';
+    setTimeout(() => {
+      btn.textContent = textoOriginal;
+      btn.style.background = 'var(--green)';
+    }, 2000);
+  }
+
+  function renderListaExcecoes() {
+    const count = Object.keys(state.excecoes).length;
+    $('countExcecoes').textContent = count;
+    
+    const lista = $('listaExcecoes');
+    
+    if (count === 0) {
+      lista.innerHTML = '<div style="padding:16px; text-align:center; color:var(--muted); font-size:13px">Nenhuma exceção cadastrada</div>';
+      $('boxExcecoesCadastradas').style.display = 'none';
+      return;
+    }
+    
+    $('boxExcecoesCadastradas').style.display = 'block';
+    lista.innerHTML = '';
+    
+    Object.keys(state.excecoes).sort().forEach(equip => {
+      const exc = state.excecoes[equip];
+      const div = document.createElement('div');
+      div.style.cssText = 'padding:10px; margin-bottom:8px; background:rgba(255,176,32,.1); border-left:3px solid var(--amber); border-radius:6px; display:flex; justify-content:space-between; align-items:center';
+      div.innerHTML = `
+        <div>
+          <strong style="font-size:13px">${equip}</strong><br>
+          <span style="font-size:11px; color:var(--muted2)">Cobrado como: <strong>${exc.tipo} ${exc.faixas} faixas</strong></span>
+        </div>
+        <button class="btn" onclick="window.removerExcecao('${equip}')" style="padding:4px 8px; font-size:11px; background:rgba(255,59,107,.2); border-color:var(--red)">🗑️ Remover</button>
+      `;
+      lista.appendChild(div);
+    });
+  }
+
+  function updateCountSelecionados() {
+    const count = document.querySelectorAll('.checkbox-equip:checked').length;
+    $('countSelecionados').textContent = count;
+  }
+
+  window.removerExcecao = function(equipamento) {
+    if (confirm(`Remover exceção de ${equipamento}?`)) {
+      delete state.excecoes[equipamento];
+      renderListaExcecoes();
+      if (state.raw.length > 0) applyFilters();
+    }
+  };
+
+  function renderTabelaValores() {
+    const lista = $('lotesLista');
+    lista.innerHTML = '';
+
+    Object.keys(state.tabelaValores).sort().forEach(lote => {
+      const loteDiv = document.createElement('div');
+      loteDiv.style.cssText = 'background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:14px';
+      
+      let html = `<h4 style="margin:0 0 10px; color:var(--cyan)">${lote}</h4><div style="display:grid; gap:6px">`;
+      
+      Object.keys(state.tabelaValores[lote]).sort().forEach(tipo => {
+        Object.keys(state.tabelaValores[lote][tipo]).sort((a,b)=>a-b).forEach(faixas => {
+          const valor = state.tabelaValores[lote][tipo][faixas];
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,.05)">
+              <span><strong>${tipo}</strong> - ${faixas} faixas</span>
+              <div style="display:flex; gap:8px; align-items:center">
+                <span style="font-family:var(--mono); color:var(--green)">${formatMoeda(valor)}</span>
+                <button class="btn" onclick="window.deleteValor('${lote}','${tipo}',${faixas})" style="padding:4px 8px; font-size:11px; background:rgba(255,59,107,.2); border-color:var(--red)">🗑️</button>
+              </div>
+            </div>
+          `;
+        });
+      });
+      
+      html += '</div>';
+      loteDiv.innerHTML = html;
+      lista.appendChild(loteDiv);
+    });
+  }
+
+  window.deleteValor = function(lote, tipo, faixas) {
+    if (confirm(`Remover ${lote} - ${tipo} - ${faixas} faixas?`)) {
+      delete state.tabelaValores[lote][tipo][faixas];
+      if (Object.keys(state.tabelaValores[lote][tipo]).length === 0) {
+        delete state.tabelaValores[lote][tipo];
+      }
+      if (Object.keys(state.tabelaValores[lote]).length === 0) {
+        delete state.tabelaValores[lote];
+      }
+      renderTabelaValores();
+      // Recalcular dados
+      if (state.raw.length > 0) applyFilters();
+    }
+  };
+
+  window.addEventListener('load', ()=>{
+    $('metaTxt').textContent = state.meta.toFixed(2);
+    updateViewButtons();
+  });
+})();
+</script>
+
+</body>
+</html>
