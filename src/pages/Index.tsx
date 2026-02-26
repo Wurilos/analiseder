@@ -17,7 +17,7 @@ const Index = () => {
       <KPIGrid cols={5}>
         <KPICard label="Total de Análises" value="0" color="cyan" icon={ClipboardCheck} />
         <KPICard label="% Problemas SPLICE" value="0%" color="amber" icon={Percent} />
-        <KPICard label="% Problemas DER" value="red" color="red" icon={Percent} />
+        <KPICard label="% Problemas DER" value="0%" color="red" icon={Percent} />
         <KPICard label="% Imagens Válidas" value="0%" color="green" icon={CheckCircle} />
         <KPICard label="Total de Imagens" value="0" color="cyan" icon={Image} />
       </KPIGrid>
