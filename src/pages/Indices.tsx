@@ -157,15 +157,15 @@ const IndicesPage: React.FC = () => {
         <div className="grid grid-cols-3 gap-5 mb-6">
           <div className="card-glass rounded-2xl p-6 text-center border-neon-green/20">
             <div className="text-4xl font-black text-neon-green">{ok}</div>
-            <div className="text-sm text-muted-foreground mt-2">✅ OK (&gt;{(meta * 100 + 8).toFixed(0)}%)</div>
+            <div className="text-sm text-muted-foreground mt-2">OK (&gt;{(meta * 100 + 8).toFixed(0)}%)</div>
           </div>
           <div className="card-glass rounded-2xl p-6 text-center border-neon-amber/20">
             <div className="text-4xl font-black text-neon-amber">{atencao}</div>
-            <div className="text-sm text-muted-foreground mt-2">⚠️ Atenção</div>
+            <div className="text-sm text-muted-foreground mt-2">Atenção</div>
           </div>
           <div className="card-glass rounded-2xl p-6 text-center border-neon-red/20">
             <div className="text-4xl font-black text-neon-red">{criticos.length}</div>
-            <div className="text-sm text-muted-foreground mt-2">🔴 Crítico (&lt;{(meta * 100).toFixed(0)}%)</div>
+            <div className="text-sm text-muted-foreground mt-2">Crítico (&lt;{(meta * 100).toFixed(0)}%)</div>
           </div>
         </div>
 
@@ -269,7 +269,7 @@ const IndicesPage: React.FC = () => {
                     <th className="px-3 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase">ICV</th>
                     <th className="px-3 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase">IDF</th>
                     {viewMode === 'equipamento' && (
-                      <th className="px-3 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase">💰 Desconto</th>
+                      <th className="px-3 py-3 text-left text-[11px] font-semibold text-muted-foreground uppercase">Desconto</th>
                     )}
                   </tr>
                 </thead>
@@ -447,7 +447,7 @@ const IndicesPage: React.FC = () => {
 
                     {modalRow._isGrouped && modalRow.ValorContratual != null && (
                       <div className="bg-secondary/20 rounded-xl p-4 border border-border">
-                        <h4 className="text-sm font-bold mb-3">💰 Impacto Financeiro</h4>
+                        <h4 className="text-sm font-bold mb-3">Impacto Financeiro</h4>
                         <div className="space-y-2 text-xs">
                           <div className="flex justify-between"><span>Valor Contratual</span><span className="font-mono">{formatMoeda(modalRow.ValorContratual)}</span></div>
                           <div className="flex justify-between"><span>Valor a Receber</span><span className="font-mono text-neon-green">{formatMoeda(modalRow.ValorReceber)}</span></div>

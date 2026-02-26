@@ -185,7 +185,7 @@ const ClassificacaoPage: React.FC = () => {
           <div className="space-y-3">
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span>✅ Válidas</span>
+                <span>Válidas</span>
                 <span className="font-mono font-bold text-neon-green">{kpis.totValidas.toLocaleString('pt-BR')} ({kpis.percValidas.toFixed(1)}%)</span>
               </div>
               <div className="h-6 bg-secondary/30 rounded-full overflow-hidden">
@@ -194,7 +194,7 @@ const ClassificacaoPage: React.FC = () => {
             </div>
             <div>
               <div className="flex justify-between text-xs mb-1">
-                <span>❌ Inválidas</span>
+                <span>Inválidas</span>
                 <span className="font-mono font-bold text-neon-red">{kpis.totInvalidas.toLocaleString('pt-BR')} ({kpis.percInvalidas.toFixed(1)}%)</span>
               </div>
               <div className="h-6 bg-secondary/30 rounded-full overflow-hidden">
@@ -353,7 +353,7 @@ const ClassificacaoPage: React.FC = () => {
             gradient="text-gradient-danger"
           />
           <RankingCard
-            title="📊 Maiores Perdas Splice (%)"
+            title="Maiores Perdas Splice (%)"
             items={rankingSplicePerc.map(r => ({
               id: normStr(r.Equipamento) + '_perc',
               label: normStr(r.Equipamento),
@@ -383,7 +383,7 @@ const ClassificacaoPage: React.FC = () => {
               <div className="space-y-4 mt-4">
                 {/* Resumo */}
                 <div className="bg-secondary/20 rounded-xl p-4 border border-border">
-                  <h4 className="text-sm font-bold text-primary mb-3">📊 Resumo Geral</h4>
+                  <h4 className="text-sm font-bold text-primary mb-3">Resumo Geral</h4>
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <div className="text-xs text-muted-foreground">Válidas</div>
