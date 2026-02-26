@@ -44,10 +44,10 @@ export const KPICard: React.FC<KPICardProps> = ({ label, value, color = 'cyan', 
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-card border border-border rounded-xl p-4 flex items-center gap-4"
+      className="bg-card border border-border rounded-xl p-4 flex items-center gap-4 shadow-sm"
     >
       {Icon && (
-        <div className={`w-11 h-11 rounded-full ${c.bg} flex items-center justify-center ring-2 ${c.ring} shrink-0`}>
+        <div className={`w-12 h-12 rounded-full ${c.bg} flex items-center justify-center shrink-0`}>
           <Icon className={`w-5 h-5 ${c.text}`} />
         </div>
       )}

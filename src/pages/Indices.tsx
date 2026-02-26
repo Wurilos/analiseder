@@ -93,13 +93,13 @@ const IndicesPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-black text-gradient-primary mb-2">📈 Análise de Índices (ID)</h1>
+          <h1 className="text-3xl md:text-4xl font-black text-primary mb-2">Análise de Índices (ID)</h1>
           <p className="text-sm text-muted-foreground">Mapeamento fixo de colunas</p>
         </div>
         <UploadCard
-          title="📂 Arraste sua planilha aqui (ou clique)"
+          title="Arraste sua planilha aqui (ou clique)"
           description="Mapeamento: ICId=W, ICIn=AA, IEVri=AG, IEVdt=AN, ILPd=AQ, ILPn=AT, IEF=AU, ICV=AX, IDF=BC, ID=BD"
-          hint="💰 Valores contratuais pré-cadastrados para cálculo financeiro automático"
+          hint="Valores contratuais pré-cadastrados para cálculo financeiro automático"
           onFile={handleFile}
         />
       </div>
@@ -120,12 +120,12 @@ const IndicesPage: React.FC = () => {
     return (
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-extrabold text-gradient-primary">👔 Visão Executiva</h1>
+          <h1 className="text-2xl font-extrabold text-primary">Visão Executiva</h1>
           <Button variant="outline" size="sm" onClick={() => setDashboardMode('detalhado')}>← Visão Detalhada</Button>
         </div>
 
         <div className="card-glass rounded-2xl p-10 mb-6 text-center">
-          <h2 className="text-3xl font-black text-gradient-primary mb-8">Resumo Executivo</h2>
+          <h2 className="text-3xl font-black text-primary mb-8">Resumo Executivo</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
               <div className="text-xs text-muted-foreground uppercase tracking-widest mb-3">ID Médio</div>
@@ -172,7 +172,7 @@ const IndicesPage: React.FC = () => {
         {/* Critical equipments */}
         {criticos.length > 0 && (
           <div className="card-glass rounded-2xl p-6 mb-6">
-            <h3 className="text-lg font-bold text-neon-red mb-4">🔴 Equipamentos Críticos</h3>
+            <h3 className="text-lg font-bold text-destructive mb-4">Equipamentos Críticos</h3>
             <div className="grid md:grid-cols-2 gap-2 max-h-[300px] overflow-y-auto scrollbar-thin">
               {criticos.slice(0, 20).map((r, i) => (
                 <div key={i} onClick={() => setModalRow(r)}
@@ -196,7 +196,7 @@ const IndicesPage: React.FC = () => {
     <div>
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-gradient-primary">📈 Análise de Índices (ID)</h1>
+          <h1 className="text-2xl font-extrabold text-primary">Análise de Índices (ID)</h1>
           <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
             Meta: <strong className="font-mono text-foreground">{meta.toFixed(2)}</strong>
             <Button variant="ghost" size="sm" className="h-6 text-xs" onClick={handleChangeMeta}>Alterar</Button>
@@ -313,7 +313,7 @@ const IndicesPage: React.FC = () => {
         <div className="sticky top-5">
           <div className="card-glass rounded-2xl p-4 mb-4">
             <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-bold text-gradient-danger">🔴 Piores Valores</h3>
+              <h3 className="text-sm font-bold text-destructive">Piores Valores</h3>
             </div>
             <FilterField label="Índice">
               <FilterSelect value={rankingIndice} onChange={e => setRankingIndice(e.target.value)} className="w-full">

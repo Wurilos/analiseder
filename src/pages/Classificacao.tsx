@@ -128,15 +128,15 @@ const ClassificacaoPage: React.FC = () => {
     return (
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <h1 className="text-3xl md:text-4xl font-black text-gradient-primary mb-2">
-            📊 Classificação de Infrações
+           <h1 className="text-3xl md:text-4xl font-black text-primary mb-2">
+            Classificação de Infrações
           </h1>
           <p className="text-sm text-muted-foreground">
             Análise detalhada de infrações inválidas por motivo de classificação
           </p>
         </div>
         <UploadCard
-          title="📂 Arraste a planilha de classificação aqui (ou clique)"
+          title="Arraste a planilha de classificação aqui (ou clique)"
           description="Arquivo: ClassificacaoInfracaoInvalida.xlsx"
           hint="Splice: Imagem, Enquadramento, Sinalização | DER: Demais classificações"
           onFile={handleFile}
@@ -150,7 +150,7 @@ const ClassificacaoPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center mb-6 gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold text-gradient-primary">📊 Classificação de Infrações</h1>
+          <h1 className="text-2xl font-extrabold text-primary">Classificação de Infrações</h1>
           <div className="flex items-center gap-4 mt-2">
             <span className="text-xs text-muted-foreground">
               Total: <strong className="font-mono text-foreground">{filtered.length}</strong> registros
@@ -177,7 +177,7 @@ const ClassificacaoPage: React.FC = () => {
       <div className="grid md:grid-cols-3 gap-4 mb-6">
         {/* Visão Geral */}
         <div className="card-glass rounded-2xl p-6">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">📊 Visão Geral</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">Visão Geral</div>
           <div className="text-center mb-5">
             <div className="text-4xl font-black font-mono text-neon-cyan">{kpis.totGeral.toLocaleString('pt-BR')}</div>
             <div className="text-[10px] text-muted-foreground/60 uppercase mt-1">Total de Imagens</div>
@@ -206,7 +206,7 @@ const ClassificacaoPage: React.FC = () => {
 
         {/* Splice */}
         <div className="card-glass rounded-2xl p-6">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">🟣 Responsabilidade Splice</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">Responsabilidade Splice</div>
           <div className="text-center mb-5">
             <div className="text-4xl font-black font-mono text-neon-purple">{kpis.totSplice.toLocaleString('pt-BR')}</div>
             <div className="text-[10px] text-muted-foreground/60 uppercase mt-1">Infrações Splice</div>
@@ -238,7 +238,7 @@ const ClassificacaoPage: React.FC = () => {
 
         {/* DER */}
         <div className="card-glass rounded-2xl p-6">
-          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">🟡 Responsabilidade DER</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wider text-center mb-4">Responsabilidade DER</div>
           <div className="text-center mb-5">
             <div className="text-4xl font-black font-mono text-neon-amber">{kpis.totDER.toLocaleString('pt-BR')}</div>
             <div className="text-[10px] text-muted-foreground/60 uppercase mt-1">Infrações DER</div>
@@ -260,7 +260,7 @@ const ClassificacaoPage: React.FC = () => {
         <div className="min-w-0">
           {/* Filters */}
           <div className="card-glass rounded-2xl p-5 mb-5">
-            <h3 className="text-base font-bold mb-4">📋 Detalhes por Equipamento</h3>
+            <h3 className="text-base font-bold mb-4">Detalhes por Equipamento</h3>
             <FiltersBar>
               <FilterField label="Rodovia">
                 <FilterSelect value={fRodovia} onChange={e => { setFRodovia(e.target.value); setPage(0); }}>
@@ -333,7 +333,7 @@ const ClassificacaoPage: React.FC = () => {
           {/* Chart Geral */}
           {chartData.length > 0 && (
             <div className="card-glass rounded-2xl p-5">
-              <h3 className="text-base font-bold mb-4">📊 Distribuição de Problemas (Geral)</h3>
+              <h3 className="text-base font-bold mb-4">Distribuição de Problemas (Geral)</h3>
               <BarChartSimple data={chartData} />
             </div>
           )}
@@ -342,7 +342,7 @@ const ClassificacaoPage: React.FC = () => {
         {/* Sidebar Rankings */}
         <div className="sticky top-5">
           <RankingCard
-            title="🔴 Maiores Perdas Splice (Total)"
+            title="Maiores Perdas Splice (Total)"
             items={rankingSpliceTotal.map(r => ({
               id: normStr(r.Equipamento),
               label: normStr(r.Equipamento),
