@@ -1,0 +1,3597 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DER Analytics · Índices de Desempenho</title>
+<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap"/>
+<style>
+:root{
+  --bg:#0a0c10;--bg1:#0f1218;--bg2:#151b25;--bg3:#1c2535;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --txt:#e8edf5;--muted:#7a8ba8;--muted2:#4a5a72;
+  --amber:#f59e0b;--amber2:#fbbf24;--red:#ef4444;--green:#10b981;
+  --blue:#3b82f6;--slate:#64748b;--orange:#f97316;
+  --glow-amber:0 0 24px rgba(245,158,11,.25);
+  --glow-blue:0 0 24px rgba(59,130,246,.2);
+  --r:12px;--r2:8px;
+  --font-display:'Syne',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-body:'Inter',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);background:var(--bg);color:var(--txt);
+  min-height:100vh;line-height:1.5;
+  background-image:
+    radial-gradient(ellipse 900px 500px at 10% 0%,rgba(245,158,11,.06),transparent),
+    radial-gradient(ellipse 600px 400px at 90% 100%,rgba(59,130,246,.05),transparent);
+}
+/* ─── LAYOUT ─── */
+#app{display:flex;min-height:100vh}
+#sidebar{
+  width:220px;min-width:220px;background:var(--bg1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow:hidden;
+  z-index:100;
+}
+#content{flex:1;min-width:0;padding:28px 32px;overflow-x:hidden}
+
+/* ─── SIDEBAR ─── */
+.sb-logo{
+  padding:22px 18px 18px;border-bottom:1px solid var(--border);
+}
+.sb-logo h1{
+  font-family:var(--font-display);font-size:15px;font-weight:800;
+  letter-spacing:-.01em;color:var(--txt);line-height:1.2;
+}
+.sb-logo p{font-size:10.5px;color:var(--muted);margin-top:3px;font-family:var(--font-mono)}
+.sb-nav{flex:1;padding:12px 8px;display:flex;flex-direction:column;gap:2px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 10px;border-radius:var(--r2);cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--muted);
+  transition:.15s all;border:1px solid transparent;
+  user-select:none;
+}
+.nav-item:hover{color:var(--txt);background:rgba(255,255,255,.04)}
+.nav-item.active{
+  color:var(--amber);background:rgba(245,158,11,.1);
+  border-color:rgba(245,158,11,.2);
+}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.sb-foot{
+  padding:12px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted2);font-family:var(--font-mono);
+}
+.period-badge{
+  display:inline-block;background:rgba(245,158,11,.12);color:var(--amber2);
+  border:1px solid rgba(245,158,11,.25);padding:3px 8px;border-radius:4px;
+  font-family:var(--font-mono);font-size:10px;margin-top:4px;
+}
+
+/* ─── UPLOAD SCREEN ─── */
+#screen-upload{min-height:80vh}
+#screen-upload.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.upload-wrap{width:100%;max-width:740px}
+.upload-hero{
+  display:flex;align-items:center;gap:16px;margin-bottom:16px;
+}
+.upload-hero-icon{font-size:32px;flex-shrink:0}
+.upload-hero h2{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.02em;margin:0}
+.upload-hero p{color:var(--muted);margin-top:4px;font-size:13px}
+.drop-zone{
+  border:2px dashed var(--border2);border-radius:16px;
+  padding:40px 32px;text-align:center;cursor:pointer;
+  transition:.2s all;position:relative;
+  background:radial-gradient(ellipse 600px 300px at 50% 50%,rgba(245,158,11,.04),transparent);
+  display:flex;align-items:center;justify-content:center;gap:16px;
+}
+.drop-zone:hover,.drop-zone.drag{
+  border-color:rgba(245,158,11,.5);
+  box-shadow:var(--glow-amber);
+  background:radial-gradient(ellipse 600px 200px at 50% 50%,rgba(245,158,11,.08),transparent);
+}
+.drop-icon{font-size:28px;opacity:.6;flex-shrink:0}
+.drop-zone h3{font-family:var(--font-display);font-size:15px;font-weight:700;margin-bottom:3px;text-align:left}
+.drop-zone p{color:var(--muted);font-size:12px;text-align:left;margin:0}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.upload-info{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:12px 16px;
+}
+.upload-info h4{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.col-map{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.col-item{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--muted)}
+.col-item .dot{width:5px;height:5px;border-radius:50%;background:var(--amber);flex-shrink:0}
+.toggle-group{display:flex;border:1px solid var(--border2);border-radius:8px;overflow:hidden}
+.toggle-btn{padding:5px 14px;font-size:12px;font-weight:600;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:.15s all;font-family:var(--font-sans)}
+.toggle-btn.active{background:rgba(245,158,11,.15);color:var(--amber)}
+.toggle-btn:hover:not(.active){background:rgba(255,255,255,.04);color:var(--txt)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:10px 20px;border-radius:var(--r2);border:1px solid var(--border2);
+  background:rgba(255,255,255,.05);color:var(--txt);
+  cursor:pointer;font-size:13px;font-weight:600;font-family:var(--font-body);
+  transition:.15s all;
+}
+.btn:hover{border-color:rgba(245,158,11,.4);box-shadow:var(--glow-amber);background:rgba(245,158,11,.08)}
+.btn-primary{
+  background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:var(--amber2);
+}
+.btn-primary:hover{background:rgba(245,158,11,.25);box-shadow:var(--glow-amber)}
+.btn-sm{padding:6px 14px;font-size:12px}
+.progress-bar{height:4px;background:var(--bg3);border-radius:2px;overflow:hidden;margin-top:16px}
+.progress-inner{height:100%;background:linear-gradient(90deg,var(--amber),var(--amber2));transition:.3s width}
+
+/* ─── CARDS ─── */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);overflow:hidden;
+}
+.card-header{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.card-header h3{font-family:var(--font-display);font-size:14px;font-weight:700}
+.card-body{padding:18px}
+.card-body-compact{padding:12px 18px}
+
+/* ─── KPIs ─── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px}
+.kpi{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:16px;
+  display:flex;flex-direction:column;gap:4px;
+  transition:.15s all;cursor:default;
+}
+.kpi:hover{border-color:rgba(245,158,11,.25);box-shadow:var(--glow-amber)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kpi-val{font-family:var(--font-mono);font-size:26px;font-weight:600;letter-spacing:-.02em}
+.kpi-sub{font-size:11px;color:var(--muted)}
+.kpi.danger .kpi-val{color:var(--red)}
+.kpi.warn .kpi-val{color:var(--amber)}
+.kpi.good .kpi-val{color:var(--green)}
+.kpi.info .kpi-val{color:var(--blue)}
+
+/* ─── TABLE ─── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{
+  padding:9px 10px;text-align:left;
+  font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);background:var(--bg3);border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;white-space:nowrap;
+}
+thead th:hover{color:var(--txt)}
+thead th.sort-asc::after{content:" ↑"}
+thead th.sort-desc::after{content:" ↓"}
+tbody tr{border-bottom:1px solid var(--border);transition:.1s background}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody td{padding:8px 10px;white-space:nowrap}
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:4px;
+  font-family:var(--font-mono);font-size:11px;font-weight:600;
+}
+.badge-red{background:rgba(239,68,68,.15);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+.badge-amber{background:rgba(245,158,11,.15);color:var(--amber2);border:1px solid rgba(245,158,11,.25)}
+.badge-green{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.badge-blue{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25)}
+.badge-slate{background:rgba(100,116,139,.15);color:#94a3b8;border:1px solid rgba(100,116,139,.25)}
+.idx{font-family:var(--font-mono);font-size:12px}
+
+/* ─── PAGE HEADER ─── */
+.page-header{margin-bottom:24px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.page-title{font-family:var(--font-display);font-size:22px;font-weight:800;letter-spacing:-.02em}
+.page-subtitle{font-size:13px;color:var(--muted);margin-top:4px}
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select,input[type=text]{
+  background:var(--bg2);border:1px solid var(--border2);
+  color:var(--txt);padding:7px 12px;border-radius:var(--r2);
+  font-size:12.5px;font-family:var(--font-body);
+  outline:none;cursor:pointer;
+}
+select:focus,input:focus{border-color:rgba(245,158,11,.4)}
+option{background:var(--bg2)}
+
+/* ─── CHARTS ─── */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+.chart-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.chart-title{padding:12px 16px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);font-family:var(--font-display)}
+.chart-area{padding:0;height:260px}
+.chart-area-tall{height:320px}
+
+/* ─── INDEX BAR ─── */
+.idx-bar-wrap{display:flex;align-items:center;gap:8px;min-width:120px}
+.idx-bar{flex:1;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.idx-bar-fill{height:100%;border-radius:3px;transition:.3s width}
+
+/* ─── DETAIL MODAL ─── */
+#modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);
+  z-index:1000;display:none;align-items:center;justify-content:center;
+  padding:20px;
+}
+#modal-overlay.open{display:flex}
+#modal{
+  background:var(--bg1);border:1px solid var(--border2);
+  border-radius:18px;max-width:860px;width:100%;max-height:90vh;
+  overflow-y:auto;box-shadow:0 40px 80px rgba(0,0,0,.8);
+}
+.modal-header{
+  padding:20px 24px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--bg1);z-index:1;
+}
+.modal-close{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--border);
+  background:none;color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+  transition:.15s all;
+}
+.modal-close:hover{border-color:var(--red);color:var(--red)}
+.modal-body{padding:20px 24px}
+
+/* ─── BREAKDOWN TREE ─── */
+.tree-node{
+  border:1px solid var(--border);border-radius:var(--r2);
+  padding:12px 14px;background:var(--bg3);margin-bottom:8px;
+}
+.tree-node-header{display:flex;align-items:center;gap:10px}
+.tree-node-val{
+  font-family:var(--font-mono);font-size:20px;font-weight:700;min-width:60px;
+}
+.tree-node-label{font-weight:600;font-size:14px}
+.tree-node-desc{font-size:12px;color:var(--muted);margin-top:3px}
+.tree-children{margin-top:12px;margin-left:20px;border-left:2px solid var(--border2);padding-left:14px;display:flex;flex-direction:column;gap:6px}
+.tree-child{
+  border:1px solid var(--border);border-radius:var(--r2);
+  padding:8px 12px;background:var(--bg2);
+}
+.tree-child-header{display:flex;align-items:center;gap:8px}
+.tree-child-val{font-family:var(--font-mono);font-size:14px;font-weight:600;min-width:50px}
+.tree-child-label{font-size:13px;font-weight:500}
+.tree-grandchildren{margin-top:8px;margin-left:16px;border-left:2px solid var(--border);padding-left:12px;display:flex;flex-direction:column;gap:4px}
+.tree-leaf{
+  padding:5px 10px;border-radius:6px;background:var(--bg1);
+  font-size:11.5px;display:flex;align-items:center;gap:8px;
+}
+.tree-leaf-name{color:var(--muted);font-family:var(--font-mono)}
+.tree-leaf-val{font-family:var(--font-mono);font-weight:600}
+
+/* ─── RECOMMENDATIONS ─── */
+.reco-list{display:flex;flex-direction:column;gap:8px}
+.reco{
+  border-radius:var(--r2);padding:10px 14px;border:1px solid;
+  display:flex;align-items:flex-start;gap:10px;
+}
+.reco.high{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.07)}
+.reco.medium{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.07)}
+.reco.low{border-color:rgba(59,130,246,.25);background:rgba(59,130,246,.07)}
+.reco-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.reco-body{}
+.reco-title{font-size:13px;font-weight:600}
+.reco-desc{font-size:12px;color:var(--muted);margin-top:2px}
+.reco-gain{font-family:var(--font-mono);font-size:11px;color:var(--green);margin-top:3px}
+
+/* ─── COMPARE ─── */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.delta-pos{color:var(--green)}
+.delta-neg{color:var(--red)}
+.delta-zero{color:var(--muted)}
+
+/* ─── VALIDATION ─── */
+.validation-row{
+  display:flex;align-items:center;gap:10px;padding:6px 0;
+  border-bottom:1px solid var(--border);font-size:12px;
+}
+.validation-ok{color:var(--green)}
+.validation-warn{color:var(--amber)}
+.validation-err{color:var(--red)}
+
+/* ─── LOADING ─── */
+#loading{
+  position:fixed;inset:0;background:rgba(10,12,16,.9);
+  z-index:9999;display:none;align-items:center;justify-content:center;
+  flex-direction:column;gap:16px;
+}
+#loading.show{display:flex}
+.spinner{
+  width:40px;height:40px;border:3px solid var(--border2);
+  border-top-color:var(--amber);border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── TOAST ─── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:9998;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.toast-item{
+  background:var(--bg2);border:1px solid var(--border2);
+  border-radius:var(--r2);padding:10px 16px;font-size:13px;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  animation:slideIn .2s ease;max-width:360px;
+}
+.toast-item.success{border-color:rgba(16,185,129,.4);color:#6ee7b7}
+.toast-item.error{border-color:rgba(239,68,68,.4);color:#fca5a5}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+
+/* ─── SCREENS ─── */
+.screen{display:none}
+.screen.active{display:block}
+#screen-upload.active{display:flex}
+
+/* ─── HEATMAP-LIKE ROW COLORS ─── */
+tr.id-critical td:first-child{border-left:3px solid var(--red)}
+tr.id-low td:first-child{border-left:3px solid var(--amber)}
+tr.id-ok td:first-child{border-left:3px solid var(--green)}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  #sidebar{display:none}
+  #content{padding:16px}
+  .charts-grid{grid-template-columns:1fr}
+  .compare-grid{grid-template-columns:1fr}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+}
+
+/* ─── MISC ─── */
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:2px 8px;border-radius:4px;font-weight:600}
+.tag-cev{background:rgba(59,130,246,.15);color:#93c5fd;border:1px solid rgba(59,130,246,.25)}
+.tag-rev{background:rgba(168,85,247,.15);color:#d8b4fe;border:1px solid rgba(168,85,247,.25)}
+.tag-cec{background:rgba(249,115,22,.15);color:#fdba74;border:1px solid rgba(249,115,22,.25)}
+.tag-rec{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.25)}
+.divider{height:1px;background:var(--border);margin:16px 0}
+.flex-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.gap-16{gap:16px}
+.mt-16{margin-top:16px}
+.mt-24{margin-top:24px}
+.text-muted{color:var(--muted)}
+.text-mono{font-family:var(--font-mono)}
+.text-sm{font-size:12px}
+.font-bold{font-weight:700}
+.w-full{width:100%}
+.empty-state{text-align:center;padding:48px;color:var(--muted)}
+.empty-state h3{font-size:18px;margin-bottom:8px;color:var(--txt)}
+.empty-state p{font-size:13px}
+</style>
+</head>
+<body>
+<div id="loading"><div class="spinner"></div><p id="loading-msg" style="color:var(--muted);font-size:13px">Processando planilha...</p></div>
+<div id="toast"></div>
+
+<!-- MODAL DETAIL -->
+<div id="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="modal">
+    <div class="modal-header">
+      <div>
+        <div id="modal-title" style="font-family:var(--font-display);font-size:16px;font-weight:800"></div>
+        <div id="modal-subtitle" style="font-size:12px;color:var(--muted);margin-top:3px"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<div id="app">
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="sb-logo">
+    <h1>DER Analytics</h1>
+    <p>Índices de Desempenho</p>
+  </div>
+  <nav class="sb-nav">
+    <div class="nav-item active" onclick="showScreen('upload')" id="nav-upload">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      Upload
+    </div>
+    <div class="nav-item" onclick="showScreen('dashboard')" id="nav-dashboard">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showScreen('ranking')" id="nav-ranking">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Ranking
+    </div>
+    <div class="nav-item" onclick="showScreen('validation')" id="nav-validation">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 1.2-.504 2.34-1.351 3.169C18.802 16 12 21 12 21s-6.802-5-7.649-5.831A4.5 4.5 0 013 12c0-2.485 2.015-4.5 4.5-4.5h.5A4.5 4.5 0 0112 4a4.5 4.5 0 014.5 3.5h.5C19.485 7.5 21 9.515 21 12z"/></svg>
+      Validação
+    </div>
+    <div class="nav-item" onclick="showScreen('compare')" id="nav-compare">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      Comparativo
+    </div>
+    <div class="nav-item" onclick="showScreen('invalidas')" id="nav-invalidas">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Inválidas
+      <span id="nav-invalidas-badge" style="display:none;margin-left:auto;background:rgba(239,68,68,.2);color:#fca5a5;border:1px solid rgba(239,68,68,.3);padding:1px 6px;border-radius:10px;font-size:10px;font-family:var(--font-mono)"></span>
+    </div>
+    <div class="nav-item" onclick="showScreen('valores')" id="nav-valores">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      Valores
+    </div>
+  </nav>
+  <div class="sb-foot">
+    <div id="sb-period-info" style="display:none">
+      <div style="color:var(--muted2)">Período ativo:</div>
+      <div class="period-badge" id="sb-period"></div>
+    </div>
+    <div id="sb-records" style="margin-top:6px;color:var(--muted2)"></div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+<!-- ══ UPLOAD SCREEN ══ -->
+<div class="screen active" id="screen-upload">
+  <div class="upload-wrap" style="max-width:660px">
+
+    <!-- Branding -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:40px;margin-bottom:8px">📊</div>
+      <h2 style="font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:-.02em">DER Analytics</h2>
+      <p style="color:var(--muted);font-size:13px;margin-top:5px">Análise de Índices de Desempenho · Edital 145/2023</p>
+    </div>
+
+    <!-- Dois uploads lado a lado -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+
+      <!-- Upload 1: Planilha de Desempenho (ID) -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">
+          📈 Planilha de Desempenho (ID)
+        </div>
+        <div class="drop-zone" id="drop-zone"
+          style="padding:24px 16px;border-radius:12px"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event)">
+          <div class="drop-icon" style="font-size:24px">📂</div>
+          <div>
+            <h3 style="font-size:13px">Arraste o arquivo aqui</h3>
+            <p style="font-size:11px">VelocidadeFixo...xlsx</p>
+          </div>
+          <input type="file" accept=".xlsx,.xls" onchange="handleFile(this.files[0])"/>
+        </div>
+        <div id="id-loaded-badge" style="display:none;margin-top:7px;padding:6px 10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;font-size:11px;display:none;align-items:center;gap:8px">
+          <span style="color:var(--green)">✓</span>
+          <span id="id-loaded-text" style="color:var(--muted)"></span>
+          <button class="btn btn-sm" style="margin-left:auto;color:var(--red);font-size:10px" onclick="clearPeriodo()">Remover</button>
+        </div>
+      </div>
+
+      <!-- Upload 2: Planilha de Inválidas -->
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px">
+          📋 Classificação de Inválidas
+        </div>
+        <div class="drop-zone" id="drop-zone-inv"
+          style="padding:24px 16px;border-radius:12px"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDropInv(event)">
+          <div class="drop-icon" style="font-size:24px">📂</div>
+          <div>
+            <h3 style="font-size:13px">Arraste o arquivo aqui</h3>
+            <p style="font-size:11px">ClassificacaoInfracaoInvalida...xlsx</p>
+          </div>
+          <input type="file" accept=".xlsx,.xls" onchange="handleClassFile(this.files[0])"/>
+        </div>
+        <div id="inv-loaded-badge" style="display:none;margin-top:7px;padding:6px 10px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;font-size:11px;align-items:center;gap:8px">
+          <span style="color:var(--green)">✓</span>
+          <span id="inv-loaded-text" style="color:var(--muted)">Dados de inválidas carregados</span>
+          <button class="btn btn-sm" style="margin-left:auto;color:var(--red);font-size:10px" onclick="clearClassData()">Remover</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preview pós-seleção (planilha ID) -->
+    <div id="upload-preview" style="display:none">
+      <div class="upload-info">
+        <h4>📋 Preview — Planilha de Desempenho</h4>
+        <div id="preview-content"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:10px;justify-content:flex-end">
+        <button class="btn" onclick="cancelImport()">Cancelar</button>
+        <button class="btn btn-primary" id="btn-import" onclick="confirmImport()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Confirmar Importação
+        </button>
+      </div>
+    </div>
+
+    <!-- Períodos -->
+    <div id="history-list" style="margin-top:4px"></div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD SCREEN ══ -->
+<div class="screen" id="screen-dashboard">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Dashboard Geral</div>
+      <div class="page-subtitle" id="dash-subtitle">Visão consolidada dos índices de desempenho</div>
+    </div>
+    <div class="filters">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-dash-faixa" onclick="setDashView('faixa')">Por Faixa</button>
+        <button class="toggle-btn" id="btn-dash-equip" onclick="setDashView('equip')">Por Equipamento</button>
+      </div>
+      <select id="f-rodovia" onchange="applyFilters()"><option value="">Todas rodovias</option></select>
+      <select id="f-tipo" onchange="applyFilters()"><option value="">Todos tipos</option></select>
+      <select id="f-municipio" onchange="applyFilters()"><option value="">Todos municípios</option></select>
+      <select id="f-equip" onchange="applyFilters()"><option value="">Todos equipamentos</option></select>
+    </div>
+  </div>
+  <div class="kpis" id="dash-kpis"></div>
+  <div class="charts-grid" id="dash-charts">
+    <div class="chart-box">
+      <div class="chart-title">Distribuição do Índice de Desempenho (ID)</div>
+      <div class="chart-area" id="chart-dist"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">ID por Equipamento (Top 20)</div>
+      <div class="chart-area" id="chart-equipment"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Subíndices — Média por Tipo</div>
+      <div class="chart-area" id="chart-radar"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Imagens por Equipamento — Válidas vs Inválidas</div>
+      <div class="chart-area" id="chart-images"></div>
+    </div>
+  </div>
+  <div class="card mt-24">
+    <div class="card-header"><h3>🔴 Top 10 Piores Equipamentos</h3></div>
+    <div class="table-wrap"><table id="tbl-worst"></table></div>
+  </div>
+  <div class="card mt-16">
+    <div class="card-header"><h3>🟢 Top 10 Melhores Equipamentos</h3></div>
+    <div class="table-wrap"><table id="tbl-best"></table></div>
+  </div>
+</div>
+
+<!-- ══ RANKING SCREEN ══ -->
+<div class="screen" id="screen-ranking">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Ranking & Diagnóstico</div>
+      <div class="page-subtitle">Todos os equipamentos com análise de causa e potencial de melhoria</div>
+    </div>
+    <div class="filters" style="flex-wrap:wrap">
+      <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-rank-faixa" onclick="setRankView('faixa')">Por Faixa</button>
+        <button class="toggle-btn" id="btn-rank-equip" onclick="setRankView('equip')">Por Equipamento</button>
+      </div>
+      <input type="text" id="r-search" placeholder="Buscar série/equip..." oninput="renderRanking()" style="width:180px"/>
+      <select id="r-tipo" onchange="renderRanking()"><option value="">Todos tipos</option></select>
+      <select id="r-rodovia" onchange="renderRanking()"><option value="">Todas rodovias</option></select>
+      <select id="r-sort" onchange="renderRanking()">
+        <optgroup label="Índice de Desempenho">
+          <option value="id_asc">ID ↑ (pior primeiro)</option>
+          <option value="id_desc">ID ↓ (melhor primeiro)</option>
+        </optgroup>
+        <optgroup label="Subíndices Principais">
+          <option value="idf_asc">IDF ↑ (pior primeiro)</option>
+          <option value="idf_desc">IDF ↓ (melhor primeiro)</option>
+          <option value="ief_asc">IEF ↑ (pior primeiro)</option>
+          <option value="ief_desc">IEF ↓ (melhor primeiro)</option>
+          <option value="icv_asc">ICV ↑ (pior primeiro)</option>
+          <option value="icv_desc">ICV ↓ (melhor primeiro)</option>
+        </optgroup>
+        <optgroup label="Subíndices IEF">
+          <option value="icid_asc">ICId ↑ (pior primeiro)</option>
+          <option value="icin_asc">ICIn ↑ (pior primeiro)</option>
+          <option value="ievri_asc">IEVri ↑ (pior primeiro)</option>
+          <option value="ievdt_asc">IEVdt ↑ (pior primeiro)</option>
+          <option value="ilpd_asc">ILPd ↑ (pior primeiro)</option>
+          <option value="ilpn_asc">ILPn ↑ (pior primeiro)</option>
+        </optgroup>
+        <optgroup label="Análise">
+          <option value="gain_desc">Maior Ganho Potencial</option>
+        </optgroup>
+      </select>
+      <select id="r-idx-filter" onchange="renderRanking()" style="min-width:140px">
+        <option value="">Filtrar por índice...</option>
+        <optgroup label="ID">
+          <option value="c_ID|lt|0.60">ID &lt; 0.60 (crítico)</option>
+          <option value="c_ID|lt|0.85">ID &lt; 0.85</option>
+          <option value="c_ID|gte|0.85">ID ≥ 0.85 (bom)</option>
+        </optgroup>
+        <optgroup label="IDF">
+          <option value="c_IDF|lt|0.95">IDF &lt; 0.95</option>
+          <option value="c_IDF|lt|0.80">IDF &lt; 0.80 (crítico)</option>
+          <option value="c_IDF|eq|0">IDF = 0 (indisponível)</option>
+        </optgroup>
+        <optgroup label="IEF">
+          <option value="c_IEF|lt|0.80">IEF &lt; 0.80</option>
+          <option value="c_IEF|lt|0.50">IEF &lt; 0.50 (crítico)</option>
+        </optgroup>
+        <optgroup label="ICV">
+          <option value="c_ICV|lt|1.00">ICV &lt; 1.00</option>
+          <option value="c_ICV|lt|0.75">ICV &lt; 0.75 (crítico)</option>
+        </optgroup>
+        <optgroup label="ICId / ICIn">
+          <option value="c_ICId|lt|0.80">ICId &lt; 0.80</option>
+          <option value="c_ICIn|lt|0.80">ICIn &lt; 0.80</option>
+        </optgroup>
+        <optgroup label="IEVri / IEVdt">
+          <option value="c_IEVri|lt|0.90">IEVri &lt; 0.90</option>
+          <option value="c_IEVdt|lt|0.90">IEVdt &lt; 0.90</option>
+        </optgroup>
+        <optgroup label="ILPd / ILPn">
+          <option value="c_ILPd|lt|0.75">ILPd &lt; 0.75</option>
+          <option value="c_ILPn|lt|0.75">ILPn &lt; 0.75</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <h3 id="ranking-count">Equipamentos/Faixas</h3>
+      <div style="display:flex;gap:8px">
+        <span class="badge badge-red">ID &lt; 0.60</span>
+        <span class="badge badge-amber">0.60–0.85</span>
+        <span class="badge badge-green">≥ 0.85</span>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="tbl-ranking">
+        <thead id="thead-ranking">
+          <tr>
+            <th style="width:30px">#</th>
+            <th>Série</th>
+            <th>Equipamento</th>
+            <th>Tipo</th>
+            <th>Faixa</th>
+            <th>Rodovia</th>
+            <th>Km</th>
+            <th>IDF</th>
+            <th>IEF</th>
+            <th>ICV</th>
+            <th>ICId</th>
+            <th>ICIn</th>
+            <th>IEVri</th>
+            <th>IEVdt</th>
+            <th>ILPd</th>
+            <th>ILPn</th>
+            <th>ID</th>
+            <th>Causa Principal</th>
+            <th>Ganho Pot.</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-ranking"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ VALIDATION SCREEN ══ -->
+<div class="screen" id="screen-validation">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Validação de Cálculos</div>
+      <div class="page-subtitle">Comparação entre valores calculados pelo sistema e valores da planilha</div>
+    </div>
+  </div>
+  <div class="kpis" id="val-kpis"></div>
+  <div class="card mt-16">
+    <div class="card-header"><h3>🔍 Divergências Detectadas</h3></div>
+    <div class="table-wrap">
+      <table id="tbl-validation">
+        <thead>
+          <tr>
+            <th>Equipamento</th><th>Faixa</th><th>Índice</th>
+            <th>Sistema</th><th>Planilha</th><th>Δ</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-validation"></tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card mt-16">
+    <div class="card-header"><h3>📊 Auditoria Completa por Equipamento</h3></div>
+    <div class="table-wrap">
+      <table id="tbl-audit">
+        <thead>
+          <tr>
+            <th>Equipamento</th><th>Faixa</th><th>Tipo</th>
+            <th>ICId calc.</th><th>ICIn calc.</th><th>IEVri calc.</th><th>IEVdt calc.</th>
+            <th>ILPd calc.</th><th>ILPn calc.</th><th>IEF calc.</th><th>IDF calc.</th>
+            <th>ICV calc.</th><th>ID calc.</th><th>ID planilha</th><th>Δ ID</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-audit"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══ COMPARE SCREEN ══ -->
+<div class="screen" id="screen-compare">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Comparativo entre Períodos</div>
+      <div class="page-subtitle">Evolução, regressões e melhorias ao longo do tempo</div>
+    </div>
+    <div class="filters">
+      <select id="cmp-a" onchange="renderCompare()"><option value="">Período A</option></select>
+      <select id="cmp-b" onchange="renderCompare()"><option value="">Período B</option></select>
+    </div>
+  </div>
+  <div id="compare-content">
+    <div class="empty-state">
+      <h3>Importe pelo menos 2 períodos</h3>
+      <p>Faça upload de planilhas de meses diferentes para habilitar a comparação.</p>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-invalidas">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Análise de Infrações Inválidas</div>
+      <div class="page-subtitle">Classificação por responsabilidade — Splice vs. Outros Motivos</div>
+    </div>
+    <div class="filters">
+      <select id="inv-rodovia" onchange="renderInvalidas()"><option value="">Todas rodovias</option></select>
+      <select id="inv-tipo" onchange="renderInvalidas()"><option value="">Todos tipos</option></select>
+    </div>
+  </div>
+  <div id="inv-content">
+    <div class="empty-state">
+      <div style="font-size:48px;margin-bottom:14px">📂</div>
+      <h3>Importe a planilha de classificação</h3>
+      <p>Vá até a tela de <strong>Upload</strong> e importe o arquivo de Classificação de Infração Inválida.</p>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="screen-valores">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Análise Financeira</div>
+      <div class="page-subtitle">Descontos por equipamento e impacto financeiro de cada subíndice</div>
+    </div>
+    <div class="filters">
+      <div class="toggle-group" id="val-view-toggle">
+        <button class="toggle-btn active" id="btn-view-faixa" onclick="setValView('faixa')">Por Faixa</button>
+        <button class="toggle-btn" id="btn-view-equip" onclick="setValView('equip')">Por Equipamento</button>
+      </div>
+      <select id="val-f-rodovia" onchange="renderValores()"><option value="">Todas rodovias</option></select>
+      <select id="val-f-tipo" onchange="renderValores()"><option value="">Todos tipos</option></select>
+    </div>
+  </div>
+
+  <!-- Configuração de valores mensais por tipo -->
+  <div class="card" style="margin-bottom:16px" id="val-config-card">
+    <div class="card-header" style="cursor:pointer" onclick="toggleValConfig()">
+      <h3>⚙️ Configurar Valor Mensal por Tipo de Equipamento</h3>
+      <span id="val-config-toggle" style="color:var(--muted);font-size:12px">▼ expandir</span>
+    </div>
+    <div id="val-config-body" style="display:none">
+      <div class="card-body">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">
+          Valores individuais carregados do catálogo DR-08/DR-14 são <strong>por equipamento</strong> (divididos automaticamente pelas faixas). Os valores abaixo servem de fallback <strong>por faixa/mês</strong> para equipamentos não cadastrados.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="val-config-inputs">
+          <!-- rendered by JS -->
+        </div>
+        <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn" onclick="resetValorConfig()">Restaurar padrões</button>
+          <button class="btn btn-primary" onclick="saveValorConfig()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Salvar Valores
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs financeiros -->
+  <div id="val-kpis-fin" class="kpis" style="margin-bottom:16px"></div>
+
+  <!-- Charts -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+    <div class="chart-box">
+      <div class="chart-title">Desconto Total por Equipamento (Top 20)</div>
+      <div class="chart-area chart-area-tall" id="chart-val-equip"></div>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">Origem das Perdas — Contribuição por Subíndice</div>
+      <div class="chart-area chart-area-tall" id="chart-val-causas"></div>
+    </div>
+  </div>
+
+  <!-- Tabela principal -->
+  <div class="card">
+    <div class="card-header">
+      <h3 id="val-table-title">Detalhamento Financeiro</h3>
+      <span style="font-size:11px;color:var(--muted)">ordenado por maior desconto</span>
+    </div>
+    <div class="table-wrap">
+      <table id="table-valores">
+        <thead id="thead-valores"></thead>
+        <tbody id="tbody-valores"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div><!-- #content -->
+</div><!-- #app -->
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════════
+let STATE = {
+  periods: {},         // periodKey → [{...record}]
+  activePeriod: null,
+  pendingData: null,
+  pendingPeriod: null,
+  filteredRecords: [],
+  classifications: {}, // periodKey → [{equip, faixa, ...categories}]
+  activeClass: null,
+  valView: 'faixa',    // 'faixa' | 'equip'
+  rankView: 'faixa',   // 'faixa' | 'equip'
+  dashView: 'faixa',   // 'faixa' | 'equip'
+};
+
+// ════════════════════════════════════════════════════════════════
+// COLUMN INDICES (0-based from data rows, after 3-row header)
+// ════════════════════════════════════════════════════════════════
+const COL = {
+  operadora:0, rodovia:1, km:2, municipio:3, coords:4,
+  equipamento:5, tipo:6, faixa:7, inicio:8,
+  pktsInf:9, infracoes:10, situacao:11, validas:12, invalidas:13, testeEquip:14,
+  pktsTraf:15, contagemVeic:16, corretas:17, incorretas:18,
+  IVd:19, INd:20, TId:21, ICId:22,
+  IVn:23, INn:24, TIn:25, ICIn:26,
+  rfri1:27, rfri2:28, rfri3:29, rfri4:30, rfri5:31, IEVri:32,
+  rfdt1:33, rfdt2:34, rfdt3:35, rfdt4:36, rfdt5:37, rfdt6:38, IEVdt:39,
+  LPd:40, IVd_ocr:41, ILPd:42,
+  LPn:43, IVn_ocr:44, ILPn:45,
+  IEF:46, QVc:47, QVt:48, ICV:49,
+  periodo:50, dias:51, NHt:52, NHo:53, IDF:54, ID:55, atualizadoEm:56
+};
+
+// ════════════════════════════════════════════════════════════════
+// CALCULATION ENGINE
+// ════════════════════════════════════════════════════════════════
+function sn(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(typeof v==='number')return isNaN(v)?null:v;
+  const n=parseFloat(String(v).replace(',','.'));
+  return isNaN(n)?null:n;
+}
+function clamp(v,mn=0,mx=1){return Math.max(mn,Math.min(mx,v))}
+
+function calcICId(IVd,INd,TId){
+  if(!TId)return null;
+  const r=(IVd+INd)/TId;
+  if(r>=0.85)return 1.00;
+  if(r>=0.75)return 0.80;
+  if(r>=0.65)return 0.70;
+  if(r>=0.55)return 0.60;
+  if(r>=0.50)return 0.50;
+  if(r>=0.35)return 0.40;
+  if(r>=0.20)return 0.25;
+  return 0.00;
+}
+function calcICIn(IVn,INn,TIn){
+  if(!TIn)return null;
+  const r=(IVn+INn)/TIn;
+  if(r>=0.70)return 1.00;
+  if(r>=0.65)return 0.80;
+  if(r>=0.60)return 0.70;
+  if(r>=0.50)return 0.60;
+  if(r>=0.40)return 0.50;
+  if(r>=0.35)return 0.40;
+  if(r>=0.20)return 0.25;
+  return 0.00;
+}
+function calcILPd(LPd,IVd,x=0){
+  if(!IVd)return null;
+  const r=(LPd/IVd)+x;
+  if(r>=0.80)return 1.00;
+  if(r>=0.70)return 0.75;
+  if(r>=0.60)return 0.25;
+  return 0.00;
+}
+function calcILPn(LPn,IVn,x=0){
+  if(!IVn)return null;
+  const r=(LPn/IVn)+x;
+  if(r>=0.70)return 1.00;
+  if(r>=0.50)return 0.75;
+  if(r>=0.40)return 0.25;
+  return 0.00;
+}
+function calcIEVri(rfri1,rfri2,rfri3,rfri4,rfri5,total){
+  if(!total)return null;
+  const n=(rfri1||0)+0.8*(rfri2||0)+0.6*(rfri3||0)+0.4*(rfri4||0)+0.2*(rfri5||0);
+  return clamp(n/total);
+}
+function calcIEVdt(rfdt1,rfdt2,rfdt3,rfdt4,rfdt5,rfdt6,total){
+  if(!total)return null;
+  const n=(rfdt1||0)+0.9*(rfdt2||0)+0.8*(rfdt3||0)+0.7*(rfdt4||0)+0.4*(rfdt5||0)+0.2*(rfdt6||0);
+  return clamp(n/total);
+}
+function calcIEF(ICId,ICIn,IEVri,IEVdt,ILPd,ILPn){
+  if(ICId===null||ICIn===null||IEVri===null||IEVdt===null||ILPd===null||ILPn===null)return null;
+  const r=0.8*((ICId+ICIn)/2)*((IEVri+IEVdt)/2)+0.2*((ILPd+ILPn)/2);
+  return clamp(r);
+}
+function calcIDF(NHo,NHt){
+  if(!NHt)return null;
+  const r=NHo/NHt;
+  return r>=0.95?1.00:clamp(r);
+}
+function calcICVi(QVc,QVt){
+  if(!QVt)return null;
+  return QVc/QVt;
+}
+function calcICV(QVc,QVt){
+  const r=calcICVi(QVc,QVt);
+  if(r===null)return null;
+  if(r>=0.80)return 1.00;
+  if(r>=0.70)return 0.75;
+  if(r>=0.60)return 0.25;
+  return 0.00;
+}
+function calcID(tipo,IDF,IEF,ICV,IP=null){
+  if(IDF===null||IEF===null||ICV===null)return null;
+  const hasWeight=(IP!==null)&&(tipo==='CEC'||tipo==='REC');
+  if(hasWeight){
+    return IDF*(0.7*IEF+0.1*ICV+0.2*IP);
+  }
+  return IDF*(0.9*IEF+0.1*ICV);
+}
+
+function computeRecord(raw){
+  const g=i=>sn(raw[i]);
+  const IVd=g(COL.IVd),INd=g(COL.INd),TId=g(COL.TId);
+  const IVn=g(COL.IVn),INn=g(COL.INn),TIn=g(COL.TIn);
+  const rfri1=g(COL.rfri1),rfri2=g(COL.rfri2),rfri3=g(COL.rfri3),rfri4=g(COL.rfri4),rfri5=g(COL.rfri5);
+  const rfdt1=g(COL.rfdt1),rfdt2=g(COL.rfdt2),rfdt3=g(COL.rfdt3),rfdt4=g(COL.rfdt4),rfdt5=g(COL.rfdt5),rfdt6=g(COL.rfdt6);
+  const LPd=g(COL.LPd),IVd_ocr=g(COL.IVd_ocr);
+  const LPn=g(COL.LPn),IVn_ocr=g(COL.IVn_ocr);
+  const QVc=g(COL.QVc),QVt=g(COL.QVt);
+  const NHo=g(COL.NHo),NHt=g(COL.NHt);
+  const pktsTraf=g(COL.pktsTraf);
+  const pktsInf=g(COL.pktsInf);
+  const tipo=(raw[COL.tipo]||'').toString().trim().toUpperCase();
+
+  const ICId_raw=(IVd!==null&&TId)?((IVd+INd)/TId):null;
+  const ICIn_raw=(IVn!==null&&TIn)?((IVn+INn)/TIn):null;
+  const ILPd_raw=(IVd_ocr&&LPd!==null)?(LPd/IVd_ocr):null;
+  const ILPn_raw=(IVn_ocr&&LPn!==null)?(LPn/IVn_ocr):null;
+
+  const c_ICId=calcICId(IVd||0,INd||0,TId);
+  const c_ICIn=calcICIn(IVn||0,INn||0,TIn);
+  const trri=pktsInf;
+  const c_IEVri=calcIEVri(rfri1,rfri2,rfri3,rfri4,rfri5,trri);
+  const c_IEVdt=calcIEVdt(rfdt1,rfdt2,rfdt3,rfdt4,rfdt5,rfdt6,pktsTraf);
+  const c_ILPd=calcILPd(LPd,IVd_ocr);
+  const c_ILPn=calcILPn(LPn,IVn_ocr);
+  const c_IEF=calcIEF(c_ICId,c_ICIn,c_IEVri,c_IEVdt,c_ILPd,c_ILPn);
+  const c_IDF=calcIDF(NHo,NHt);
+  const c_ICV=calcICV(QVc,QVt);
+  const c_ID=calcID(tipo,c_IDF,c_IEF,c_ICV);
+
+  return {
+    // identity
+    operadora:(raw[COL.operadora]||'').toString().trim(),
+    rodovia:(raw[COL.rodovia]||'').toString().trim(),
+    km:sn(raw[COL.km]),
+    municipio:(raw[COL.municipio]||'').toString().trim(),
+    equipamento:(raw[COL.equipamento]||'').toString().trim(),
+    serie: getSerie((raw[COL.equipamento]||'').toString().trim()),
+    lote:  getLote((raw[COL.equipamento]||'').toString().trim()),
+    tipo,
+    faixa:(raw[COL.faixa]||'').toString().trim(),
+    periodo:(raw[COL.periodo]||'').toString().trim(),
+    dias:g(COL.dias),NHt,NHo,
+    // raw inputs
+    IVd,INd,TId,IVn,INn,TIn,
+    rfri1,rfri2,rfri3,rfri4,rfri5,
+    rfdt1,rfdt2,rfdt3,rfdt4,rfdt5,rfdt6,
+    LPd,IVd_ocr,LPn,IVn_ocr,
+    QVc,QVt,pktsInf,pktsTraf,
+    // ratios
+    ICId_raw,ICIn_raw,ILPd_raw,ILPn_raw,
+    // calculated
+    c_ICId,c_ICIn,c_IEVri,c_IEVdt,c_ILPd,c_ILPn,c_IEF,c_IDF,c_ICV,c_ID,
+    // from file
+    f_ICId:g(COL.ICId), f_ICIn:g(COL.ICIn),
+    f_IEVri:g(COL.IEVri), f_IEVdt:g(COL.IEVdt),
+    f_ILPd:g(COL.ILPd), f_ILPn:g(COL.ILPn),
+    f_IEF:g(COL.IEF), f_IDF:g(COL.IDF),
+    f_ICV:g(COL.ICV), f_ID:g(COL.ID),
+    // extra
+    infracoes:g(COL.infracoes),validas:g(COL.validas),invalidas:g(COL.invalidas),
+    contagemVeic:g(COL.contagemVeic),
+  };
+}
+
+// ════════════════════════════════════════════════════════════════
+// IMPROVEMENT POTENTIAL & RECOMMENDATIONS
+// ════════════════════════════════════════════════════════════════
+function calcGainPotential(r){
+  const idf=r.c_IDF??0, ief=r.c_IEF??0, icv=r.c_ICV??0;
+  const id=r.c_ID??0;
+  const tipo=r.tipo;
+  const idMax=tipo==='CEC'||tipo==='REC'?idf*(0.9*1.0+0.1*1.0):idf*(0.9*1.0+0.1*1.0);
+  // potential if IDF=1
+  const idf1=calcID(tipo,1.0,ief,icv);
+  // potential if IEF=1
+  const ief1=calcID(tipo,idf,1.0,icv);
+  // potential if ICV=1
+  const icv1=calcID(tipo,idf,ief,1.0);
+  // potential if all=1
+  const all1=calcID(tipo,1.0,1.0,1.0);
+  return {
+    idf_gain:(idf1??0)-id,
+    ief_gain:(ief1??0)-id,
+    icv_gain:(icv1??0)-id,
+    total_gap:(all1??1)-id,
+    max_id:all1??1,
+    best_lever:['idf_gain','ief_gain','icv_gain'].sort((a,b)=>{
+      const vals={idf_gain:(idf1??0)-id,ief_gain:(ief1??0)-id,icv_gain:(icv1??0)-id};
+      return vals[b]-vals[a];
+    })[0],
+  };
+}
+
+function getRecommendations(r){
+  const recos=[];
+  const add=(p,t,d,gain='')=>recos.push({priority:p,title:t,desc:d,gain});
+
+  if(r.c_IDF!==null&&r.c_IDF<0.95){
+    const g=calcGainPotential(r).idf_gain;
+    add('high','IDF Crítico — Disponibilidade Reduzida',
+      `Apenas ${pct(r.c_IDF)} de disponibilidade operacional (${r.NHo}h de ${r.NHt}h previstas). Verificar telemetria, pacotes faltando, manutenção preventiva, certificação INMETRO.`,
+      `+${pct(g)} no ID se IDF=100%`);
+  }
+  if(r.c_ICId!==null&&r.c_ICId<0.80){
+    add('high','ICId Baixo — Qualidade de Captura Diurna',
+      `Taxa de captura diurna: ${fmt(r.ICId_raw??0,3)}. Verificar: alinhamento de câmera, limpeza de lente, foco, iluminação, ângulo de captura, obstruções.`,`ICId=${r.c_ICId}`);
+  }
+  if(r.c_ICIn!==null&&r.c_ICIn<0.80){
+    add('high','ICIn Baixo — Qualidade de Captura Noturna',
+      `Taxa de captura noturna: ${fmt(r.ICIn_raw??0,3)}. Verificar: iluminação IR, sensibilidade noturna, limpeza de lente, exposição.`,`ICIn=${r.c_ICIn}`);
+  }
+  if(r.c_IEVri!==null&&r.c_IEVri<0.90){
+    add('medium','IEVri Baixo — Envio de Registros de Imagens Fora do Prazo',
+      `Índice de envio de imagens: ${pct(r.c_IEVri)}. Verificar: latência de conexão, processamento do servidor, fila de envio, falhas de rede, modo offline vs online.`);
+  }
+  if(r.c_IEVdt!==null&&r.c_IEVdt<0.90){
+    add('medium','IEVdt Baixo — Envio de Dados de Tráfego Fora do Prazo',
+      `Índice de envio de tráfego: ${pct(r.c_IEVdt)}. Verificar: conexão com servidor, atrasos no processamento, horários de pico.`);
+  }
+  if(r.c_ILPd!==null&&r.c_ILPd<0.75){
+    add('medium','ILPd Baixo — OCR de Placas Diurno',
+      `Taxa OCR diurna: ${fmt(r.ILPd_raw??0,3)} (${r.LPd}/${r.IVd_ocr}). Verificar: qualidade de imagem, resolução, ângulo de câmera, oclusões, placas sujas/danificadas.`);
+  }
+  if(r.c_ILPn!==null&&r.c_ILPn<0.75){
+    add('medium','ILPn Baixo — OCR de Placas Noturno',
+      `Taxa OCR noturna: ${fmt(r.ILPn_raw??0,3)} (${r.LPn}/${r.IVn_ocr}). Verificar: iluminação IR, configuração de câmera para baixa luminosidade, exposição.`);
+  }
+  if(r.c_ICV!==null&&r.c_ICV<1.0){
+    add('low','ICV Abaixo do Ideal — Classificação de Veículos',
+      `ICV=${r.c_ICV} (${r.QVc}/${r.QVt} veículos classificados corretamente). Verificar: configuração dos laços indutivos, sensores de classificação, parametrização das categorias.`);
+  }
+  return recos.sort((a,b)=>({high:0,medium:1,low:2}[a.priority]-{high:0,medium:1,low:2}[b.priority]));
+}
+
+// ════════════════════════════════════════════════════════════════
+// EXCEL PARSING
+// ════════════════════════════════════════════════════════════════
+let pendingFile=null;
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f)handleFile(f);
+}
+
+function handleDropInv(e){
+  e.preventDefault();
+  document.getElementById('drop-zone-inv').classList.remove('drag');
+  const f=e.dataTransfer.files[0];
+  if(f)handleClassFile(f);
+}
+
+function clearPeriodo(){
+  if(!STATE.activePeriod)return;
+  deletePeriod(STATE.activePeriod);
+  const bd=document.getElementById('id-loaded-badge');
+  if(bd)bd.style.display='none';
+}
+
+function handleFile(file){
+  if(!file)return;
+  pendingFile=file;
+  showLoading('Lendo arquivo Excel...');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+      hideLoading();
+      // find data start (row with Operadora)
+      let dataStart=3;// default after 3-row header
+      for(let i=0;i<Math.min(6,raw.length);i++){
+        const r=raw[i];
+        if(r&&r[0]&&String(r[0]).includes('145')){{dataStart=i;break;}}
+      }
+      const dataRows=raw.slice(dataStart).filter(r=>r&&r[0]&&String(r[0]).trim());
+      const records=dataRows.map(computeRecord).filter(r=>r.equipamento);
+      if(!records.length){showToast('Nenhum dado encontrado na planilha','error');return;}
+      STATE.pendingData=records;
+      STATE.pendingPeriod=records[0].periodo||'Desconhecido';
+      showPreview(records,file.name);
+    }catch(err){
+      hideLoading();
+      showToast('Erro ao ler planilha: '+err.message,'error');
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function showPreview(records,filename){
+  const periodos=[...new Set(records.map(r=>r.periodo))];
+  const tipos=[...new Set(records.map(r=>r.tipo))];
+  const rodovias=[...new Set(records.map(r=>r.rodovia))];
+  const avgID=records.filter(r=>r.c_ID!==null).reduce((s,r)=>s+r.c_ID,0)/records.filter(r=>r.c_ID!==null).length;
+
+  document.getElementById('preview-content').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12.5px">
+      <div><span style="color:var(--muted)">Arquivo:</span> <strong>${filename}</strong></div>
+      <div><span style="color:var(--muted)">Registros:</span> <strong>${records.length} faixas</strong></div>
+      <div><span style="color:var(--muted)">Período:</span> <strong style="color:var(--amber)">${periodos.join(', ')}</strong></div>
+      <div><span style="color:var(--muted)">ID Médio:</span> <strong>${fmt(avgID)}</strong></div>
+      <div><span style="color:var(--muted)">Tipos:</span> ${tipos.map(t=>`<span class="tag tag-${t.toLowerCase()}">${t}</span>`).join(' ')}</div>
+      <div><span style="color:var(--muted)">Rodovias:</span> ${rodovias.slice(0,4).join(', ')}${rodovias.length>4?'...':''}</div>
+    </div>
+    <div class="progress-bar"><div class="progress-inner" style="width:100%"></div></div>
+  `;
+  document.getElementById('upload-preview').style.display='block';
+}
+
+function cancelImport(){
+  STATE.pendingData=null;
+  document.getElementById('upload-preview').style.display='none';
+}
+
+function confirmImport(){
+  if(!STATE.pendingData)return;
+  const key=STATE.pendingPeriod;
+  STATE.periods[key]=STATE.pendingData;
+  STATE.activePeriod=key;
+  // persist to localStorage
+  try{
+    const saved=JSON.parse(localStorage.getItem('der_periods')||'{}');
+    saved[key]=STATE.pendingData;
+    localStorage.setItem('der_periods',JSON.stringify(saved));
+  }catch(e){}
+  STATE.pendingData=null;
+  document.getElementById('upload-preview').style.display='none';
+  updateSidebar();
+  populateFilters();
+  applyFilters();
+  showScreen('dashboard');
+  showToast(`Período "${key}" importado com sucesso! ${STATE.periods[key].length} faixas.`,'success');
+}
+
+function loadFromStorage(){
+  try{
+    const saved=JSON.parse(localStorage.getItem('der_periods')||'{}');
+    if(Object.keys(saved).length){
+      STATE.periods=saved;
+      STATE.activePeriod=Object.keys(saved)[Object.keys(saved).length-1];
+      updateSidebar();
+      populateFilters();
+      applyFilters();
+      renderHistoryList();
+    }
+  }catch(e){}
+  // Load classifications
+  try{
+    const cls=JSON.parse(localStorage.getItem('der_classifications')||'{}');
+    if(Object.keys(cls).length){
+      STATE.classifications=cls;
+      STATE.activeClass=Object.keys(cls)[Object.keys(cls).length-1];
+      updateInvBadge();
+    }
+  }catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════════
+// FILTERS
+// ════════════════════════════════════════════════════════════════
+function populateFilters(){
+  const records=getActiveRecords();
+  const rodovias=[...new Set(records.map(r=>r.rodovia))].sort();
+  const tipos=[...new Set(records.map(r=>r.tipo))].sort();
+  const municipios=[...new Set(records.map(r=>r.municipio))].sort();
+  // Equipment list: show "Nº Série — Código" for easy identification
+  const equipMap={};
+  records.forEach(r=>{
+    if(!equipMap[r.equipamento]){
+      const cat=EQUIP_CATALOG[r.equipamento];
+      equipMap[r.equipamento]= cat ? `Nº ${cat.serie} — ${r.equipamento}` : r.equipamento;
+    }
+  });
+  const equipList=Object.keys(equipMap).sort((a,b)=>{
+    const sa=EQUIP_CATALOG[a]?.serie||9999, sb=EQUIP_CATALOG[b]?.serie||9999;
+    return sa-sb;
+  });
+
+  fillSelect('f-rodovia',rodovias,'Todas rodovias');
+  fillSelect('f-tipo',tipos,'Todos tipos');
+  fillSelect('f-municipio',municipios,'Todos municípios');
+  fillSelectEquip('f-equip',equipList,equipMap,'Todos equipamentos');
+  fillSelect('r-tipo',tipos,'Todos tipos');
+  fillSelect('r-rodovia',rodovias,'Todas rodovias');
+}
+function fillSelect(id,opts,placeholder){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cur=el.value;
+  el.innerHTML=`<option value="">${placeholder}</option>`+opts.map(o=>`<option value="${o}">${o}</option>`).join('');
+  if(opts.includes(cur))el.value=cur;
+}
+function fillSelectEquip(id,keys,labelMap,placeholder){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const cur=el.value;
+  el.innerHTML=`<option value="">${placeholder}</option>`+keys.map(k=>`<option value="${k}">${labelMap[k]}</option>`).join('');
+  if(keys.includes(cur))el.value=cur;
+}
+function applyFilters(){
+  const records=getActiveRecords();
+  const rod=document.getElementById('f-rodovia')?.value||'';
+  const tip=document.getElementById('f-tipo')?.value||'';
+  const mun=document.getElementById('f-municipio')?.value||'';
+  const eqp=document.getElementById('f-equip')?.value||'';
+  STATE.filteredRecords=records.filter(r=>
+    (!rod||r.rodovia===rod)&&
+    (!tip||r.tipo===tip)&&
+    (!mun||r.municipio===mun)&&
+    (!eqp||r.equipamento===eqp)
+  );
+  renderDashboard();
+}
+function getActiveRecords(){return STATE.periods[STATE.activePeriod]||[]}
+
+// ════════════════════════════════════════════════════════════════
+// DASHBOARD RENDER
+// ════════════════════════════════════════════════════════════════
+function renderDashboard(){
+  const recs=STATE.filteredRecords.length?STATE.filteredRecords:getActiveRecords();
+  if(!recs.length){
+    document.getElementById('dash-kpis').innerHTML='<div class="empty-state"><h3>Sem dados</h3><p>Importe uma planilha primeiro.</p></div>';
+    return;
+  }
+
+  const isEquipView = STATE.dashView === 'equip';
+
+  if (isEquipView) {
+    // Equipment view
+    const groups = groupByEquipamento(recs);
+    const withID = groups.filter(g => g.c_ID !== null);
+    const ids = withID.map(g => g.c_ID).sort((a,b) => a-b);
+    const avg = ids.reduce((s,v) => s+v, 0) / ids.length;
+    const med = ids[Math.floor(ids.length/2)];
+    const below6 = withID.filter(g => g.c_ID < 0.6).length;
+    const below85 = withID.filter(g => g.c_ID < 0.85).length;
+    const avgIDF = groups.filter(g=>g.c_IDF!==null).reduce((s,g)=>s+g.c_IDF,0)/Math.max(1,groups.filter(g=>g.c_IDF!==null).length);
+    const avgIEF = groups.filter(g=>g.c_IEF!==null).reduce((s,g)=>s+g.c_IEF,0)/Math.max(1,groups.filter(g=>g.c_IEF!==null).length);
+
+    document.getElementById('dash-kpis').innerHTML=`
+      <div class="kpi ${avg<0.6?'danger':avg<0.85?'warn':'good'}">
+        <div class="kpi-label">ID Médio</div>
+        <div class="kpi-val">${fmt(avg)}</div>
+        <div class="kpi-sub">${groups.length} equipamentos analisados</div>
+      </div>
+      <div class="kpi ${med<0.6?'danger':med<0.85?'warn':'good'}">
+        <div class="kpi-label">ID Mediana</div>
+        <div class="kpi-val">${fmt(med)}</div>
+        <div class="kpi-sub">50% dos equipamentos</div>
+      </div>
+      <div class="kpi ${below6>0?'danger':'good'}">
+        <div class="kpi-label">Críticos (ID &lt; 0.60)</div>
+        <div class="kpi-val">${below6}</div>
+        <div class="kpi-sub">${pct(below6/groups.length)} do total</div>
+      </div>
+      <div class="kpi ${below85>groups.length*0.3?'warn':'info'}">
+        <div class="kpi-label">Abaixo de 0.85</div>
+        <div class="kpi-val">${below85}</div>
+        <div class="kpi-sub">${pct(below85/groups.length)} do total</div>
+      </div>
+      <div class="kpi ${avgIDF<0.8?'danger':avgIDF<0.95?'warn':'good'}">
+        <div class="kpi-label">IDF Médio</div>
+        <div class="kpi-val">${fmt(avgIDF)}</div>
+        <div class="kpi-sub">Disponibilidade média</div>
+      </div>
+      <div class="kpi ${avgIEF<0.8?'warn':'good'}">
+        <div class="kpi-label">IEF Médio</div>
+        <div class="kpi-val">${fmt(avgIEF)}</div>
+        <div class="kpi-sub">Eficiência média</div>
+      </div>
+    `;
+    document.getElementById('dash-subtitle').textContent=`Período: ${STATE.activePeriod} · ${groups.length} equipamentos (${recs.length} faixas)`;
+
+    // Charts — use equipment-level data
+    setTimeout(()=>{
+      renderChartDist(recs, true);
+      renderChartEquipment(recs);
+      renderChartRadar(recs);
+      renderChartImages(recs);
+    },80);
+
+    // Top 10 worst/best (equipment)
+    const sorted = [...withID].sort((a,b) => a.c_ID - b.c_ID);
+    document.getElementById('tbl-worst').innerHTML = buildTopTableEquip(sorted.slice(0,10));
+    document.getElementById('tbl-best').innerHTML = buildTopTableEquip(sorted.slice(-10).reverse());
+    return;
+  }
+
+  // ── Faixa view (original) ──
+  const withID=recs.filter(r=>r.c_ID!==null);
+  const ids=withID.map(r=>r.c_ID).sort((a,b)=>a-b);
+  const avg=ids.reduce((s,v)=>s+v,0)/ids.length;
+  const med=ids[Math.floor(ids.length/2)];
+  const below6=withID.filter(r=>r.c_ID<0.6).length;
+  const below85=withID.filter(r=>r.c_ID<0.85).length;
+  const avgIDF=avg_field(recs,'c_IDF');
+  const avgIEF=avg_field(recs,'c_IEF');
+
+  // KPIs
+  document.getElementById('dash-kpis').innerHTML=`
+    <div class="kpi ${avg<0.6?'danger':avg<0.85?'warn':'good'}">
+      <div class="kpi-label">ID Médio</div>
+      <div class="kpi-val">${fmt(avg)}</div>
+      <div class="kpi-sub">${recs.length} faixas analisadas</div>
+    </div>
+    <div class="kpi ${med<0.6?'danger':med<0.85?'warn':'good'}">
+      <div class="kpi-label">ID Mediana</div>
+      <div class="kpi-val">${fmt(med)}</div>
+      <div class="kpi-sub">50% dos equipamentos</div>
+    </div>
+    <div class="kpi ${below6>0?'danger':'good'}">
+      <div class="kpi-label">Críticos (ID &lt; 0.60)</div>
+      <div class="kpi-val">${below6}</div>
+      <div class="kpi-sub">${pct(below6/recs.length)} do total</div>
+    </div>
+    <div class="kpi ${below85>recs.length*0.3?'warn':'info'}">
+      <div class="kpi-label">Abaixo de 0.85</div>
+      <div class="kpi-val">${below85}</div>
+      <div class="kpi-sub">${pct(below85/recs.length)} do total</div>
+    </div>
+    <div class="kpi ${avgIDF<0.8?'danger':avgIDF<0.95?'warn':'good'}">
+      <div class="kpi-label">IDF Médio</div>
+      <div class="kpi-val">${fmt(avgIDF)}</div>
+      <div class="kpi-sub">Disponibilidade média</div>
+    </div>
+    <div class="kpi ${avgIEF<0.8?'warn':'good'}">
+      <div class="kpi-label">IEF Médio</div>
+      <div class="kpi-val">${fmt(avgIEF)}</div>
+      <div class="kpi-sub">Eficiência média</div>
+    </div>
+  `;
+  document.getElementById('dash-subtitle').textContent=`Período: ${STATE.activePeriod} · ${recs.length} faixas`;
+
+  // Charts
+  setTimeout(()=>{
+    renderChartDist(recs);
+    renderChartEquipment(recs);
+    renderChartRadar(recs);
+    renderChartImages(recs);
+  },80);
+
+  // Top 10 worst/best
+  const sorted=[...withID].sort((a,b)=>a.c_ID-b.c_ID);
+  document.getElementById('tbl-worst').innerHTML=buildTopTable(sorted.slice(0,10));
+  document.getElementById('tbl-best').innerHTML=buildTopTable(sorted.slice(-10).reverse());
+}
+function avg_field(arr,f){
+  const v=arr.map(r=>r[f]).filter(x=>x!==null);
+  return v.length?v.reduce((s,x)=>s+x,0)/v.length:0;
+}
+
+function buildTopTable(recs){
+  return `<thead><tr>
+    <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
+    <th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th><th>Problema</th></tr></thead>
+    <tbody>${recs.map(r=>{
+    const cl=r.c_ID<0.6?'id-critical':r.c_ID<0.85?'id-low':'id-ok';
+    const probs=getRecommendations(r);
+    return `<tr class="${cl}" onclick="openDetail('${esc(r.equipamento)}','${r.faixa}')" style="cursor:pointer">
+      <td class="idx" style="color:var(--amber);font-weight:700">${r.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${r.equipamento}</td>
+      <td><span class="tag tag-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+      <td class="idx">${r.faixa}</td>
+      <td>${r.rodovia}</td>
+      <td class="idx" style="color:var(--muted)">${r.km??'—'}</td>
+      <td class="idx ${r.c_IDF<0.95?'text-amber':''}">${fmt(r.c_IDF)}</td>
+      <td class="idx">${fmt(r.c_IEF)}</td>
+      <td class="idx">${fmt(r.c_ICV)}</td>
+      <td><span class="badge ${idBadge(r.c_ID)}">${fmt(r.c_ID)}</span></td>
+      <td style="color:var(--muted);font-size:11px">${probs[0]?.title||'—'}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+function buildTopTableEquip(groups){
+  return `<thead><tr>
+    <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th>
+    <th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th><th>Desconto/mês</th></tr></thead>
+    <tbody>${groups.map(g=>{
+    const cl=g.c_ID<0.6?'id-critical':g.c_ID<0.85?'id-low':'id-ok';
+    return `<tr class="${cl}" onclick="openValorDetailEquip('${esc(g.equipamento)}')" style="cursor:pointer">
+      <td class="idx" style="color:var(--amber);font-weight:700">${g.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${g.equipamento}</td>
+      <td><span class="tag tag-${g.tipo.toLowerCase()}">${g.tipo}</span></td>
+      <td style="text-align:center"><span style="background:rgba(245,158,11,.1);color:var(--amber);padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700">${g.numFaixas}</span></td>
+      <td>${g.rodovia}</td>
+      <td class="idx" style="color:var(--muted)">${g.km??'—'}</td>
+      <td class="idx ${(g.c_IDF??1)<0.95?'text-amber':''}">${fmt(g.c_IDF)}</td>
+      <td class="idx">${fmt(g.c_IEF)}</td>
+      <td class="idx">${fmt(g.c_ICV)}</td>
+      <td><span class="badge ${idBadge(g.c_ID)}">${fmt(g.c_ID)}</span></td>
+      <td class="idx" style="color:${g.descontoTotal>1000?'var(--red)':g.descontoTotal>300?'var(--amber)':'var(--green)'};font-weight:700">${moedaK(g.descontoTotal)}</td>
+    </tr>`;
+  }).join('')}</tbody>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// CHARTS
+// ════════════════════════════════════════════════════════════════
+const charts={};
+function getChart(id){
+  const el=document.getElementById(id);
+  if(!el)return null;
+  if(charts[id]){
+    // If the DOM element changed (e.g. after innerHTML replacement), dispose old instance
+    try{
+      const dom=charts[id].getDom();
+      if(dom!==el){ charts[id].dispose(); delete charts[id]; }
+      else { charts[id].resize(); }
+    }catch(e){ try{charts[id].dispose();}catch(e2){} delete charts[id]; }
+  }
+  if(!charts[id]){
+    charts[id]=echarts.init(el,null,{renderer:'canvas'});
+  }
+  return charts[id];
+}
+window.addEventListener('resize',()=>{
+  Object.values(charts).forEach(c=>{try{c.resize();}catch(e){}});
+});
+
+const CHART_THEME={
+  backgroundColor:'transparent',
+  textStyle:{color:'#7a8ba8',fontFamily:'JetBrains Mono,monospace',fontSize:11},
+  axisLine:{lineStyle:{color:'rgba(255,255,255,.1)'}},
+  splitLine:{lineStyle:{color:'rgba(255,255,255,.05)'}},
+};
+
+function renderChartDist(recs, equipView=false){
+  const c=getChart('chart-dist');if(!c)return;
+  const bins=[0,.1,.2,.3,.4,.5,.6,.7,.8,.9,1.01];
+  const labels=['0-0.1','0.1-0.2','0.2-0.3','0.3-0.4','0.4-0.5','0.5-0.6','0.6-0.7','0.7-0.8','0.8-0.9','0.9-1.0'];
+  const counts=new Array(10).fill(0);
+  let items;
+  if (equipView) {
+    items = groupByEquipamento(recs).filter(g => g.c_ID !== null);
+  } else {
+    items = recs.filter(r => r.c_ID !== null);
+  }
+  items.forEach(r=>{
+    for(let i=0;i<10;i++){if(r.c_ID>=bins[i]&&r.c_ID<bins[i+1]){counts[i]++;break;}}
+  });
+  const unitLabel = equipView ? 'equipamentos' : 'faixas';
+  c.setOption({...CHART_THEME,
+    grid:{top:10,bottom:40,left:36,right:10},
+    xAxis:{type:'category',data:labels,axisLabel:{rotate:30,fontSize:10}},
+    yAxis:{type:'value',minInterval:1},
+    series:[{
+      type:'bar',data:counts.map((v,i)=>({
+        value:v,
+        itemStyle:{color:i<6?'rgba(239,68,68,.7)':i<8?'rgba(245,158,11,.7)':'rgba(16,185,129,.7)'}
+      })),
+      label:{show:true,position:'top',fontSize:10,color:'#e8edf5'},
+      barMaxWidth:36,
+    }],
+    tooltip:{trigger:'item',formatter:p=>`${p.name}: <b>${p.value}</b> ${unitLabel}`}
+  });
+}
+
+function renderChartEquipment(recs){
+  const c=getChart('chart-equipment');if(!c)return;
+  const byEquip={};
+  recs.forEach(r=>{
+    const k=r.equipamento;
+    if(!byEquip[k])byEquip[k]={sum:0,cnt:0};
+    if(r.c_ID!==null){byEquip[k].sum+=r.c_ID;byEquip[k].cnt++;}
+  });
+  const sorted=Object.entries(byEquip).map(([k,v])=>({name:k,label:equipLabel(k),labelFull:equipLabelFull(k),avg:v.cnt?v.sum/v.cnt:0}))
+    .sort((a,b)=>a.avg-b.avg).slice(0,20);
+  c.setOption({...CHART_THEME,
+    grid:{top:10,bottom:40,left:100,right:50},
+    xAxis:{type:'value',max:1,axisLabel:{formatter:v=>v.toFixed(2)}},
+    yAxis:{type:'category',data:sorted.map(x=>x.label),axisLabel:{fontSize:9}},
+    series:[{
+      type:'bar',data:sorted.map(x=>({
+        value:+x.avg.toFixed(4),
+        itemStyle:{color:x.avg<0.6?'rgba(239,68,68,.8)':x.avg<0.85?'rgba(245,158,11,.8)':'rgba(16,185,129,.8)'}
+      })),
+      barMaxWidth:16,
+      label:{show:true,position:'right',fontSize:10,color:'#e8edf5',formatter:p=>fmt(p.value)}
+    }],
+    tooltip:{formatter:p=>{const d=sorted[p.dataIndex];return `<b>${d.labelFull}</b>: ID=${fmt(p.value)}`;}}
+  });
+}
+
+function renderChartRadar(recs){
+  const c=getChart('chart-radar');if(!c)return;
+  const tipos=[...new Set(recs.map(r=>r.tipo))];
+  const fields=['c_IDF','c_IEF','c_ICV','c_ICId','c_ICIn','c_IEVri','c_IEVdt'];
+  const labels=['IDF','IEF','ICV','ICId','ICIn','IEVri','IEVdt'];
+  const colors=['rgba(245,158,11,.8)','rgba(59,130,246,.8)','rgba(16,185,129,.8)','rgba(168,85,247,.8)'];
+  const series=tipos.map((t,i)=>{
+    const tr=recs.filter(r=>r.tipo===t);
+    const vals=fields.map(f=>avg_field(tr,f));
+    return {name:t,type:'radar',data:[{value:vals.map(v=>+v.toFixed(3)),name:t}],
+      lineStyle:{color:colors[i%4]},areaStyle:{color:colors[i%4].replace('.8','.15')},
+      itemStyle:{color:colors[i%4]}};
+  });
+  c.setOption({...CHART_THEME,
+    legend:{data:tipos,bottom:0,textStyle:{color:'#7a8ba8',fontSize:11}},
+    radar:{indicator:labels.map(n=>({name:n,max:1})),center:['50%','45%'],radius:'60%',
+      axisLine:{lineStyle:{color:'rgba(255,255,255,.1)'}},
+      splitLine:{lineStyle:{color:'rgba(255,255,255,.05)'}},
+      name:{textStyle:{color:'#7a8ba8',fontSize:11}}},
+    series,
+    tooltip:{trigger:'item'}
+  });
+}
+
+function renderChartImages(recs){
+  const c=getChart('chart-images');if(!c)return;
+  // Aggregate per equipment (sum across faixas)
+  const byEquip={};
+  recs.forEach(r=>{
+    const k=r.equipamento;
+    if(!byEquip[k])byEquip[k]={validas:0,invalidas:0,infracoes:0};
+    byEquip[k].validas+=(r.validas||0);
+    byEquip[k].invalidas+=(r.invalidas||0);
+    byEquip[k].infracoes+=(r.infracoes||0);
+  });
+  const sorted=Object.entries(byEquip)
+    .map(([k,v])=>({name:k,label:equipLabel(k),labelFull:equipLabelFull(k),...v,total:v.validas+v.invalidas}))
+    .filter(x=>x.total>0)
+    .sort((a,b)=>b.total-a.total)
+    .slice(0,16);
+  c.setOption({...CHART_THEME,
+    grid:{top:14,bottom:44,left:108,right:16},
+    xAxis:{type:'value',axisLabel:{formatter:v=>v>=1000?(v/1000).toFixed(0)+'k':v,fontSize:10}},
+    yAxis:{type:'category',data:sorted.map(x=>x.label).reverse(),axisLabel:{fontSize:9,width:100,overflow:'truncate'}},
+    legend:{data:['Válidas','Inválidas'],bottom:4,textStyle:{color:'#7a8ba8',fontSize:11},itemWidth:12,itemHeight:8},
+    series:[
+      {
+        name:'Válidas',type:'bar',stack:'imgs',
+        data:sorted.map(x=>x.validas).reverse(),
+        itemStyle:{color:'rgba(16,185,129,.75)',borderRadius:[0,0,0,0]},
+        label:{show:false},
+      },
+      {
+        name:'Inválidas',type:'bar',stack:'imgs',
+        data:sorted.map(x=>x.invalidas).reverse(),
+        itemStyle:{color:'rgba(239,68,68,.65)',borderRadius:[0,3,3,0]},
+        label:{
+          show:true,position:'right',fontSize:9,color:'#7a8ba8',
+          formatter:p=>{
+            const d=sorted[sorted.length-1-p.dataIndex];
+            const tot=d.validas+d.invalidas;
+            if(!tot)return '';
+            return tot>=1000?(tot/1000).toFixed(1)+'k':tot;
+          }
+        },
+      },
+    ],
+    tooltip:{
+      trigger:'axis',axisPointer:{type:'shadow'},
+      formatter:params=>{
+        const idx=params[0].dataIndex;
+        const d=sorted[sorted.length-1-idx];
+        const tot=d.validas+d.invalidas;
+        const pct=tot?((d.validas/tot)*100).toFixed(1):0;
+        return `<b>${d.labelFull}</b><br>`+
+          `✅ Válidas: <b>${d.validas.toLocaleString('pt-BR')}</b><br>`+
+          `❌ Inválidas: <b>${d.invalidas.toLocaleString('pt-BR')}</b><br>`+
+          `📦 Infrações: <b>${d.infracoes.toLocaleString('pt-BR')}</b><br>`+
+          `Taxa válidas: <b>${pct}%</b>`;
+      }
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// RANKING
+// ════════════════════════════════════════════════════════════════
+function renderRanking(){
+  if (STATE.rankView === 'equip') { renderRankingEquip(); return; }
+  const records=getActiveRecords();
+
+  // Restore faixa thead
+  const thead = document.getElementById('thead-ranking');
+  if (thead) {
+    thead.innerHTML = `<tr>
+      <th style="width:30px">#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
+      <th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th>
+      <th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
+      <th>ID</th><th>Causa Principal</th><th>Ganho Pot.</th><th>Ação</th>
+    </tr>`;
+  }
+
+  if(!records.length){
+    document.getElementById('tbody-ranking').innerHTML=
+      '<tr><td colspan="20" class="empty-state" style="padding:32px;text-align:center;color:var(--muted)">Sem dados — importe uma planilha</td></tr>';
+    return;
+  }
+  const search=document.getElementById('r-search')?.value?.toLowerCase()||'';
+  const tipo=document.getElementById('r-tipo')?.value||'';
+  const rod=document.getElementById('r-rodovia')?.value||'';
+  const sort=document.getElementById('r-sort')?.value||'id_asc';
+  const idxFilter=document.getElementById('r-idx-filter')?.value||'';
+
+  let recs=records.filter(r=>
+    (!search||r.equipamento.toLowerCase().includes(search)||r.municipio.toLowerCase().includes(search)||
+     String(EQUIP_CATALOG[r.equipamento]?.serie||'').includes(search))&&
+    (!tipo||r.tipo===tipo)&&
+    (!rod||r.rodovia===rod)
+  );
+
+  // Apply index filter
+  if(idxFilter){
+    const [field,op,valStr]=idxFilter.split('|');
+    const val=parseFloat(valStr);
+    recs=recs.filter(r=>{
+      const v=r[field];
+      if(v===null||v===undefined)return false;
+      if(op==='lt')return v<val;
+      if(op==='gte')return v>=val;
+      if(op==='eq')return Math.abs(v-val)<0.001;
+      return true;
+    });
+  }
+
+  // Sort mapping for all indices
+  const SORT_FIELDS={
+    id_asc:'c_ID', id_desc:'c_ID',
+    idf_asc:'c_IDF', idf_desc:'c_IDF',
+    ief_asc:'c_IEF', ief_desc:'c_IEF',
+    icv_asc:'c_ICV', icv_desc:'c_ICV',
+    icid_asc:'c_ICId', icin_asc:'c_ICIn',
+    ievri_asc:'c_IEVri', ievdt_asc:'c_IEVdt',
+    ilpd_asc:'c_ILPd', ilpn_asc:'c_ILPn',
+  };
+
+  recs=[...recs].sort((a,b)=>{
+    if(sort==='gain_desc'){
+      return (calcGainPotential(b).total_gap||0)-(calcGainPotential(a).total_gap||0);
+    }
+    const fld=SORT_FIELDS[sort]||'c_ID';
+    const av=a[fld]??-1,bv=b[fld]??-1;
+    return sort.endsWith('desc')?bv-av:av-bv;
+  });
+
+  document.getElementById('ranking-count').textContent=`${recs.length} Equipamentos/Faixas`;
+  document.getElementById('tbody-ranking').innerHTML=recs.map((r,i)=>{
+    const gain=calcGainPotential(r);
+    const recos=getRecommendations(r);
+    const cl=r.c_ID<0.6?'id-critical':r.c_ID<0.85?'id-low':'id-ok';
+    const mainProblem=recos[0];
+    return `<tr class="${cl}" style="cursor:pointer" onclick="openDetail('${esc(r.equipamento)}','${r.faixa}')">
+      <td class="text-muted text-sm">${i+1}</td>
+      <td class="idx" style="color:var(--amber);font-weight:700">${r.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${r.equipamento}</td>
+      <td><span class="tag tag-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+      <td class="idx">${r.faixa}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.rodovia}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${r.km??'—'}</td>
+      <td class="idx ${r.c_IDF!==null&&r.c_IDF<0.95?'text-amber':''}">${idxCell(r.c_IDF)}</td>
+      <td class="idx">${idxCell(r.c_IEF)}</td>
+      <td class="idx">${idxCell(r.c_ICV)}</td>
+      <td class="idx">${idxCell(r.c_ICId)}</td>
+      <td class="idx">${idxCell(r.c_ICIn)}</td>
+      <td class="idx">${idxCell(r.c_IEVri)}</td>
+      <td class="idx">${idxCell(r.c_IEVdt)}</td>
+      <td class="idx">${idxCell(r.c_ILPd)}</td>
+      <td class="idx">${idxCell(r.c_ILPn)}</td>
+      <td><span class="badge ${idBadge(r.c_ID)}">${fmt(r.c_ID)}</span></td>
+      <td style="font-size:11px;color:${mainProblem?.priority==='high'?'var(--red)':mainProblem?.priority==='medium'?'var(--amber)':'var(--muted)'};max-width:180px;overflow:hidden;text-overflow:ellipsis">
+        ${mainProblem?mainProblem.title.split(' — ')[0]:'✓ Bom desempenho'}
+      </td>
+      <td class="idx" style="color:var(--green)">+${fmt(gain.total_gap)}</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openDetail('${esc(r.equipamento)}','${r.faixa}')">Ver</button></td>
+    </tr>`;
+  }).join('');
+}
+function idxCell(v){
+  if(v===null||v===undefined)return '<span style="color:var(--muted2)">—</span>';
+  const color=v<0.5?'var(--red)':v<0.8?'var(--amber)':'var(--green)';
+  return `<span style="color:${color}">${fmt(v)}</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// DETAIL MODAL
+// ════════════════════════════════════════════════════════════════
+function openDetail(equip,faixa){
+  const records=getActiveRecords();
+  const r=records.find(x=>x.equipamento===equip&&x.faixa===faixa);
+  if(!r)return;
+  const _cat = EQUIP_CATALOG[r.equipamento];
+  document.getElementById('modal-title').textContent = (_cat ? `Nº ${_cat.serie} — ` : '') + `${r.equipamento} · Faixa ${r.faixa}`;
+  document.getElementById('modal-subtitle').textContent = `${r.tipo} · ${r.rodovia} km ${r.km} · ${r.municipio}` + (_cat ? ` · ${_cat.lote}` : '') + ` · Período: ${r.periodo}`;
+  const gain=calcGainPotential(r);
+  const recos=getRecommendations(r);
+
+  const idColor=r.c_ID<0.6?'var(--red)':r.c_ID<0.85?'var(--amber)':'var(--green)';
+  const idfColor=r.c_IDF!==null&&r.c_IDF<0.95?'var(--amber)':'var(--green)';
+
+  document.getElementById('modal-body').innerHTML=`
+<!-- ID breakdown tree -->
+<div class="tree-node">
+  <div class="tree-node-header">
+    <div class="tree-node-val" style="color:${idColor}">${fmt(r.c_ID)}</div>
+    <div>
+      <div class="tree-node-label">ID — Índice de Desempenho</div>
+      <div class="tree-node-desc">${r.tipo} → IDF × (0.9×IEF + 0.1×ICV)${r.f_ID!==null?` · planilha: <span style="color:var(--amber)">${fmt(r.f_ID)}</span>`:''}</div>
+    </div>
+  </div>
+  <div class="tree-children">
+    <!-- IDF -->
+    <div class="tree-child">
+      <div class="tree-child-header">
+        <div class="tree-child-val" style="color:${idfColor}">${fmt(r.c_IDF)}</div>
+        <div>
+          <div class="tree-child-label">IDF — Disponibilidade de Faixa</div>
+          <div style="font-size:11px;color:var(--muted)">NHo/NHt = ${r.NHo}/${r.NHt} = ${fmt(r.NHo/r.NHt)} ${r.c_IDF>=0.95?'→ arred. para 1.00':''}</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--green);font-family:var(--font-mono)">+${fmt(gain.idf_gain)} se IDF=1</div>
+      </div>
+    </div>
+    <!-- IEF -->
+    <div class="tree-child">
+      <div class="tree-child-header">
+        <div class="tree-child-val">${fmt(r.c_IEF)}</div>
+        <div>
+          <div class="tree-child-label">IEF — Eficiência dos Equipamentos</div>
+          <div style="font-size:11px;color:var(--muted)">0.8×(ICId+ICIn)/2×(IEVri+IEVdt)/2 + 0.2×(ILPd+ILPn)/2</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--green);font-family:var(--font-mono)">+${fmt(gain.ief_gain)} se IEF=1</div>
+      </div>
+      <div class="tree-grandchildren">
+        ${leafRow('ICId','Captura Diurna',r.c_ICId,r.f_ICId,`(IVd+INd)/TId = (${r.IVd}+${r.INd})/${r.TId} = ${fmt(r.ICId_raw,3)}`)}
+        ${leafRow('ICIn','Captura Noturna',r.c_ICIn,r.f_ICIn,`(IVn+INn)/TIn = (${r.IVn}+${r.INn})/${r.TIn} = ${fmt(r.ICIn_raw,3)}`)}
+        ${leafRow('IEVri','Envio Imagens',r.c_IEVri,r.f_IEVri,`prazos: [${r.rfri1},${r.rfri2},${r.rfri3},${r.rfri4},${r.rfri5}] / ${r.pktsInf}`)}
+        ${leafRow('IEVdt','Envio Tráfego',r.c_IEVdt,r.f_IEVdt,`prazos: [${r.rfdt1},${r.rfdt2},${r.rfdt3},${r.rfdt4},${r.rfdt5},${r.rfdt6}] / ${r.pktsTraf}`)}
+        ${leafRow('ILPd','Leitura Placas Diurna',r.c_ILPd,r.f_ILPd,`LPd/IVd = ${r.LPd}/${r.IVd_ocr} = ${fmt(r.ILPd_raw,3)}`)}
+        ${leafRow('ILPn','Leitura Placas Noturna',r.c_ILPn,r.f_ILPn,`LPn/IVn = ${r.LPn}/${r.IVn_ocr} = ${fmt(r.ILPn_raw,3)}`)}
+      </div>
+    </div>
+    <!-- ICV -->
+    <div class="tree-child">
+      <div class="tree-child-header">
+        <div class="tree-child-val">${fmt(r.c_ICV)}</div>
+        <div>
+          <div class="tree-child-label">ICV — Classificação de Veículos</div>
+          <div style="font-size:11px;color:var(--muted)">QVc/QVt = ${r.QVc}/${r.QVt} = ${fmt(calcICVi(r.QVc,r.QVt),4)}</div>
+        </div>
+        <div style="margin-left:auto;font-size:11px;color:var(--green);font-family:var(--font-mono)">+${fmt(gain.icv_gain)} se ICV=1</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ganho potencial -->
+<div style="margin-top:16px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 16px">
+  <div style="font-size:12px;font-weight:700;color:var(--amber);margin-bottom:8px;font-family:var(--font-display)">💡 Potencial de Melhoria</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+    ${gainCard('IDF=1.0',gain.idf_gain,'Disponibilidade 100%')}
+    ${gainCard('IEF=1.0',gain.ief_gain,'Eficiência 100%')}
+    ${gainCard('Todos=1.0',gain.total_gap,'ID máximo possível')}
+  </div>
+</div>
+
+<!-- Recomendações -->
+<div class="mt-16">
+  <div style="font-size:13px;font-weight:700;font-family:var(--font-display);margin-bottom:10px">🎯 Recomendações</div>
+  <div class="reco-list">
+    ${recos.length?recos.map(re=>`
+      <div class="reco ${re.priority}">
+        <div class="reco-icon">${re.priority==='high'?'🔴':re.priority==='medium'?'🟡':'🔵'}</div>
+        <div class="reco-body">
+          <div class="reco-title">${re.title}</div>
+          <div class="reco-desc">${re.desc}</div>
+          ${re.gain?`<div class="reco-gain">Potencial: ${re.gain}</div>`:''}
+        </div>
+      </div>
+    `).join(''):'<div class="reco low"><div class="reco-icon">✅</div><div class="reco-body"><div class="reco-title">Equipamento com bom desempenho</div></div></div>'}
+  </div>
+</div>
+
+<!-- Raw data table -->
+<div class="mt-16">
+  <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Dados Brutos</div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:11.5px">
+    ${rawRow('Pacotes Inf.',r.pktsInf)} ${rawRow('Infrações',r.infracoes)} ${rawRow('Válidas',r.validas)}
+    ${rawRow('Contagem Veíc.',r.contagemVeic)} ${rawRow('NHt',r.NHt)} ${rawRow('NHo',r.NHo)}
+    ${rawRow('Período',r.periodo)} ${rawRow('Dias',r.dias)} ${rawRow('Início Op.',r.inicio)}
+  </div>
+</div>
+`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function leafRow(name,label,calc,file,formula){
+  const cv=calc??0;
+  const color=cv<0.5?'var(--red)':cv<0.8?'var(--amber)':'var(--green)';
+  const diff=(file!==null&&file!==undefined&&calc!==null)?Math.abs(cv-file):null;
+  const match=diff!==null?diff<0.001:null;
+  const planHtml=file!==null&&file!==undefined?
+    `<span style="color:var(--muted2);font-size:10px">plan:${fmt(file)}</span>
+     <span style="color:${match?'var(--green)':'var(--red)'};font-size:10px">${match?'✓':('Δ'+fmt(diff,3))}</span>`:'';
+  return `<div class="tree-leaf">
+    <span class="tree-leaf-name">${name}</span>
+    <span class="tree-leaf-val" style="color:${color}">${fmt(calc)}</span>
+    ${planHtml}
+    <span style="color:var(--muted2);font-size:10px;overflow:hidden;text-overflow:ellipsis">${formula}</span>
+  </div>`;
+}
+function gainCard(label,gain,desc){
+  return `<div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:8px 10px">
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--green)">+${fmt(gain)}</div>
+    <div style="font-size:11px;font-weight:600">${label}</div>
+    <div style="font-size:10px;color:var(--muted)">${desc}</div>
+  </div>`;
+}
+function rawRow(k,v){
+  return `<div style="display:flex;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:4px 8px">
+    <span style="color:var(--muted)">${k}</span>
+    <span class="text-mono">${v??'—'}</span>
+  </div>`;
+}
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open')}
+
+// ════════════════════════════════════════════════════════════════
+// RANKING — EQUIPMENT VIEW
+// ════════════════════════════════════════════════════════════════
+function renderRankingEquip(){
+  const records = getActiveRecords();
+  if (!records.length){
+    document.getElementById('tbody-ranking').innerHTML = '<tr><td colspan="12" class="text-center text-muted">Sem dados</td></tr>';
+    return;
+  }
+  const search = (document.getElementById('r-search')?.value||'').toLowerCase();
+  const tip    = document.getElementById('r-tipo')?.value||'';
+  const rod    = document.getElementById('r-rodovia')?.value||'';
+  const sort   = document.getElementById('r-sort')?.value||'c_ID';
+
+  const rodovias = [...new Set(records.map(r=>r.rodovia))].sort();
+  const tipos    = [...new Set(records.map(r=>r.tipo))].sort();
+  fillSelect('r-tipo',    tipos,    'Todos tipos');
+  fillSelect('r-rodovia', rodovias, 'Todas rodovias');
+
+  const filtered = records.filter(r =>
+    (!tip || r.tipo===tip) &&
+    (!rod || r.rodovia===rod) &&
+    (!search || r.equipamento.toLowerCase().includes(search) ||
+     String(EQUIP_CATALOG[r.equipamento]?.serie||'').includes(search))
+  );
+
+  const groups = groupByEquipamento(filtered);
+
+  // Apply index filter on groups
+  const idxFilter=document.getElementById('r-idx-filter')?.value||'';
+  let filteredGroups = groups;
+  if(idxFilter){
+    const [field,op,valStr]=idxFilter.split('|');
+    const val=parseFloat(valStr);
+    filteredGroups=groups.filter(g=>{
+      const v=g[field];
+      if(v===null||v===undefined)return false;
+      if(op==='lt')return v<val;
+      if(op==='gte')return v>=val;
+      if(op==='eq')return Math.abs(v-val)<0.001;
+      return true;
+    });
+  }
+
+  // Sort mapping for all indices
+  const SORT_FIELDS={
+    id_asc:'c_ID', id_desc:'c_ID',
+    idf_asc:'c_IDF', idf_desc:'c_IDF',
+    ief_asc:'c_IEF', ief_desc:'c_IEF',
+    icv_asc:'c_ICV', icv_desc:'c_ICV',
+    icid_asc:'c_ICId', icin_asc:'c_ICIn',
+    ievri_asc:'c_IEVri', ievdt_asc:'c_IEVdt',
+    ilpd_asc:'c_ILPd', ilpn_asc:'c_ILPn',
+  };
+
+  filteredGroups.sort((a,b) => {
+    if (sort==='gain_desc') return (b.descontoTotal??0) - (a.descontoTotal??0);
+    const fld=SORT_FIELDS[sort]||'c_ID';
+    const av=a[fld]??1, bv=b[fld]??1;
+    return sort.endsWith('desc')?bv-av:av-bv;
+  });
+
+  document.getElementById('ranking-count').textContent=`${filteredGroups.length} Equipamentos (${filtered.length} faixas)`;
+
+  // Update thead
+  const thead = document.getElementById('thead-ranking');
+  if (thead) {
+    thead.innerHTML = `<tr>
+      <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Endereço</th><th>Faixas</th>
+      <th>IDF médio</th><th>IEF médio</th><th>ICV médio</th><th>ID médio</th>
+      <th>Desconto/mês</th><th>Pior Faixa</th>
+    </tr>`;
+  }
+
+  document.getElementById('tbody-ranking').innerHTML = filteredGroups.map((g,i) => {
+    const cat = EQUIP_CATALOG[g.equipamento];
+    const end = cat?.endereco || (g.rodovia + ' km ' + g.km);
+    const desconto = g.descontoTotal;
+    const piorFaixa = g.faixas.slice().sort((a,b)=>(a.c_ID??1)-(b.c_ID??1))[0];
+    const cl = g.c_ID !== null && g.c_ID < 0.8 ? 'row-danger' : g.c_ID < 0.95 ? 'row-warn' : '';
+    return `<tr class="${cl}" style="cursor:pointer" onclick="openEquipSummary('${esc(g.equipamento)}')">
+      <td class="text-muted text-sm">${i+1}</td>
+      <td class="idx" style="color:var(--amber);font-weight:700">${g.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${g.equipamento}</td>
+      <td><span class="tag tag-${g.tipo.toLowerCase()}">${g.tipo}</span></td>
+      <td style="font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${end}</td>
+      <td style="text-align:center">
+        <span style="background:rgba(245,158,11,.1);color:var(--amber);padding:2px 7px;border-radius:4px;font-size:11px;font-weight:700">${g.numFaixas}</span>
+      </td>
+      <td class="idx ${(g.c_IDF??1)<0.95?'text-amber':''}"><span class="badge ${idBadge(g.c_IDF)}">${fmt(g.c_IDF)}</span></td>
+      <td class="idx"><span class="badge ${idBadge(g.c_IEF)}">${fmt(g.c_IEF)}</span></td>
+      <td class="idx"><span class="badge ${idBadge(g.c_ICV)}">${fmt(g.c_ICV)}</span></td>
+      <td class="idx"><span class="badge ${idBadge(g.c_ID)}">${fmt(g.c_ID)}</span></td>
+      <td class="idx" style="color:${desconto>1000?'var(--red)':desconto>300?'var(--amber)':'var(--green)'};font-weight:700">${moedaK(desconto)}</td>
+      <td>
+        <span style="font-family:var(--font-mono);font-size:12px;color:var(--amber)">${piorFaixa?.faixa||'—'}</span>
+        <span style="font-size:10px;color:var(--muted);margin-left:4px">${fmt(piorFaixa?.c_ID)}</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function openEquipSummary(equip) {
+  // Open financial detail in equip view
+  openValorDetailEquip(equip);
+}
+
+// ════════════════════════════════════════════════════════════════
+// VALIDATION
+// ════════════════════════════════════════════════════════════════
+function renderValidation(){
+  const records=getActiveRecords();
+  if(!records.length){
+    document.getElementById('val-kpis').innerHTML='<div class="empty-state"><h3>Sem dados</h3></div>';
+    return;
+  }
+  const diffs=[];
+  const fields=[
+    ['c_ICId','f_ICId','ICId'],['c_ICIn','f_ICIn','ICIn'],
+    ['c_IEVri','f_IEVri','IEVri'],['c_IEVdt','f_IEVdt','IEVdt'],
+    ['c_ILPd','f_ILPd','ILPd'],['c_ILPn','f_ILPn','ILPn'],
+    ['c_IEF','f_IEF','IEF'],['c_IDF','f_IDF','IDF'],
+    ['c_ICV','f_ICV','ICV'],['c_ID','f_ID','ID'],
+  ];
+  records.forEach(r=>{
+    fields.forEach(([calc,file,name])=>{
+      const cv=r[calc],fv=r[file];
+      if(cv===null||fv===null||fv===undefined)return;
+      const d=Math.abs(cv-fv);
+      if(d>0.001)diffs.push({equip:r.equipamento,faixa:r.faixa,name,calc:cv,file:fv,d});
+    });
+  });
+  const totalComparisons=records.length*fields.length;
+  const divergencias=diffs.length;
+  const ok=totalComparisons-divergencias;
+  document.getElementById('val-kpis').innerHTML=`
+    <div class="kpi good"><div class="kpi-label">Comparações Corretas</div><div class="kpi-val">${ok}</div><div class="kpi-sub">${pct(ok/totalComparisons)}</div></div>
+    <div class="kpi ${divergencias>0?'warn':'good'}"><div class="kpi-label">Divergências</div><div class="kpi-val">${divergencias}</div><div class="kpi-sub">Δ &gt; 0.001</div></div>
+    <div class="kpi info"><div class="kpi-label">Total Verificado</div><div class="kpi-val">${totalComparisons}</div><div class="kpi-sub">${records.length} equipamentos × ${fields.length} índices</div></div>
+  `;
+  document.getElementById('tbody-validation').innerHTML=diffs.length?diffs.sort((a,b)=>b.d-a.d).map(d=>`
+    <tr>
+      <td class="idx">${d.equip}</td>
+      <td class="idx">${d.faixa}</td>
+      <td><span class="badge badge-amber">${d.name}</span></td>
+      <td class="idx">${fmt(d.calc,4)}</td>
+      <td class="idx">${fmt(d.file,4)}</td>
+      <td class="idx" style="color:var(--amber)">Δ${fmt(d.d,4)}</td>
+      <td><span class="badge ${d.d<0.01?'badge-blue':d.d<0.05?'badge-amber':'badge-red'}">${d.d<0.01?'Arredondamento':d.d<0.05?'Pequena diferença':'Divergência'}</span></td>
+    </tr>
+  `).join(''):'<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--green)">✓ Todos os índices calculados pelo sistema coincidem com a planilha</td></tr>';
+
+  document.getElementById('tbody-audit').innerHTML=records.map(r=>{
+    const dID=r.c_ID!==null&&r.f_ID!==null?Math.abs(r.c_ID-r.f_ID):null;
+    return `<tr>
+      <td class="idx">${r.equipamento}</td>
+      <td class="idx">${r.faixa}</td>
+      <td><span class="tag tag-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+      <td class="idx">${fmt(r.c_ICId)}</td><td class="idx">${fmt(r.c_ICIn)}</td>
+      <td class="idx">${fmt(r.c_IEVri)}</td><td class="idx">${fmt(r.c_IEVdt)}</td>
+      <td class="idx">${fmt(r.c_ILPd)}</td><td class="idx">${fmt(r.c_ILPn)}</td>
+      <td class="idx">${fmt(r.c_IEF)}</td><td class="idx">${fmt(r.c_IDF)}</td>
+      <td class="idx">${fmt(r.c_ICV)}</td>
+      <td><span class="badge ${idBadge(r.c_ID)}">${fmt(r.c_ID)}</span></td>
+      <td><span class="badge ${idBadge(r.f_ID)}">${fmt(r.f_ID)}</span></td>
+      <td class="idx" style="color:${dID===null?'var(--muted2)':dID<0.001?'var(--green)':dID<0.01?'var(--amber)':'var(--red)'}">
+        ${dID===null?'—':dID<0.001?'✓':'Δ'+fmt(dID,4)}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════════
+// COMPARE
+// ════════════════════════════════════════════════════════════════
+function populateComparePeriods(){
+  const keys=Object.keys(STATE.periods);
+  ['cmp-a','cmp-b'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(!el)return;
+    const cur=el.value;
+    el.innerHTML=`<option value="">Período ${i===0?'A':'B'}</option>`+keys.map(k=>`<option value="${k}">${k}</option>`).join('');
+    if(keys.includes(cur))el.value=cur;
+    else if(keys[i])el.value=keys[i];
+  });
+}
+function renderCompare(){
+  const a=document.getElementById('cmp-a')?.value;
+  const b=document.getElementById('cmp-b')?.value;
+  const cont=document.getElementById('compare-content');
+  const recA=STATE.periods[a]||[];
+  const recB=STATE.periods[b]||[];
+  if(!a||!b||a===b||!recA.length||!recB.length){
+    cont.innerHTML='<div class="empty-state"><h3>Selecione dois períodos diferentes</h3><p>Importe pelo menos 2 planilhas de períodos distintos.</p></div>';
+    return;
+  }
+  // Match by equipamento+faixa
+  const matches=[];
+  recA.forEach(ra=>{
+    const rb=recB.find(x=>x.equipamento===ra.equipamento&&x.faixa===ra.faixa);
+    if(rb)matches.push({equip:ra.equipamento,faixa:ra.faixa,tipo:ra.tipo,ra,rb});
+  });
+  if(!matches.length){
+    cont.innerHTML='<div class="empty-state"><h3>Nenhum equipamento em comum</h3><p>Os períodos selecionados não compartilham equipamentos.</p></div>';
+    return;
+  }
+  const deltaID=v=>{
+    const d=v.rb.c_ID-v.ra.c_ID;
+    const color=d>0?'var(--green)':d<0?'var(--red)':'var(--muted)';
+    return `<span style="color:${color};font-family:var(--font-mono)">${d>0?'+':''}${fmt(d)}</span>`;
+  };
+  const improved=matches.filter(m=>m.rb.c_ID-m.ra.c_ID>0.005).length;
+  const regressed=matches.filter(m=>m.ra.c_ID-m.rb.c_ID>0.005).length;
+  const stable=matches.length-improved-regressed;
+  cont.innerHTML=`
+    <div class="kpis">
+      <div class="kpi info"><div class="kpi-label">Equipamentos Comparados</div><div class="kpi-val">${matches.length}</div></div>
+      <div class="kpi good"><div class="kpi-label">Melhorias</div><div class="kpi-val">${improved}</div><div class="kpi-sub">↑ ID subiu</div></div>
+      <div class="kpi danger"><div class="kpi-label">Regressões</div><div class="kpi-val">${regressed}</div><div class="kpi-sub">↓ ID caiu</div></div>
+      <div class="kpi"><div class="kpi-label">Estáveis</div><div class="kpi-val">${stable}</div></div>
+    </div>
+    <div class="card mt-16">
+      <div class="card-header">
+        <h3>📊 Comparativo: ${a} vs ${b}</h3>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Equipamento</th><th>Faixa</th><th>Tipo</th>
+            <th>ID (${a.split(' ')[0]})</th><th>ID (${b.split(' ')[0]})</th><th>Δ ID</th>
+            <th>Δ IDF</th><th>Δ IEF</th><th>Δ ICV</th><th>Causa da Mudança</th>
+          </tr></thead>
+          <tbody>
+            ${matches.sort((a,b)=>Math.abs(b.rb.c_ID-b.ra.c_ID)-Math.abs(a.rb.c_ID-a.ra.c_ID)).map(m=>{
+              const d={id:m.rb.c_ID-m.ra.c_ID,idf:(m.rb.c_IDF||0)-(m.ra.c_IDF||0),ief:(m.rb.c_IEF||0)-(m.ra.c_IEF||0),icv:(m.rb.c_ICV||0)-(m.ra.c_ICV||0)};
+              const cause=Math.abs(d.idf)>Math.abs(d.ief)?'IDF':'IEF';
+              const dir=d.id>0.005?'↑ Melhora':d.id<-0.005?'↓ Regressão':'→ Estável';
+              const clr=d.id>0.005?'var(--green)':d.id<-0.005?'var(--red)':'var(--muted)';
+              return `<tr onclick="openDetail('${esc(m.equip)}','${m.faixa}')" style="cursor:pointer">
+                <td class="idx">${m.equip}</td>
+                <td class="idx">${m.faixa}</td>
+                <td><span class="tag tag-${m.tipo.toLowerCase()}">${m.tipo}</span></td>
+                <td class="idx">${fmt(m.ra.c_ID)}</td>
+                <td class="idx">${fmt(m.rb.c_ID)}</td>
+                <td>${deltaID(m)}</td>
+                <td class="idx">${deltaSign(d.idf)}</td>
+                <td class="idx">${deltaSign(d.ief)}</td>
+                <td class="idx">${deltaSign(d.icv)}</td>
+                <td style="font-size:11px;color:${clr}">${dir} → ${cause}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+function deltaSign(d){
+  const c=d>0.005?'var(--green)':d<-0.005?'var(--red)':'var(--muted)';
+  return `<span style="color:${c};font-family:var(--font-mono)">${d>0.005?'+':''}${fmt(d)}</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// NAVIGATION & UTILS
+// ════════════════════════════════════════════════════════════════
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+name)?.classList.add('active');
+  document.getElementById('nav-'+name)?.classList.add('active');
+  if(name==='dashboard'){
+    // Dispose stale charts so they reinitialize with correct size
+    ['chart-dist','chart-equipment','chart-radar','chart-images'].forEach(id=>{
+      if(charts[id]){try{charts[id].dispose();}catch(e){} delete charts[id];}
+    });
+    renderDashboard();
+  }
+  if(name==='ranking'){renderRanking();}
+  if(name==='validation')renderValidation();
+  if(name==='compare'){populateComparePeriods();renderCompare();}
+  if(name==='invalidas'){renderInvalidas();}
+  if(name==='valores'){initValorConfig();renderValores();}
+}
+
+function updateSidebar(){
+  const p=STATE.activePeriod;
+  document.getElementById('sb-period-info').style.display=p?'block':'none';
+  document.getElementById('sb-period').textContent=p||'';
+  const recs=getActiveRecords();
+  document.getElementById('sb-records').textContent=recs.length?`${recs.length} faixas`:'' ;
+}
+
+function renderHistoryList(){
+  const keys=Object.keys(STATE.periods);
+  const el=document.getElementById('history-list');
+  if(!el)return;
+  if(!keys.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="upload-info">
+    <h4>📅 Períodos Importados</h4>
+    <div style="display:flex;flex-direction:column;gap:5px">
+      ${keys.map(k=>`
+        <div style="display:flex;align-items:center;gap:7px;padding:5px 8px;background:var(--bg3);border-radius:7px;border:1px solid ${STATE.activePeriod===k?'rgba(245,158,11,.3)':'transparent'}">
+          <div class="period-badge" style="font-size:9.5px;padding:2px 6px">${k}</div>
+          <span style="font-size:11px;color:var(--muted)">${STATE.periods[k].length} faixas</span>
+          <div style="margin-left:auto;display:flex;gap:5px;align-items:center">
+            ${STATE.activePeriod!==k?`<button class="btn btn-sm" style="padding:3px 10px;font-size:11px" onclick="setActive('${k}')">Ativar</button>`:'<span style="font-size:10px;color:var(--amber);font-weight:600">Ativo ✓</span>'}
+            <button class="btn btn-sm" style="padding:3px 8px;font-size:11px;color:var(--red)" onclick="deletePeriod('${k}')">×</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function setActive(k){
+  STATE.activePeriod=k;
+  updateSidebar();
+  populateFilters();
+  applyFilters();
+  showScreen('dashboard');
+}
+function deletePeriod(k){
+  if(!confirm(`Remover período "${k}"?`))return;
+  delete STATE.periods[k];
+  if(STATE.activePeriod===k)STATE.activePeriod=Object.keys(STATE.periods)[0]||null;
+  try{const s=JSON.parse(localStorage.getItem('der_periods')||'{}');delete s[k];localStorage.setItem('der_periods',JSON.stringify(s));}catch(e){}
+  updateSidebar();populateFilters();applyFilters();renderHistoryList();
+  showToast(`Período "${k}" removido`,'success');
+}
+
+function showLoading(msg='Carregando...'){
+  document.getElementById('loading-msg').textContent=msg;
+  document.getElementById('loading').classList.add('show');
+}
+function hideLoading(){document.getElementById('loading').classList.remove('show')}
+
+function showToast(msg,type='success'){
+  const el=document.createElement('div');
+  el.className=`toast-item ${type}`;
+  el.textContent=msg;
+  document.getElementById('toast').appendChild(el);
+  setTimeout(()=>el.remove(),3500);
+}
+
+function fmt(v,d=3){
+  if(v===null||v===undefined||isNaN(v))return '—';
+  return Number(v).toFixed(d);
+}
+function pct(v){return fmt((v||0)*100,1)+'%'}
+function idBadge(v){
+  if(v===null||v===undefined)return 'badge-slate';
+  return v<0.6?'badge-red':v<0.85?'badge-amber':'badge-green';
+}
+function esc(s){return (s||'').replace(/'/g,"\\'").replace(/"/g,'"')}
+
+// Helper: label para gráficos — usa "Nº Série" se disponível, senão código DER
+function equipLabel(equip){
+  const cat=EQUIP_CATALOG[equip];
+  return cat ? `Nº ${cat.serie}` : equip;
+}
+// Label completo para tooltip: "Nº Série (código)"
+function equipLabelFull(equip){
+  const cat=EQUIP_CATALOG[equip];
+  return cat ? `Nº ${cat.serie} (${equip})` : equip;
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// EQUIPMENT CATALOG — valores individuais DR-08 / DR-14
+// Fonte: Pasta2.xlsx · 27/02/2026
+// ════════════════════════════════════════════════════════════════
+const EQUIP_CATALOG = {
+  // ── DR-14 ──
+  "CEC250182": { serie:1671, valor:8964.77,  lote:"DR-14", endereco:"SP 322 Km 399,130" },
+  "CEV250390": { serie:1661, valor:5999.63,  lote:"DR-14", endereco:"SP 322 Km 412,000" },
+  "REV250052": { serie:1667, valor:7587.79,  lote:"DR-14", endereco:"SP 322 Km 431,009" },
+  "REV250055": { serie:1668, valor:7587.79,  lote:"DR-14", endereco:"SP 322 Km 431,009" },
+  "CEV250253": { serie:1662, valor:11598.50, lote:"DR-14", endereco:"SP 322 Km 442,370" },
+  "CEV250254": { serie:1663, valor:11598.50, lote:"DR-14", endereco:"SP 322 Km 461,800" },
+  "CEC250123": { serie:1674, valor:17355.47, lote:"DR-14", endereco:"SP 322 Km 484,706" },
+  "CEV250281": { serie:1660, valor:11598.50, lote:"DR-14", endereco:"SP 326 Km 452,390" },
+  "CEV250255": { serie:1659, valor:11598.50, lote:"DR-14", endereco:"SP 326 Km 458,541" },
+  "CEC250124": { serie:1657, valor:8964.77,  lote:"DR-14", endereco:"SP 326 Km 468,165" },
+  "CEV250258": { serie:1651, valor:11598.50, lote:"DR-14", endereco:"SP 345 Km 123,557" },
+  "CEV250338": { serie:1653, valor:5999.63,  lote:"DR-14", endereco:"SP 373 Km 151,500" },
+  "CEC260191": { serie:1673, valor:8964.77,  lote:"DR-14", endereco:"SP 373 Km 171,180" },
+  "CEC250156": { serie:1669, valor:8964.77,  lote:"DR-14", endereco:"SP 385 Km 27,420"  },
+  "CEV250259": { serie:1650, valor:5999.63,  lote:"DR-14", endereco:"SP 413 Km 0,646"   },
+  "CEC250184": { serie:1658, valor:8964.77,  lote:"DR-14", endereco:"SP 413 Km 25,440"  },
+  "CEV250260": { serie:1670, valor:11598.50, lote:"DR-14", endereco:"SP 425 Km 59,939"  },
+  "CEV250285": { serie:1652, valor:5999.63,  lote:"DR-14", endereco:"SP 425 Km 79,724"  },
+  "CEV250188": { serie:1666, valor:11598.50, lote:"DR-14", endereco:"SP 425 Km 118,700" },
+  "CEV250289": { serie:1656, valor:5999.63,  lote:"DR-14", endereco:"SP 425 Km 123,110" },
+  "CEV250261": { serie:1655, valor:5999.63,  lote:"DR-14", endereco:"SP 425 Km 139,685" },
+  "CEV250262": { serie:1665, valor:11598.50, lote:"DR-14", endereco:"SP 425 Km 145,556" },
+  "CEV250263": { serie:1664, valor:11598.50, lote:"DR-14", endereco:"SP 425 Km 149,370" },
+  "CEV250290": { serie:1654, valor:8955.28,  lote:"DR-14", endereco:"SP 425 Km 157,000" },
+  "CEV250283": { serie:1672, valor:5999.63,  lote:"DR-14", endereco:"SP 425 Km 101,310" },
+  "CEC250185": { serie:1675, valor:13315.86, lote:"DR-14", endereco:"SP 425 Km 102,000" },
+  // ── DR-08 ──
+  "CEV250152": { serie:1676, valor:5116.21,  lote:"DR-08", endereco:"SP 334 Km 442,170" },
+  "CEV250287": { serie:1677, valor:5116.21,  lote:"DR-08", endereco:"SP 334 Km 427,310" },
+  "CEV250257": { serie:1678, valor:5116.21,  lote:"DR-08", endereco:"SP 334 Km 410,000" },
+  "CEV250286": { serie:1679, valor:5116.21,  lote:"DR-08", endereco:"SP 334 Km 407,020" },
+  "CEV250256": { serie:1680, valor:5116.21,  lote:"DR-08", endereco:"SP 334 Km 406,930" },
+  "CEV250277": { serie:1681, valor:5116.21,  lote:"DR-08", endereco:"SP 373 Km 104,510" },
+  "CEV250276": { serie:1682, valor:8496.36,  lote:"DR-08", endereco:"SP 351 Km 079,200" },
+  "CEV250274": { serie:1683, valor:5116.21,  lote:"DR-08", endereco:"SP 253 Km 202,000" },
+  "CEV250340": { serie:1684, valor:5116.21,  lote:"DR-08", endereco:"SP 253 Km 192,158" },
+  "CEV250148": { serie:1685, valor:5116.21,  lote:"DR-08", endereco:"SP 253 Km 155,720" },
+  "CEV250288": { serie:1686, valor:5116.21,  lote:"DR-08", endereco:"SP 338 Km 300,570" },
+  "CEV250149": { serie:1687, valor:5116.21,  lote:"DR-08", endereco:"SP 333 Km 006,000" },
+  "CEV250150": { serie:1688, valor:8496.36,  lote:"DR-08", endereco:"SP 345 Km 058,000" },
+  "CEV250339": { serie:1689, valor:8496.36,  lote:"DR-08", endereco:"SP 291 Km 004,028" },
+  "CEC250073": { serie:1690, valor:11186.88, lote:"DR-08", endereco:"SP 291 Km 023,000" },
+  "CEV250391": { serie:1691, valor:8496.36,  lote:"DR-08", endereco:"SP 351 Km 011,000" },
+  "CEV250282": { serie:1692, valor:11075.66, lote:"DR-08", endereco:"SP 334 Km 457,070" },
+  "CEV250146": { serie:1693, valor:11075.66, lote:"DR-08", endereco:"SP 334 Km 418,150" },
+  "CEC250074": { serie:1694, valor:9304.23,  lote:"DR-08", endereco:"SP 334 Km 449,900" },
+  "CEC250138": { serie:1695, valor:9304.23,  lote:"DR-08", endereco:"SP 351 Km 101,500" },
+  "CEC250127": { serie:1696, valor:9304.23,  lote:"DR-08", endereco:"SP 351 Km 054,970" },
+  "CEC250181": { serie:1697, valor:9304.23,  lote:"DR-08", endereco:"SP 253 Km 148,038" },
+  "CEC250125": { serie:1698, valor:9304.23,  lote:"DR-08", endereco:"SP 333 Km 045,030" },
+  "CEC250134": { serie:1699, valor:9304.23,  lote:"DR-08", endereco:"SP 333 Km 045,030" },
+  "CEC250106": { serie:1700, valor:11186.88, lote:"DR-08", endereco:"SP 345 Km 007,030" },
+  "CEV250341": { serie:1701, valor:5116.21,  lote:"DR-08", endereco:"SP 345 Km 099,263" },
+  "CEC250131": { serie:1702, valor:11186.88, lote:"DR-08", endereco:"SP 351 Km 050,000" },
+  "CEC250187": { serie:1703, valor:11186.88, lote:"DR-08", endereco:"SP 291 Km 002,020" },
+  "CEC250136": { serie:1704, valor:11186.88, lote:"DR-08", endereco:"SP 253 Km 122,000" },
+  "CEC250126": { serie:1705, valor:11186.88, lote:"DR-08", endereco:"SP 338 Km 293,250" },
+  "CEC250132": { serie:1706, valor:11186.88, lote:"DR-08", endereco:"SP 351 Km 015,200" }
+};
+
+function getSerie(equip)     { return EQUIP_CATALOG[equip]?.serie    ?? null; }
+function getLote(equip)      { return EQUIP_CATALOG[equip]?.lote     ?? null; }
+function getEnderecoEquip(e) { return EQUIP_CATALOG[e]?.endereco     ?? null; }
+function getValorEquip(equip, tipo) {
+  if (EQUIP_CATALOG[equip]) return EQUIP_CATALOG[equip].valor;
+  const cfg = getValorConfig();
+  return cfg[tipo] ?? cfg.CEV ?? 5000;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FINANCIAL / VALORES ENGINE
+// ════════════════════════════════════════════════════════════════
+
+// Valores mensais padrão por faixa (R$) — editáveis pelo usuário
+const VALOR_DEFAULTS = {
+  CEV: 3200,
+  REV: 2800,
+  CEC: 4500,
+  REC: 4000,
+};
+
+function getValorConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('der_valores') || '{}');
+    return { ...VALOR_DEFAULTS, ...saved };
+  } catch(e) { return { ...VALOR_DEFAULTS }; }
+}
+
+function saveValorConfig() {
+  const cfg = {};
+  ['CEV','REV','CEC','REC'].forEach(t => {
+    const el = document.getElementById('vc-'+t);
+    if (el) cfg[t] = parseFloat(el.value.replace(',','.')) || VALOR_DEFAULTS[t];
+  });
+  try { localStorage.setItem('der_valores', JSON.stringify(cfg)); } catch(e) {}
+  showToast('Valores salvos com sucesso', 'success');
+  renderValores();
+}
+
+function resetValorConfig() {
+  try { localStorage.removeItem('der_valores'); } catch(e) {}
+  ['CEV','REV','CEC','REC'].forEach(t => {
+    const el = document.getElementById('vc-'+t);
+    if (el) el.value = VALOR_DEFAULTS[t];
+  });
+  showToast('Valores restaurados para o padrão', 'success');
+  renderValores();
+}
+
+function toggleValConfig() {
+  const body = document.getElementById('val-config-body');
+  const tog  = document.getElementById('val-config-toggle');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display = open ? 'none' : 'block';
+  tog.textContent = open ? '▼ expandir' : '▲ recolher';
+}
+
+function initValorConfig() {
+  const cfg = getValorConfig();
+  const cont = document.getElementById('val-config-inputs');
+  if (!cont || cont.dataset.init) return;
+  cont.dataset.init = '1';
+  cont.innerHTML = ['CEV','REV','CEC','REC'].map(t => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">
+        <span class="tag tag-${t.toLowerCase()}">${t}</span>
+        <span style="margin-left:6px">por faixa/mês</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:13px;color:var(--muted)">R$</span>
+        <input type="number" id="vc-${t}" value="${cfg[t]}"
+          style="background:var(--bg2);border:1px solid var(--border2);color:var(--txt);
+                 padding:6px 10px;border-radius:var(--r2);font-size:14px;font-family:var(--font-mono);
+                 width:100%;outline:none"
+          min="0" step="100"/>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Calculate financial impact per record (faixa-level)
+function calcFinanceiro(r) {
+  // O valor do catálogo é por equipamento, precisa dividir pelo nº de faixas
+  const allRecs = getActiveRecords();
+  const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento).length || 1;
+  const valorEquip = getValorEquip(r.equipamento, r.tipo);
+  const valorBase = valorEquip / faixasDoEquip;  // valor por faixa
+  const id   = r.c_ID ?? 0;
+  const idf  = r.c_IDF ?? 0;
+  const ief  = r.c_IEF ?? 0;
+  const icv  = r.c_ICV ?? 0;
+
+  const valorRecebido  = valorBase * id;
+  const descontoTotal  = valorBase * (1 - id);
+
+  // Quanto o ID seria se cada índice fosse 1.0
+  const id_idf1 = calcID(r.tipo, 1.0,  ief,  icv)  ?? 0;
+  const id_ief1 = calcID(r.tipo, idf,  1.0,  icv)  ?? 0;
+  const id_icv1 = calcID(r.tipo, idf,  ief,  1.0)  ?? 0;
+
+  // Perda financeira causada por cada índice
+  const perdaIDF = valorBase * Math.max(0, id_idf1 - id);
+  const perdaIEF = valorBase * Math.max(0, id_ief1 - id);
+  const perdaICV = valorBase * Math.max(0, id_icv1 - id);
+
+  // IEF sub-breakdown (proporcional à perda total por IEF)
+  const ief_icid  = r.c_ICId  ?? 0;
+  const ief_icin  = r.c_ICIn  ?? 0;
+  const ief_ievri = r.c_IEVri ?? 0;
+  const ief_ievdt = r.c_IEVdt ?? 0;
+  const ief_ilpd  = r.c_ILPd  ?? 0;
+  const ief_ilpn  = r.c_ILPn  ?? 0;
+
+  // Simulated IEF if each sub-index = 1.0
+  const ief_icid1  = calcIEF(1.0, ief_icin,  ief_ievri, ief_ievdt, ief_ilpd, ief_ilpn) ?? ief;
+  const ief_icin1  = calcIEF(ief_icid, 1.0,  ief_ievri, ief_ievdt, ief_ilpd, ief_ilpn) ?? ief;
+  const ief_ievri1 = calcIEF(ief_icid, ief_icin, 1.0, ief_ievdt, ief_ilpd, ief_ilpn) ?? ief;
+  const ief_ievdt1 = calcIEF(ief_icid, ief_icin, ief_ievri, 1.0, ief_ilpd, ief_ilpn) ?? ief;
+  const ief_ilpd1  = calcIEF(ief_icid, ief_icin, ief_ievri, ief_ievdt, 1.0, ief_ilpn) ?? ief;
+  const ief_ilpn1  = calcIEF(ief_icid, ief_icin, ief_ievri, ief_ievdt, ief_ilpd, 1.0) ?? ief;
+
+  const id_icid1  = calcID(r.tipo, idf, ief_icid1,  icv) ?? 0;
+  const id_icin1  = calcID(r.tipo, idf, ief_icin1,  icv) ?? 0;
+  const id_ievri1 = calcID(r.tipo, idf, ief_ievri1, icv) ?? 0;
+  const id_ievdt1 = calcID(r.tipo, idf, ief_ievdt1, icv) ?? 0;
+  const id_ilpd1  = calcID(r.tipo, idf, ief_ilpd1,  icv) ?? 0;
+  const id_ilpn1  = calcID(r.tipo, idf, ief_ilpn1,  icv) ?? 0;
+
+  const perdaICId  = valorBase * Math.max(0, id_icid1  - id);
+  const perdaICIn  = valorBase * Math.max(0, id_icin1  - id);
+  const perdaIEVri = valorBase * Math.max(0, id_ievri1 - id);
+  const perdaIEVdt = valorBase * Math.max(0, id_ievdt1 - id);
+  const perdaILPd  = valorBase * Math.max(0, id_ilpd1  - id);
+  const perdaILPn  = valorBase * Math.max(0, id_ilpn1  - id);
+
+  // Best single lever
+  const levers = [
+    {nome:'IDF',perda:perdaIDF},{nome:'ICId',perda:perdaICId},{nome:'ICIn',perda:perdaICIn},
+    {nome:'IEVri',perda:perdaIEVri},{nome:'IEVdt',perda:perdaIEVdt},
+    {nome:'ILPd',perda:perdaILPd},{nome:'ILPn',perda:perdaILPn},{nome:'ICV',perda:perdaICV}
+  ].sort((a,b)=>b.perda-a.perda);
+
+  return {
+    valorBase, valorRecebido, descontoTotal,
+    perdaIDF, perdaIEF, perdaICV,
+    perdaICId, perdaICIn, perdaIEVri, perdaIEVdt, perdaILPd, perdaILPn,
+    melhorAlavanca: levers[0],
+    levers,
+  };
+}
+
+function moeda(v) {
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function moedaK(v) {
+  if (!v) return 'R$ 0';
+  if (Math.abs(v) >= 1000) return 'R$ ' + (v/1000).toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1})+'k';
+  return moeda(v);
+}
+
+// ════════════════════════════════════════════════════════════════
+// EQUIPMENT GROUPING UTILITIES
+// ════════════════════════════════════════════════════════════════
+
+// Group faixas by equipment, computing per-faixa value and aggregated metrics
+function groupByEquipamento(records) {
+  const map = {};
+  records.forEach(r => {
+    if (!map[r.equipamento]) map[r.equipamento] = [];
+    map[r.equipamento].push(r);
+  });
+
+  return Object.entries(map).map(([equip, faixas]) => {
+    const n        = faixas.length;
+    const cat      = EQUIP_CATALOG[equip];
+    const valorTotal   = cat ? cat.valor : getValorConfig()[faixas[0].tipo] * n || 5000 * n;
+    const valorFaixa   = valorTotal / n;
+
+    // Average indices weighted equally
+    const avg = key => {
+      const vals = faixas.map(r => r[key]).filter(v => v !== null && v !== undefined);
+      return vals.length ? vals.reduce((a,b) => a+b, 0) / vals.length : null;
+    };
+
+    const c_IDF  = avg('c_IDF');
+    const c_IEF  = avg('c_IEF');
+    const c_ICV  = avg('c_ICV');
+    const c_ID   = avg('c_ID');
+    const c_ICId = avg('c_ICId');
+    const c_ICIn = avg('c_ICIn');
+    const c_IEVri= avg('c_IEVri');
+    const c_IEVdt= avg('c_IEVdt');
+    const c_ILPd = avg('c_ILPd');
+    const c_ILPn = avg('c_ILPn');
+
+    // Financial: sum across faixas (each faixa has valor = valorTotal/n)
+    const valorRecebidoTotal = faixas.reduce((s,r) => {
+      const id = r.c_ID ?? 0;
+      return s + valorFaixa * id;
+    }, 0);
+    const descontoTotal = valorTotal - valorRecebidoTotal;
+
+    // Perda potencial por subíndice (simular elevação a 1.0)
+    const perdaSubindice = (key) => {
+      return faixas.reduce((s, r) => {
+        const synth = { ...r };
+        synth[key] = 1.0;
+        const idSynth = calcID(r.tipo,
+          key === 'c_IDF'  ? 1.0 : (r.c_IDF  ?? 0),
+          key === 'c_IEF'  ? 1.0 : (r.c_IEF  ?? 0),
+          key === 'c_ICV'  ? 1.0 : (r.c_ICV  ?? 0)
+        ) ?? 0;
+        const ganho = valorFaixa * Math.max(0, idSynth - (r.c_ID ?? 0));
+        return s + ganho;
+      }, 0);
+    };
+
+    const perdaIDF = perdaSubindice('c_IDF');
+    const perdaIEF = perdaSubindice('c_IEF');
+    const perdaICV = perdaSubindice('c_ICV');
+
+    const levers = [
+      { nome:'IDF', perda:perdaIDF },
+      { nome:'IEF', perda:perdaIEF },
+      { nome:'ICV', perda:perdaICV },
+    ].sort((a,b) => b.perda - a.perda);
+
+    return {
+      equipamento: equip,
+      serie: cat?.serie ?? null,
+      lote:  cat?.lote  ?? null,
+      tipo:  faixas[0].tipo,
+      rodovia: faixas[0].rodovia,
+      km:    faixas[0].km,
+      municipio: faixas[0].municipio,
+      periodo: faixas[0].periodo,
+      numFaixas: n,
+      faixas,
+      valorTotal,
+      valorFaixa,
+      valorRecebidoTotal,
+      descontoTotal,
+      c_IDF, c_IEF, c_ICV, c_ID,
+      c_ICId, c_ICIn, c_IEVri, c_IEVdt, c_ILPd, c_ILPn,
+      perdaIDF, perdaIEF, perdaICV,
+      melhorAlavanca: levers[0],
+      levers,
+    };
+  });
+}
+
+// Toggle view state helpers
+function setValView(v) {
+  STATE.valView = v;
+  document.getElementById('btn-view-faixa')?.classList.toggle('active', v === 'faixa');
+  document.getElementById('btn-view-equip')?.classList.toggle('active', v === 'equip');
+  renderValores();
+}
+function setRankView(v) {
+  STATE.rankView = v;
+  document.getElementById('btn-rank-faixa')?.classList.toggle('active', v === 'faixa');
+  document.getElementById('btn-rank-equip')?.classList.toggle('active', v === 'equip');
+  renderRanking();
+}
+function setDashView(v) {
+  STATE.dashView = v;
+  document.getElementById('btn-dash-faixa')?.classList.toggle('active', v === 'faixa');
+  document.getElementById('btn-dash-equip')?.classList.toggle('active', v === 'equip');
+  renderDashboard();
+}
+
+// ════════════════════════════════════════════════════════════════
+// RENDER VALORES SCREEN
+// ════════════════════════════════════════════════════════════════
+function renderValores() {
+  const records = getActiveRecords();
+  if (!records.length) {
+    document.getElementById('val-kpis-fin').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1"><h3>Sem dados</h3><p>Importe uma planilha de desempenho primeiro.</p></div>';
+    return;
+  }
+
+  const isEquipView = STATE.valView === 'equip';
+
+  // Filters
+  const rod = document.getElementById('val-f-rodovia')?.value || '';
+  const tip = document.getElementById('val-f-tipo')?.value || '';
+  const rodovias = [...new Set(records.map(r=>r.rodovia))].sort();
+  const tipos    = [...new Set(records.map(r=>r.tipo))].sort();
+  fillSelect('val-f-rodovia', rodovias, 'Todas rodovias');
+  fillSelect('val-f-tipo',    tipos,    'Todos tipos');
+
+  const recs = records.filter(r =>
+    (!rod || r.rodovia === rod) && (!tip || r.tipo === tip)
+  );
+
+  // ── Equipment view: group first, then compute financials on groups ──
+  if (isEquipView) {
+    renderValoresEquip(recs);
+    return;
+  }
+
+  // ── Faixa view (original) ──
+  // Compute financials for each record
+  const fin = recs.map(r => ({ r, f: calcFinanceiro(r) }));
+
+  const totValorBase    = fin.reduce((s,x) => s + x.f.valorBase, 0);
+  const totRecebido     = fin.reduce((s,x) => s + x.f.valorRecebido, 0);
+  const totDesconto     = fin.reduce((s,x) => s + x.f.descontoTotal, 0);
+  const totPerdaIDF     = fin.reduce((s,x) => s + x.f.perdaIDF, 0);
+  const totPerdaIEF     = fin.reduce((s,x) => s + x.f.perdaIEF, 0);
+  const totPerdaICV     = fin.reduce((s,x) => s + x.f.perdaICV, 0);
+  const pctDesc         = totValorBase > 0 ? totDesconto / totValorBase : 0;
+  const avgID           = recs.filter(r=>r.c_ID!==null).reduce((s,r)=>s+r.c_ID,0) /
+                          Math.max(1, recs.filter(r=>r.c_ID!==null).length);
+
+  // KPIs
+  document.getElementById('val-kpis-fin').innerHTML = `
+    <div class="kpi info">
+      <div class="kpi-label">Valor Contratual/Mês</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totValorBase)}</div>
+      <div class="kpi-sub">${fin.length} faixas</div>
+    </div>
+    <div class="kpi good">
+      <div class="kpi-label">Valor Recebido</div>
+      <div class="kpi-val" style="font-size:18px;color:var(--green)">${moedaK(totRecebido)}</div>
+      <div class="kpi-sub">ID médio: ${fmt(avgID)}</div>
+    </div>
+    <div class="kpi ${pctDesc > 0.15 ? 'danger' : pctDesc > 0.05 ? 'warn' : 'good'}">
+      <div class="kpi-label">Desconto Total</div>
+      <div class="kpi-val" style="font-size:18px;color:var(--red)">${moedaK(totDesconto)}</div>
+      <div class="kpi-sub">${pct(pctDesc)} do contrato</div>
+    </div>
+    <div class="kpi ${totPerdaIDF > totDesconto*0.4 ? 'danger' : 'warn'}">
+      <div class="kpi-label">Perda por IDF</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaIDF)}</div>
+      <div class="kpi-sub">${pct(totValorBase>0?totPerdaIDF/totValorBase:0)} do contrato</div>
+    </div>
+    <div class="kpi warn">
+      <div class="kpi-label">Perda por IEF</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaIEF)}</div>
+      <div class="kpi-sub">${pct(totValorBase>0?totPerdaIEF/totValorBase:0)} do contrato</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Perda por ICV</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaICV)}</div>
+      <div class="kpi-sub">${pct(totValorBase>0?totPerdaICV/totValorBase:0)} do contrato</div>
+    </div>
+  `;
+
+  document.getElementById('val-table-title').textContent =
+    `Detalhamento por Faixa — ${fin.length} faixas · Total desconto: ${moeda(totDesconto)}/mês`;
+
+  // Set faixa-view thead
+  document.getElementById('thead-valores').innerHTML = `<tr>
+    <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
+    <th>Valor/Faixa</th><th>ID</th><th>Valor Rec.</th><th>Desconto</th><th>% Desc.</th>
+    <th title="Perda por IDF">↓ IDF</th><th title="Perda por IEF">↓ IEF</th>
+    <th title="Perda por ICV">↓ ICV</th><th title="Maior alavanca">Alavanca</th><th>Detalhe</th>
+  </tr>`;
+
+  // Sort by desconto desc
+  const sorted = [...fin].sort((a,b) => b.f.descontoTotal - a.f.descontoTotal);
+
+  const leverColor = nome => ({
+    IDF:'var(--blue)',ICId:'var(--amber)',ICIn:'var(--amber)',
+    IEVri:'var(--orange)',IEVdt:'var(--orange)',
+    ILPd:'var(--green)',ILPn:'var(--green)',ICV:'var(--slate)'
+  }[nome]||'var(--muted)');
+
+  document.getElementById('tbody-valores').innerHTML = sorted.map(({r,f},i) => {
+    const descPct = f.valorBase > 0 ? f.descontoTotal / f.valorBase : 0;
+    const descColor = descPct > 0.3 ? 'var(--red)' : descPct > 0.1 ? 'var(--amber)' : 'var(--green)';
+    const alavanca = f.melhorAlavanca;
+    return `<tr style="cursor:pointer" onclick="openValorDetail('${esc(r.equipamento)}','${r.faixa}')">
+      <td class="text-muted text-sm" style="text-align:center">${i+1}</td>
+      <td class="idx" style="color:var(--amber);font-weight:700">${r.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${r.equipamento}</td>
+      <td><span class="tag tag-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+      <td class="idx">${r.faixa}</td>
+      <td style="font-size:11px;color:var(--muted)">${r.rodovia}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${r.km??'—'}</td>
+      <td class="idx" style="color:var(--muted)">${moeda(f.valorBase)}</td>
+      <td><span class="badge ${idBadge(r.c_ID)}">${fmt(r.c_ID)}</span></td>
+      <td class="idx" style="color:var(--green)">${moeda(f.valorRecebido)}</td>
+      <td class="idx" style="color:${descColor};font-weight:700">${moeda(f.descontoTotal)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div class="idx-bar" style="width:44px;height:5px"><div class="idx-bar-fill" style="width:${Math.min(100,Math.round(descPct*100))}%;background:${descColor}"></div></div>
+          <span class="text-mono" style="font-size:11px;color:${descColor}">${pct(descPct)}</span>
+        </div>
+      </td>
+      <td class="idx" style="color:${f.perdaIDF>1?'var(--red)':'var(--muted2)'}">${f.perdaIDF>0.5?moedaK(f.perdaIDF):'—'}</td>
+      <td class="idx" style="color:${f.perdaIEF>1?'var(--amber)':'var(--muted2)'}">${f.perdaIEF>0.5?moedaK(f.perdaIEF):'—'}</td>
+      <td class="idx" style="color:${f.perdaICV>1?'var(--blue)':'var(--muted2)'}">${f.perdaICV>0.5?moedaK(f.perdaICV):'—'}</td>
+      <td>
+        ${alavanca.perda > 1 ? `<span style="font-size:11px;font-weight:600;color:${leverColor(alavanca.nome)}">${alavanca.nome}</span>
+          <span style="font-size:10px;color:var(--muted)"> +${moedaK(alavanca.perda)}</span>` : '<span style="color:var(--green);font-size:11px">✓ OK</span>'}
+      </td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openValorDetail('${esc(r.equipamento)}','${r.faixa}')">Ver</button></td>
+    </tr>`;
+  }).join('');
+
+  setTimeout(() => {
+    renderChartValEquip(sorted);
+    renderChartValCausas(fin);
+  }, 80);
+}
+
+// ── Charts ──
+function renderChartValEquip(sorted) {
+  const c = getChart('chart-val-equip'); if (!c) return;
+  const top = sorted.slice(0, 20);
+  c.setOption({ ...CHART_THEME,
+    grid: { top:10, bottom:56, left:110, right:80 },
+    xAxis: { type:'value', axisLabel:{ formatter: v => v>=1000?(v/1000).toFixed(0)+'k':''+v.toFixed(0), fontSize:10 } },
+    yAxis: { type:'category', data: top.map(x=>equipLabel(x.r.equipamento)).reverse(), axisLabel:{fontSize:9,width:105,overflow:'truncate'} },
+    legend: { data:['Valor Recebido','Desconto'], bottom:4, textStyle:{color:'#7a8ba8',fontSize:11}, itemWidth:12, itemHeight:8 },
+    series: [
+      { name:'Valor Recebido', type:'bar', stack:'val',
+        data: top.map(x => x.f.valorRecebido).reverse(),
+        itemStyle: { color:'rgba(16,185,129,.6)' } },
+      { name:'Desconto', type:'bar', stack:'val',
+        data: top.map(x => x.f.descontoTotal).reverse(),
+        itemStyle: { color:'rgba(239,68,68,.75)', borderRadius:[0,3,3,0] },
+        label: { show:true, position:'right', fontSize:9, color:'#fca5a5',
+          formatter: p => {
+            const d = top[top.length-1-p.dataIndex];
+            return d.f.descontoTotal > 0 ? 'R$'+(d.f.descontoTotal/1000).toFixed(1)+'k' : '';
+          }
+        }
+      },
+    ],
+    tooltip: { trigger:'axis', axisPointer:{type:'shadow'},
+      formatter: params => {
+        const idx = params[0].dataIndex;
+        const d = top[top.length-1-idx];
+        return `<b>${equipLabelFull(d.r.equipamento)}</b>${d.r.faixa?' · '+d.r.faixa:''}<br>`+
+          `ID: <b>${fmt(d.r.c_ID)}</b><br>`+
+          `✅ Recebido: <b>${moeda(d.f.valorRecebido)}</b><br>`+
+          `🔴 Desconto: <b>${moeda(d.f.descontoTotal)}</b> (${pct(d.f.valorBase>0?d.f.descontoTotal/d.f.valorBase:0)})`;
+      }
+    }
+  });
+}
+
+function renderChartValCausas(fin) {
+  const c = getChart('chart-val-causas'); if (!c) return;
+  const totals = {
+    IDF: fin.reduce((s,x)=>s+x.f.perdaIDF,0),
+    ICId: fin.reduce((s,x)=>s+x.f.perdaICId,0),
+    ICIn: fin.reduce((s,x)=>s+x.f.perdaICIn,0),
+    IEVri: fin.reduce((s,x)=>s+x.f.perdaIEVri,0),
+    IEVdt: fin.reduce((s,x)=>s+x.f.perdaIEVdt,0),
+    ILPd: fin.reduce((s,x)=>s+x.f.perdaILPd,0),
+    ILPn: fin.reduce((s,x)=>s+x.f.perdaILPn,0),
+    ICV: fin.reduce((s,x)=>s+x.f.perdaICV,0),
+  };
+  const entries = Object.entries(totals).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0);
+  const colors = { IDF:'#3b82f6',ICId:'#f59e0b',ICIn:'#fbbf24',IEVri:'#f97316',IEVdt:'#ea580c',ILPd:'#10b981',ILPn:'#34d399',ICV:'#8b5cf6' };
+  c.setOption({ ...CHART_THEME,
+    grid: { top:10, bottom:50, left:70, right:80 },
+    xAxis: { type:'value', axisLabel:{ formatter:v=>v>=1000?(v/1000).toFixed(0)+'k':''+v.toFixed(0), fontSize:10 } },
+    yAxis: { type:'category', data:entries.map(([k])=>k).reverse(), axisLabel:{fontSize:11,fontWeight:'600'} },
+    series: [{
+      type:'bar',
+      data: entries.map(([k,v])=>({ value:v, itemStyle:{color:colors[k]||'#64748b',borderRadius:[0,4,4,0]} })).reverse(),
+      barMaxWidth:28,
+      label:{ show:true, position:'right', fontSize:10, color:'#e8edf5',
+        formatter: p => {
+          const d = entries[entries.length-1-p.dataIndex];
+          return 'R$'+(d[1]/1000).toFixed(1)+'k';
+        }
+      },
+    }],
+    tooltip:{ formatter: p => {
+      const d = entries[entries.length-1-p.dataIndex];
+      return `<b>${d[0]}</b><br>Perda potencial: <b>${moeda(d[1])}</b>`;
+    }}
+  });
+}
+
+
+// ── Equipment view render ──
+function renderValoresEquip(recs) {
+  const groups = groupByEquipamento(recs).sort((a,b) => b.descontoTotal - a.descontoTotal);
+
+  const totValor    = groups.reduce((s,g) => s + g.valorTotal, 0);
+  const totRecebido = groups.reduce((s,g) => s + g.valorRecebidoTotal, 0);
+  const totDesconto = groups.reduce((s,g) => s + g.descontoTotal, 0);
+  const totPerdaIDF = groups.reduce((s,g) => s + g.perdaIDF, 0);
+  const totPerdaIEF = groups.reduce((s,g) => s + g.perdaIEF, 0);
+  const totPerdaICV = groups.reduce((s,g) => s + g.perdaICV, 0);
+  const pctDesc     = totValor > 0 ? totDesconto / totValor : 0;
+  const avgID       = groups.filter(g=>g.c_ID!==null).reduce((s,g)=>s+g.c_ID,0) /
+                      Math.max(1, groups.filter(g=>g.c_ID!==null).length);
+
+  // KPIs
+  document.getElementById('val-kpis-fin').innerHTML = `
+    <div class="kpi info">
+      <div class="kpi-label">Valor Contratual/Mês</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totValor)}</div>
+      <div class="kpi-sub">${groups.length} equipamentos</div>
+    </div>
+    <div class="kpi good">
+      <div class="kpi-label">Valor Recebido</div>
+      <div class="kpi-val" style="font-size:18px;color:var(--green)">${moedaK(totRecebido)}</div>
+      <div class="kpi-sub">ID médio: ${fmt(avgID)}</div>
+    </div>
+    <div class="kpi ${pctDesc > 0.15 ? 'danger' : pctDesc > 0.05 ? 'warn' : 'good'}">
+      <div class="kpi-label">Desconto Total</div>
+      <div class="kpi-val" style="font-size:18px;color:var(--red)">${moedaK(totDesconto)}</div>
+      <div class="kpi-sub">${pct(pctDesc)} do contrato</div>
+    </div>
+    <div class="kpi ${totPerdaIDF > totDesconto*0.4 ? 'danger' : 'warn'}">
+      <div class="kpi-label">Perda por IDF</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaIDF)}</div>
+      <div class="kpi-sub">${pct(totValor>0?totPerdaIDF/totValor:0)} do contrato</div>
+    </div>
+    <div class="kpi warn">
+      <div class="kpi-label">Perda por IEF</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaIEF)}</div>
+      <div class="kpi-sub">${pct(totValor>0?totPerdaIEF/totValor:0)} do contrato</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Perda por ICV</div>
+      <div class="kpi-val" style="font-size:18px">${moedaK(totPerdaICV)}</div>
+      <div class="kpi-sub">${pct(totValor>0?totPerdaICV/totValor:0)} do contrato</div>
+    </div>
+  `;
+
+  document.getElementById('val-table-title').textContent =
+    `Por Equipamento — ${groups.length} equipamentos · Total desconto: ${moeda(totDesconto)}/mês`;
+
+  // Equip-view thead
+  document.getElementById('thead-valores').innerHTML = `<tr>
+    <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Endereço</th>
+    <th>Valor Total</th><th>Vl/Faixa</th><th>ID médio</th><th>Recebido</th>
+    <th>Desconto</th><th>% Desc.</th>
+    <th title="Perda IDF">↓ IDF</th><th title="Perda IEF">↓ IEF</th>
+    <th title="Maior alavanca">Alavanca</th><th>Detalhe</th>
+  </tr>`;
+
+  const leverColor = n => ({IDF:'var(--blue)',IEF:'var(--amber)',ICV:'var(--slate)'}[n]||'var(--muted)');
+
+  document.getElementById('tbody-valores').innerHTML = groups.map((g,i) => {
+    const descPct  = g.valorTotal > 0 ? g.descontoTotal / g.valorTotal : 0;
+    const descColor = descPct > 0.3 ? 'var(--red)' : descPct > 0.1 ? 'var(--amber)' : 'var(--green)';
+    const cat = EQUIP_CATALOG[g.equipamento];
+    const end = cat?.endereco || g.rodovia + ' km ' + g.km;
+    return `<tr style="cursor:pointer" onclick="openValorDetailEquip('${esc(g.equipamento)}')">
+      <td class="text-muted text-sm" style="text-align:center">${i+1}</td>
+      <td class="idx" style="color:var(--amber);font-weight:700">${g.serie||'—'}</td>
+      <td class="idx" style="font-size:11px;color:var(--muted)">${g.equipamento}</td>
+      <td><span class="tag tag-${g.tipo.toLowerCase()}">${g.tipo}</span></td>
+      <td style="text-align:center">
+        <span style="background:rgba(245,158,11,.1);color:var(--amber);padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">${g.numFaixas}</span>
+      </td>
+      <td style="font-size:11px;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${end}</td>
+      <td class="idx" style="font-weight:700">${moeda(g.valorTotal)}</td>
+      <td class="idx" style="color:var(--muted2);font-size:11px">${moeda(g.valorFaixa)}</td>
+      <td><span class="badge ${idBadge(g.c_ID)}">${fmt(g.c_ID)}</span></td>
+      <td class="idx" style="color:var(--green)">${moeda(g.valorRecebidoTotal)}</td>
+      <td class="idx" style="color:${descColor};font-weight:700">${moeda(g.descontoTotal)}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:5px">
+          <div class="idx-bar" style="width:44px;height:5px"><div class="idx-bar-fill" style="width:${Math.min(100,Math.round(descPct*100))}%;background:${descColor}"></div></div>
+          <span class="text-mono" style="font-size:11px;color:${descColor}">${pct(descPct)}</span>
+        </div>
+      </td>
+      <td class="idx" style="color:${g.perdaIDF>1?'var(--red)':'var(--muted2)'}">${g.perdaIDF>0.5?moedaK(g.perdaIDF):'—'}</td>
+      <td class="idx" style="color:${g.perdaIEF>1?'var(--amber)':'var(--muted2)'}">${g.perdaIEF>0.5?moedaK(g.perdaIEF):'—'}</td>
+      <td>
+        ${g.melhorAlavanca.perda>1 ?
+          `<span style="font-size:11px;font-weight:600;color:${leverColor(g.melhorAlavanca.nome)}">${g.melhorAlavanca.nome}</span>
+           <span style="font-size:10px;color:var(--muted)"> +${moedaK(g.melhorAlavanca.perda)}</span>` :
+          '<span style="color:var(--green);font-size:11px">✓ OK</span>'}
+      </td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();openValorDetailEquip('${esc(g.equipamento)}')">Ver</button></td>
+    </tr>`;
+  }).join('');
+
+  setTimeout(() => {
+    renderChartValEquip(groups.map(g => ({
+      r: { ...g, equipamento: g.equipamento },
+      f: { valorRecebido: g.valorRecebidoTotal, descontoTotal: g.descontoTotal, valorBase: g.valorTotal,
+           melhorAlavanca: g.melhorAlavanca }
+    })));
+    renderChartValCausas(groups.map(g => ({
+      f: { perdaIDF:g.perdaIDF, perdaIEF:g.perdaIEF, perdaICV:g.perdaICV,
+           perdaICId:0, perdaICIn:0, perdaIEVri:0, perdaIEVdt:0, perdaILPd:0, perdaILPn:0 }
+    })));
+  }, 80);
+}
+
+// ── Equipment detail modal ──
+function openValorDetailEquip(equip) {
+  const records = getActiveRecords();
+  const faixas  = records.filter(r => r.equipamento === equip);
+  if (!faixas.length) return;
+
+  const recs = [faixas[0].rodovia].length ? faixas : faixas;
+  const cat   = EQUIP_CATALOG[equip];
+  const n     = faixas.length;
+  const valorTotal = cat ? cat.valor : getValorEquip(equip, faixas[0].tipo) * n;
+  const valorFaixa = valorTotal / n;
+
+  const avgID = faixas.reduce((s,r)=>(s+(r.c_ID??0)),0)/n;
+  const valorRec = faixas.reduce((s,r) => s + valorFaixa*(r.c_ID??0), 0);
+  const desconto = valorTotal - valorRec;
+  const descPct  = valorTotal > 0 ? desconto/valorTotal : 0;
+
+  const g = groupByEquipamento(faixas)[0];
+
+  document.getElementById('modal-title').textContent = (cat ? `Nº ${cat.serie} — ` : '') + equip + ' — Visão Consolidada';
+  document.getElementById('modal-subtitle').textContent =
+    `${faixas[0].tipo} · ${cat?.endereco||faixas[0].rodovia} · ${n} faixas · ${cat?.lote||''}`;
+
+  const descColor = descPct > 0.2 ? 'var(--red)' : descPct > 0.05 ? 'var(--amber)' : 'var(--green)';
+
+  document.getElementById('modal-body').innerHTML = `
+<!-- Resumo financeiro do equipamento -->
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Valor do Equipamento</div>
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--muted)">${moeda(valorTotal)}</div>
+    <div style="font-size:10px;color:var(--muted2)">${n} faixas × ${moeda(valorFaixa)}</div>
+  </div>
+  <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Valor Recebido</div>
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--green)">${moeda(valorRec)}</div>
+    <div style="font-size:10px;color:var(--muted2)">ID médio: ${fmt(avgID)}</div>
+  </div>
+  <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Desconto Total</div>
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:${descColor}">${moeda(desconto)}</div>
+    <div style="font-size:10px;color:var(--muted2)">${pct(descPct)} do equipamento</div>
+  </div>
+  <div style="background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.25);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Valor por Faixa</div>
+    <div style="font-family:var(--font-mono);font-size:18px;font-weight:700;color:var(--blue)">${moeda(valorFaixa)}</div>
+    <div style="font-size:10px;color:var(--muted2)">${moeda(valorTotal)} ÷ ${n}</div>
+  </div>
+</div>
+
+<!-- Detalhamento por faixa -->
+<div style="font-size:13px;font-weight:700;font-family:var(--font-display);margin-bottom:8px">📊 Detalhamento por Faixa</div>
+<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:14px">
+  <table style="width:100%;border-collapse:collapse">
+    <thead>
+      <tr style="background:var(--bg2)">
+        <th style="padding:7px 12px;text-align:left;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">Faixa</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">IDF</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">IEF</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">ICV</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">ID</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">Recebido</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">Desconto</th>
+        <th style="padding:7px 12px;font-size:11px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border)">Detalhe</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${faixas.map(r => {
+        const fRec = valorFaixa * (r.c_ID??0);
+        const fDesc = valorFaixa - fRec;
+        const fDescPct = valorFaixa > 0 ? fDesc/valorFaixa : 0;
+        const fc = fDescPct > 0.2 ? 'var(--red)' : fDescPct > 0.05 ? 'var(--amber)' : 'var(--green)';
+        return `<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:7px 12px;font-weight:700;font-family:var(--font-mono);color:var(--amber)">${r.faixa}</td>
+          <td style="padding:7px 12px;text-align:center"><span class="badge ${idBadge(r.c_IDF)}">${fmt(r.c_IDF)}</span></td>
+          <td style="padding:7px 12px;text-align:center"><span class="badge ${idBadge(r.c_IEF)}">${fmt(r.c_IEF)}</span></td>
+          <td style="padding:7px 12px;text-align:center"><span class="badge ${idBadge(r.c_ICV)}">${fmt(r.c_ICV)}</span></td>
+          <td style="padding:7px 12px;text-align:center"><span class="badge ${idBadge(r.c_ID)}">${fmt(r.c_ID)}</span></td>
+          <td style="padding:7px 12px;font-family:var(--font-mono);font-size:12px;color:var(--green)">${moeda(fRec)}</td>
+          <td style="padding:7px 12px;font-family:var(--font-mono);font-size:12px;color:${fc};font-weight:700">${moeda(fDesc)}<span style="font-size:10px;margin-left:4px;opacity:.7">(${pct(fDescPct)})</span></td>
+          <td style="padding:7px 12px"><button class="btn btn-sm" onclick="openValorDetail('${esc(r.equipamento)}','${r.faixa}')">Análise</button></td>
+        </tr>`;
+      }).join('')}
+    </tbody>
+  </table>
+</div>
+
+<!-- Alavancas -->
+${g.levers.filter(l=>l.perda>1).length ? `
+<div style="font-size:13px;font-weight:700;font-family:var(--font-display);margin-bottom:8px">🎯 Alavancas de Recuperação (equipamento todo)</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+  ${g.levers.filter(l=>l.perda>0.5).slice(0,3).map((l,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:var(--r2);
+         background:rgba(${i===0?'239,68,68':'245,158,11'},.07);border:1px solid rgba(${i===0?'239,68,68':'245,158,11'},.2)">
+      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;min-width:50px">${i===0?'🥇':'🔹'} ${l.nome}</div>
+      <div style="flex:1;font-size:12px;color:var(--muted)">Impacto consolidado em todas as ${n} faixas</div>
+      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--green)">+${moeda(l.perda)}/mês</div>
+    </div>
+  `).join('')}
+</div>` : '<div style="color:var(--green);font-size:13px">✓ Equipamento com bom desempenho financeiro</div>'}
+`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+// ── Detail modal ──
+function openValorDetail(equip, faixa) {
+  const records = getActiveRecords();
+  const r = records.find(x => x.equipamento === equip && x.faixa === faixa);
+  if (!r) return;
+  const f = calcFinanceiro(r);
+
+  const _catV = EQUIP_CATALOG[equip];
+  document.getElementById('modal-title').textContent = (_catV?`Nº ${_catV.serie} — `:'')+`${equip} · Faixa ${faixa} — Análise Financeira`;
+  document.getElementById('modal-subtitle').textContent = `${r.tipo} · ${r.rodovia} km ${r.km} · ${r.municipio}`+(_catV?` · ${_catV.lote}`:'')+` · Período: ${r.periodo}`;
+
+  const descColor = f.descontoTotal/f.valorBase > 0.2 ? 'var(--red)' : f.descontoTotal/f.valorBase > 0.05 ? 'var(--amber)' : 'var(--green)';
+  const levers = f.levers.filter(l => l.perda > 0.5);
+
+  const leverColors = { IDF:'#3b82f6',ICId:'#f59e0b',ICIn:'#fbbf24',IEVri:'#f97316',IEVdt:'#ea580c',ILPd:'#10b981',ILPn:'#34d399',ICV:'#8b5cf6' };
+  const leverDescs  = {
+    IDF  : 'Aumentar disponibilidade operacional (horários, falhas, telemetria)',
+    ICId : 'Melhorar captura diurna (câmera, alinhamento, limpeza)',
+    ICIn : 'Melhorar captura noturna (IR, exposição, sensibilidade)',
+    IEVri: 'Reduzir latência no envio de registros de imagens',
+    IEVdt: 'Reduzir latência no envio de dados de tráfego',
+    ILPd : 'Melhorar OCR diurno (resolução, ângulo, obstruções)',
+    ILPn : 'Melhorar OCR noturno (iluminação IR, foco noturno)',
+    ICV  : 'Ajustar classificação de veículos (laços, sensores)',
+  };
+
+  document.getElementById('modal-body').innerHTML = `
+<!-- Resumo financeiro -->
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:14px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Valor Mensal</div>
+    <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--muted)">${moeda(f.valorBase)}</div>
+    <div style="font-size:10px;color:var(--muted2)">base contratual</div>
+  </div>
+  <div style="background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.25);border-radius:var(--r2);padding:14px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Valor Recebido</div>
+    <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:var(--green)">${moeda(f.valorRecebido)}</div>
+    <div style="font-size:10px;color:var(--muted2)">ID = ${fmt(r.c_ID)} × base</div>
+  </div>
+  <div style="background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.25);border-radius:var(--r2);padding:14px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Desconto Aplicado</div>
+    <div style="font-family:var(--font-mono);font-size:20px;font-weight:700;color:${descColor}">${moeda(f.descontoTotal)}</div>
+    <div style="font-size:10px;color:var(--muted2)">${pct(f.descontoTotal/f.valorBase)} do contrato</div>
+  </div>
+</div>
+
+<!-- Barra visual de composição -->
+<div style="margin-bottom:16px">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">Composição do valor mensal:</div>
+  <div style="display:flex;height:20px;border-radius:6px;overflow:hidden">
+    <div style="width:${Math.round(f.valorRecebido/f.valorBase*100)}%;background:rgba(16,185,129,.7);transition:.4s"></div>
+    <div style="flex:1;background:rgba(239,68,68,.6)"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px">
+    <span style="color:var(--green)">✅ Recebido ${pct(f.valorRecebido/f.valorBase)}</span>
+    <span style="color:var(--red)">🔴 Desconto ${pct(f.descontoTotal/f.valorBase)}</span>
+  </div>
+</div>
+
+<!-- Breakdown de perdas por subíndice -->
+<div style="font-size:13px;font-weight:700;font-family:var(--font-display);margin-bottom:10px">💸 Perdas por Subíndice</div>
+<div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px 14px;margin-bottom:14px">
+  ${[
+    ['IDF',  f.perdaIDF,  r.c_IDF,  '×multiplicador direto'],
+    ['ICId', f.perdaICId, r.c_ICId, 'captura diurna'],
+    ['ICIn', f.perdaICIn, r.c_ICIn, 'captura noturna'],
+    ['IEVri',f.perdaIEVri,r.c_IEVri,'envio de imagens'],
+    ['IEVdt',f.perdaIEVdt,r.c_IEVdt,'envio de tráfego'],
+    ['ILPd', f.perdaILPd, r.c_ILPd, 'leitura placas diurna'],
+    ['ILPn', f.perdaILPn, r.c_ILPn, 'leitura placas noturna'],
+    ['ICV',  f.perdaICV,  r.c_ICV,  'classificação veículos'],
+  ].map(([nome, perda, val, desc]) => {
+    const bw = f.descontoTotal > 0 ? Math.min(100, Math.round(perda/f.valorBase*100)) : 0;
+    const cor = leverColors[nome] || 'var(--muted)';
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="width:50px;font-size:11px;font-weight:700;color:${cor};font-family:var(--font-mono)">${nome}</div>
+      <div style="width:36px;font-size:10px;color:var(--muted);font-family:var(--font-mono)">${fmt(val)}</div>
+      <div style="flex:1"><div class="idx-bar" style="height:6px"><div class="idx-bar-fill" style="width:${bw}%;background:${cor}"></div></div></div>
+      <div style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:${perda>1?cor:'var(--muted2)'};min-width:72px;text-align:right">${perda>0.5?moeda(perda):'—'}</div>
+      <div style="font-size:10px;color:var(--muted2);min-width:120px">${desc}</div>
+    </div>`;
+  }).join('')}
+</div>
+
+<!-- Alavancas de melhoria -->
+${levers.length ? `
+<div style="font-size:13px;font-weight:700;font-family:var(--font-display);margin-bottom:8px">🎯 Alavancas de Recuperação</div>
+<div style="display:flex;flex-direction:column;gap:6px">
+  ${levers.slice(0,4).map((l,i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 12px;border-radius:var(--r2);
+         background:rgba(${i===0?'239,68,68':'245,158,11'},.07);
+         border:1px solid rgba(${i===0?'239,68,68':'245,158,11'},.2)">
+      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:${leverColors[l.nome]||'var(--amber)'}">
+        ${i===0?'🥇':'🔹'} ${l.nome}
+      </div>
+      <div style="flex:1;font-size:12px;color:var(--muted)">${leverDescs[l.nome]||''}</div>
+      <div style="font-family:var(--font-mono);font-size:13px;font-weight:700;color:var(--green)">+${moeda(l.perda)}/mês</div>
+    </div>
+  `).join('')}
+</div>` : '<div style="color:var(--green);font-size:13px">✓ Equipamento com bom desempenho financeiro</div>'}
+`;
+
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+// ════════════════════════════════════════════════════════════════
+// CLASSIFICATION FILE PARSER
+// ════════════════════════════════════════════════════════════════
+const SPLICE_CATS = ['imagem','enquadramento','sinalizacao'];
+const CAT_COLORS = {
+  imagem:'#ef4444',enquadramento:'#f97316',sinalizacao:'#eab308',
+  ambiente:'#64748b',mudancaFaixa:'#475569',maisUm:'#334155',
+  estrangeira:'#94a3b8',placa:'#7d8fa3',renavam:'#6b7f95',
+  marca:'#8795a6',art280:'#9aa5b1',
+};
+const CAT_LABELS = {
+  imagem:'Imagem',enquadramento:'Enquadramento',sinalizacao:'Sinalização',
+  ambiente:'Ambiente',mudancaFaixa:'Mudança de Faixa',maisUm:'Mais de 1 Veíc.',
+  estrangeira:'Placa Estrangeira',placa:'Placa',renavam:'RENAVAM',
+  marca:'Marca/Modelo',art280:'Art.280 §6º',
+};
+
+function parseClassFile(raw){
+  // ── Detectar linha de início dos dados de forma robusta ──
+  // A planilha tem 4 linhas de cabeçalho (Operadora, sub-códigos, sub-nomes, op/n)
+  // Os dados começam quando a coluna 6 (índice 6) parece um código de equipamento
+  // e a coluna 7 é um tipo de equipamento (CEV/REV/CEC/REC) OU coluna 0 tem texto de operadora
+  const EQUIP_RE = /^[A-Z]{2,3}\d{6,}$/i;
+  const TIPO_RE  = /^(CEV|REV|CEC|REC)$/i;
+
+  let dataStart = -1;
+
+  // Estratégia 1: linha onde col6=código equipamento E col7=tipo
+  for(let i=0;i<Math.min(12,raw.length);i++){
+    const r=raw[i];
+    if(!r||!r[6])continue;
+    const eq=String(r[6]||'').trim();
+    const tp=String(r[7]||'').trim();
+    if(EQUIP_RE.test(eq)&&TIPO_RE.test(tp)){dataStart=i;break;}
+  }
+
+  // Estratégia 2: coluna 0 contém texto de operadora (contrato/lote)
+  if(dataStart<0){
+    for(let i=0;i<Math.min(12,raw.length);i++){
+      const r=raw[i];
+      if(!r||!r[0])continue;
+      const s=String(r[0]).trim();
+      if(s.length>4&&!s.toLowerCase().startsWith('operadora')&&!s.toLowerCase().startsWith('tipo')){
+        dataStart=i;break;
+      }
+    }
+  }
+
+  // Fallback: pular as 4 linhas de cabeçalho padrão
+  if(dataStart<0) dataStart=4;
+
+  console.log('[parseClassFile] dataStart=',dataStart,'total rows=',raw.length);
+
+  const rows = raw.slice(dataStart).filter(r=>r&&r[6]&&String(r[6]).trim());
+
+  if(!rows.length){
+    console.warn('[parseClassFile] Nenhuma linha de dados encontrada. Primeiras linhas raw:',raw.slice(0,6));
+  }
+
+  // Detectar offset das colunas numéricas lendo o cabeçalho
+  // Busca a linha de sub-headers que contém 'Imagem' ou 'Enquadramento'
+  let colImagem=10, colAmbiente=11, colEnquadramento=12, colSinalizacao=13;
+  let colMudanca=14, colMaisUm=15, colEstrangeira=16, colPlaca=17;
+  let colRenavam=18, colMarca=19, colArt280=20;
+  let colValidas=9, colICId=21, colICIn=22;
+
+  for(let i=0;i<Math.min(dataStart,raw.length);i++){
+    const r=raw[i];
+    if(!r)continue;
+    for(let j=0;j<r.length;j++){
+      const v=String(r[j]||'').trim().toLowerCase();
+      if(v==='imagem')    colImagem=j;
+      if(v==='ambiente')  colAmbiente=j;
+      if(v.includes('enquadramento')) colEnquadramento=j;
+      if(v.includes('sinaliza'))      colSinalizacao=j;
+      if(v.includes('mudança')||v.includes('mudanca')) colMudanca=j;
+      if(v.includes('mais de um'))    colMaisUm=j;
+      if(v.includes('estrangeira'))   colEstrangeira=j;
+      if(v==='placa')     colPlaca=j;
+      if(v.includes('renavam'))       colRenavam=j;
+      if(v.includes('marca'))         colMarca=j;
+      if(v.includes('280'))           colArt280=j;
+      if(v.includes('válidas')||v.includes('validas')) colValidas=j;
+      if(v==='icid')      colICId=j;
+      if(v==='icin')      colICIn=j;
+    }
+  }
+
+  console.log('[parseClassFile] Colunas detectadas → Imagem:',colImagem,'Enq:',colEnquadramento,'Sin:',colSinalizacao,'Validas:',colValidas);
+
+  return rows.map(r=>{
+    const g=i=>{
+      const v=r[i];
+      if(v===null||v===undefined||v==='')return 0;
+      if(typeof v==='number')return isNaN(v)?0:v;
+      const n=parseFloat(String(v).replace(',','.'));
+      return isNaN(n)?0:n;
+    };
+    const validas        = g(colValidas);
+    const imagem         = g(colImagem);
+    const ambiente       = g(colAmbiente);
+    const enquadramento  = g(colEnquadramento);
+    const sinalizacao    = g(colSinalizacao);
+    const mudancaFaixa   = g(colMudanca);
+    const maisUm         = g(colMaisUm);
+    const estrangeira    = g(colEstrangeira);
+    const placa          = g(colPlaca);
+    const renavam        = g(colRenavam);
+    const marca          = g(colMarca);
+    const art280         = g(colArt280);
+    const totalSplice    = imagem+enquadramento+sinalizacao;
+    const totalOutros    = ambiente+mudancaFaixa+maisUm+estrangeira+placa+renavam+marca+art280;
+    const totalInvalidas = totalSplice+totalOutros;
+    return {
+      operadora  :(r[0]||'').toString().trim(),
+      tipoRodovia:(r[1]||'').toString().trim(),
+      rodovia    :(r[2]||'').toString().trim(),
+      km         : parseFloat(r[3])||0,
+      municipio  :(r[4]||'').toString().trim(),
+      equipamento:(r[6]||'').toString().trim(),
+      tipo       :(r[7]||'').toString().trim().toUpperCase(),
+      faixa      :(r[8]||'').toString().trim(),
+      validas, imagem, ambiente, enquadramento, sinalizacao,
+      mudancaFaixa, maisUm, estrangeira, placa, renavam, marca, art280,
+      totalSplice, totalOutros, totalInvalidas,
+      totalConferidas: validas+totalInvalidas,
+      pctSplice: totalInvalidas>0 ? totalSplice/totalInvalidas : 0,
+      ICId: g(colICId),
+      ICIn: g(colICIn),
+    };
+  }).filter(r=>r.equipamento&&r.equipamento.length>2);
+}
+
+function handleClassFile(file){
+  if(!file)return;
+  showLoading('Lendo planilha de inválidas...');
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      // Nota: raw:true NÃO é opção do XLSX.read(), apenas do sheet_to_json
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:false});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:null,raw:true});
+      hideLoading();
+      console.log('[handleClassFile] raw rows:',raw.length,'first row:',raw[0]);
+      const records=parseClassFile(raw);
+      console.log('[handleClassFile] parsed records:',records.length, records[0]);
+      if(!records.length){
+        showToast('Nenhum dado encontrado — verifique se é a planilha correta de Classificação de Inválidas','error');
+        return;
+      }
+      // Safety: garante que classifications sempre existe
+      if(!STATE.classifications) STATE.classifications={};
+      const key=STATE.activePeriod||'class_latest';
+      STATE.classifications[key]=records;
+      STATE.activeClass=key;
+      try{
+        const saved=JSON.parse(localStorage.getItem('der_classifications')||'{}');
+        saved[key]=records;
+        localStorage.setItem('der_classifications',JSON.stringify(saved));
+      }catch(ex){console.warn('localStorage cheio:',ex);}
+      updateInvBadge();
+      const bd=document.getElementById('inv-loaded-badge');
+      if(bd){bd.style.display='inline-flex';bd.style.alignItems='center';}
+      renderInvalidas();
+      showToast(`✓ ${records.length} faixas importadas com sucesso`,'success');
+    }catch(err){
+      hideLoading();
+      console.error('[handleClassFile] Erro:',err);
+      showToast('Erro ao ler planilha: '+err.message,'error');
+    }
+  };
+  reader.onerror=()=>{hideLoading();showToast('Erro ao ler o arquivo','error');};
+  reader.readAsArrayBuffer(file);
+}
+
+function clearClassData(){
+  if(!STATE.activeClass)return;
+  if(!STATE.classifications) STATE.classifications={};
+  delete STATE.classifications[STATE.activeClass];
+  try{const s=JSON.parse(localStorage.getItem('der_classifications')||'{}');delete s[STATE.activeClass];localStorage.setItem('der_classifications',JSON.stringify(s));}catch(e){}
+  STATE.activeClass=Object.keys(STATE.classifications)[0]||null;
+  updateInvBadge();
+  const bd=document.getElementById('inv-loaded-badge');
+  if(bd)bd.style.display='none';
+  renderInvalidas();
+}
+
+function updateInvBadge(){
+  const badge=document.getElementById('nav-invalidas-badge');
+  if(!badge)return;
+  const recs=getActiveClass();
+  badge.style.display=recs.length?'inline':'none';
+  if(recs.length)badge.textContent=recs.length;
+}
+
+function getActiveClass(){
+  if(!STATE.classifications) STATE.classifications={};
+  const key=STATE.activeClass||STATE.activePeriod;
+  return STATE.classifications[key]||[];
+}
+
+function fillSelectInv(){
+  const inv=getActiveClass();
+  const rod=[...new Set(inv.map(r=>r.rodovia))].sort();
+  const tip=[...new Set(inv.map(r=>r.tipo))].sort();
+  fillSelect('inv-rodovia',rod,'Todas rodovias');
+  fillSelect('inv-tipo',tip,'Todos tipos');
+}
+
+// ════════════════════════════════════════════════════════════════
+// RENDER INVALIDAS SCREEN
+// ════════════════════════════════════════════════════════════════
+function renderInvalidas(){
+  const inv=getActiveClass();
+  const bd=document.getElementById('inv-loaded-badge');
+  if(bd&&inv.length){bd.style.display='inline-flex';bd.style.alignItems='center';}
+
+  fillSelectInv();
+  const rod=document.getElementById('inv-rodovia')?.value||'';
+  const tip=document.getElementById('inv-tipo')?.value||'';
+  const recs=inv.filter(r=>(!rod||r.rodovia===rod)&&(!tip||r.tipo===tip));
+
+  const cont=document.getElementById('inv-content');
+  if(!cont)return;
+  if(!recs.length){
+    cont.innerHTML='<div class="empty-state"><div style="font-size:48px;margin-bottom:12px">📂</div><h3>Importe a planilha de classificação</h3><p>Use o botão acima para carregar o arquivo de inválidas exportado do portal DER.</p></div>';
+    return;
+  }
+
+  const totValidas=recs.reduce((s,r)=>s+r.validas,0);
+  const totInv=recs.reduce((s,r)=>s+r.totalInvalidas,0);
+  const totSplice=recs.reduce((s,r)=>s+r.totalSplice,0);
+  const totOutros=recs.reduce((s,r)=>s+r.totalOutros,0);
+  const totConf=recs.reduce((s,r)=>s+r.totalConferidas,0);
+  const pctSpliceGlobal=totInv>0?totSplice/totInv:0;
+  const catTotals={};
+  Object.keys(CAT_LABELS).forEach(k=>{catTotals[k]=recs.reduce((s,r)=>s+(r[k]||0),0);});
+  const idRecs=getActiveRecords();
+  const getID=(equip,faixa)=>{const r=idRecs.find(x=>x.equipamento===equip&&x.faixa===faixa);return r?r.c_ID:null;};
+
+  cont.innerHTML=`
+<div class="kpis" style="margin-bottom:20px">
+  <div class="kpi info"><div class="kpi-label">Total Conferidas</div><div class="kpi-val">${totConf.toLocaleString('pt-BR')}</div><div class="kpi-sub">${recs.length} faixas</div></div>
+  <div class="kpi good"><div class="kpi-label">Válidas</div><div class="kpi-val">${totValidas.toLocaleString('pt-BR')}</div><div class="kpi-sub">${pct(totConf>0?totValidas/totConf:0)} do total</div></div>
+  <div class="kpi ${totSplice>0?'danger':'good'}"><div class="kpi-label">Inválidas — Resp. Splice</div><div class="kpi-val" style="color:var(--red)">${totSplice.toLocaleString('pt-BR')}</div><div class="kpi-sub">${pct(pctSpliceGlobal)} das inválidas</div></div>
+  <div class="kpi warn"><div class="kpi-label">Inválidas — Outros</div><div class="kpi-val">${totOutros.toLocaleString('pt-BR')}</div><div class="kpi-sub">${pct(totInv>0?totOutros/totInv:0)} das inválidas</div></div>
+  <div class="kpi"><div class="kpi-label">Total Inválidas</div><div class="kpi-val">${totInv.toLocaleString('pt-BR')}</div><div class="kpi-sub">${pct(totConf>0?totInv/totConf:0)} do total</div></div>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-header"><h3>📊 Distribuição por Categoria</h3></div>
+  <div class="card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">🔴 Responsabilidade Splice — ${totSplice.toLocaleString('pt-BR')} inválidas</div>
+        ${['imagem','enquadramento','sinalizacao'].map(k=>`
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">
+              <span style="color:${CAT_COLORS[k]};font-weight:600">${CAT_LABELS[k]}</span>
+              <span class="text-mono" style="color:${CAT_COLORS[k]}">${catTotals[k].toLocaleString('pt-BR')} ${totSplice>0?'('+pct(catTotals[k]/totSplice)+')':''}</span>
+            </div>
+            <div class="idx-bar" style="height:8px"><div class="idx-bar-fill" style="width:${totSplice>0?Math.round(catTotals[k]/totSplice*100):0}%;background:${CAT_COLORS[k]}"></div></div>
+          </div>`).join('')}
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">⚪ Outros Motivos — ${totOutros.toLocaleString('pt-BR')} inválidas</div>
+        ${['ambiente','mudancaFaixa','maisUm','estrangeira','placa','renavam','marca','art280'].map(k=>`
+          <div style="margin-bottom:6px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:2px">
+              <span style="color:var(--muted)">${CAT_LABELS[k]}</span>
+              <span class="text-mono" style="color:var(--muted)">${catTotals[k].toLocaleString('pt-BR')} ${totOutros>0?'('+pct(catTotals[k]/totOutros)+')':''}</span>
+            </div>
+            <div class="idx-bar" style="height:6px"><div class="idx-bar-fill" style="width:${totOutros>0?Math.round(catTotals[k]/totOutros*100):0}%;background:${CAT_COLORS[k]}"></div></div>
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="chart-box" style="margin-bottom:16px">
+  <div class="chart-title">Inválidas por Equipamento — Splice vs Outros (top 20)</div>
+  <div class="chart-area" style="height:450px" id="chart-inv-equip"></div>
+</div>
+<div class="card">
+  <div class="card-header">
+    <h3>📋 Detalhamento por Faixa — ordenado por Splice ↓</h3>
+    <div class="inv-legend">
+      <div class="inv-legend-item"><div class="inv-dot" style="background:#ef4444"></div>Imagem</div>
+      <div class="inv-legend-item"><div class="inv-dot" style="background:#f97316"></div>Enquadramento</div>
+      <div class="inv-legend-item"><div class="inv-dot" style="background:#eab308"></div>Sinalização</div>
+      <div class="inv-legend-item"><div class="inv-dot" style="background:#64748b"></div>Outros</div>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th>
+        <th>Válidas</th><th>Total Inv.</th>
+        <th title="Imagem - Splice">Img</th><th title="Enquadramento - Splice">Enq</th><th title="Sinalização - Splice">Sin</th>
+        <th>🔴 Splice</th><th>% Splice</th>
+        <th>Amb.</th><th>M.Faixa</th><th>+1Veíc</th><th>Pl.Estr.</th><th>Placa</th><th>RENAVAM</th><th>Marca</th><th>Art.280</th>
+        <th>ID</th><th>+</th>
+      </tr></thead>
+      <tbody>${recs.sort((a,b)=>b.totalSplice-a.totalSplice).map(r=>{
+        const id=getID(r.equipamento,r.faixa);
+        const sc=r.totalSplice===0?'var(--green)':r.pctSplice>0.3?'var(--red)':'var(--amber)';
+        return `<tr style="cursor:pointer" onclick="openInvDetail('${esc(r.equipamento)}','${r.faixa}')">
+          <td class="idx" style="color:var(--amber);font-weight:700">${EQUIP_CATALOG[r.equipamento]?.serie||'—'}</td>
+          <td class="idx" style="font-size:11px;color:var(--muted)">${r.equipamento}</td>
+          <td><span class="tag tag-${r.tipo.toLowerCase()}">${r.tipo}</span></td>
+          <td class="idx">${r.faixa}</td>
+          <td style="font-size:11px;color:var(--muted)">${r.rodovia}</td>
+          <td class="idx">${r.validas.toLocaleString('pt-BR')}</td>
+          <td class="idx">${r.totalInvalidas.toLocaleString('pt-BR')}</td>
+          <td class="idx" style="color:${r.imagem>0?'#ef4444':'var(--muted2)'}">${r.imagem}</td>
+          <td class="idx" style="color:${r.enquadramento>0?'#f97316':'var(--muted2)'}">${r.enquadramento}</td>
+          <td class="idx" style="color:${r.sinalizacao>0?'#eab308':'var(--muted2)'}">${r.sinalizacao}</td>
+          <td class="idx" style="font-weight:700;color:${sc}">${r.totalSplice.toLocaleString('pt-BR')}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:5px">
+              <div class="idx-bar" style="width:50px;height:5px"><div class="idx-bar-fill" style="width:${Math.round(r.pctSplice*100)}%;background:${sc}"></div></div>
+              <span class="text-mono" style="font-size:11px;color:${sc}">${pct(r.pctSplice)}</span>
+            </div>
+          </td>
+          <td class="idx" style="color:var(--muted2)">${r.ambiente}</td>
+          <td class="idx" style="color:var(--muted2)">${r.mudancaFaixa}</td>
+          <td class="idx" style="color:var(--muted2)">${r.maisUm}</td>
+          <td class="idx" style="color:var(--muted2)">${r.estrangeira}</td>
+          <td class="idx" style="color:var(--muted2)">${r.placa}</td>
+          <td class="idx" style="color:var(--muted2)">${r.renavam}</td>
+          <td class="idx" style="color:var(--muted2)">${r.marca}</td>
+          <td class="idx" style="color:var(--muted2)">${r.art280}</td>
+          <td>${id!==null?`<span class="badge ${idBadge(id)}">${fmt(id)}</span>`:'<span style="color:var(--muted2)">—</span>'}</td>
+          <td><button class="btn btn-sm" onclick="event.stopPropagation();openInvDetail('${esc(r.equipamento)}','${r.faixa}')">Ver</button></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>
+  </div>
+</div>`;
+
+  setTimeout(()=>{
+    const el=document.getElementById('chart-inv-equip');
+    if(el)renderChartInvEquip(recs);
+  },150);
+}
+
+function renderChartInvEquip(recs){
+  const c=getChart('chart-inv-equip');if(!c)return;
+  const byEq={};
+  recs.forEach(r=>{
+    if(!byEq[r.equipamento])byEq[r.equipamento]={splice:0,outros:0};
+    byEq[r.equipamento].splice+=r.totalSplice;
+    byEq[r.equipamento].outros+=r.totalOutros;
+  });
+  const sorted=Object.entries(byEq).map(([k,v])=>({name:k,label:equipLabel(k),labelFull:equipLabelFull(k),...v,total:v.splice+v.outros}))
+    .sort((a,b)=>b.total-a.total).slice(0,20);
+  c.setOption({...CHART_THEME,
+    grid:{top:14,bottom:56,left:112,right:16},
+    xAxis:{type:'value',axisLabel:{formatter:v=>v>=1000?(v/1000).toFixed(0)+'k':v,fontSize:10}},
+    yAxis:{type:'category',data:sorted.map(x=>x.label).reverse(),axisLabel:{fontSize:9,width:105,overflow:'truncate'}},
+    legend:{data:['Splice (Responsab.)','Outros Motivos'],bottom:4,textStyle:{color:'#7a8ba8',fontSize:11},itemWidth:12,itemHeight:8},
+    series:[
+      {name:'Splice (Responsab.)',type:'bar',stack:'inv',
+       data:sorted.map(x=>x.splice).reverse(),
+       itemStyle:{color:'rgba(239,68,68,.8)'}},
+      {name:'Outros Motivos',type:'bar',stack:'inv',
+       data:sorted.map(x=>x.outros).reverse(),
+       itemStyle:{color:'rgba(100,116,139,.5)',borderRadius:[0,3,3,0]},
+       label:{show:true,position:'right',fontSize:9,color:'#7a8ba8',
+         formatter:p=>{const d=sorted[sorted.length-1-p.dataIndex];return d.total>0?d.total.toLocaleString('pt-BR'):'';}
+       }},
+    ],
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},
+      formatter:params=>{
+        const idx=params[0].dataIndex;
+        const d=sorted[sorted.length-1-idx];
+        const pctS=d.total>0?((d.splice/d.total)*100).toFixed(1):0;
+        return `<b>${d.labelFull}</b><br>🔴 Splice: <b>${d.splice}</b><br>⚪ Outros: <b>${d.outros}</b><br>% Splice: <b>${pctS}%</b>`;
+      }
+    }
+  });
+}
+
+function openInvDetail(equip,faixa){
+  const inv=getActiveClass();
+  const r=inv.find(x=>x.equipamento===equip&&x.faixa===faixa);
+  if(!r)return;
+  const idRecs=getActiveRecords();
+  const idR=idRecs.find(x=>x.equipamento===equip&&x.faixa===faixa);
+  const _catI = EQUIP_CATALOG[equip];
+  document.getElementById('modal-title').textContent=(_catI?`Nº ${_catI.serie} — `:'')+equip+' · Faixa '+faixa+' — Análise de Inválidas';
+  document.getElementById('modal-subtitle').textContent=r.tipo+' · '+r.rodovia+' km '+r.km+' · '+r.municipio+(_catI?' · '+_catI.lote:'');
+  const sc=r.totalSplice===0?'var(--green)':r.pctSplice>0.3?'var(--red)':'var(--amber)';
+  const total=r.totalInvalidas;
+  const catRow=(k,isSplice)=>{
+    const v=r[k]||0;
+    const color=isSplice?CAT_COLORS[k]:'var(--muted)';
+    const bw=total>0?Math.round(v/total*100):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <div style="width:130px;font-size:12px;color:${color};font-weight:${isSplice?'600':'400'}">${CAT_LABELS[k]}</div>
+      <div style="flex:1"><div class="idx-bar" style="height:6px"><div class="idx-bar-fill" style="width:${bw}%;background:${color}"></div></div></div>
+      <div class="text-mono" style="font-size:13px;font-weight:600;color:${color};min-width:36px;text-align:right">${v}</div>
+      <div style="font-size:10px;color:var(--muted2);min-width:38px;text-align:right">${total>0?pct(v/total):''}</div>
+      ${isSplice?'<span class="badge badge-red" style="font-size:9px">Splice</span>':'<span style="min-width:42px"></span>'}
+    </div>`;
+  };
+  document.getElementById('modal-body').innerHTML=`
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Válidas</div>
+    <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--green)">${r.validas}</div>
+  </div>
+  <div style="background:var(--bg3);border:1px solid rgba(239,68,68,.25);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Inválidas Splice</div>
+    <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:${sc}">${r.totalSplice}</div>
+  </div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Outros Motivos</div>
+    <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--muted)">${r.totalOutros}</div>
+  </div>
+  <div style="background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:12px;text-align:center">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">% Splice</div>
+    <div style="font-family:var(--font-mono);font-size:22px;font-weight:700;color:${sc}">${pct(r.pctSplice)}</div>
+  </div>
+</div>
+<div style="margin-bottom:14px">
+  <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px">Composição das ${total} inválidas (barra proporcional):</div>
+  <div style="display:flex;height:16px;border-radius:5px;overflow:hidden;gap:1px">
+    ${Object.keys(CAT_LABELS).map(k=>{const v=r[k]||0;const w=total>0?Math.round(v/total*100):0;return w>0?`<div title="${CAT_LABELS[k]}: ${v}" style="width:${w}%;background:${CAT_COLORS[k]}"></div>`:''}).join('')}
+  </div>
+</div>
+<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:var(--r2);padding:10px 14px;margin-bottom:8px">
+  <div style="font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">🔴 Responsabilidade Splice</div>
+  ${catRow('imagem',true)}${catRow('enquadramento',true)}${catRow('sinalizacao',true)}
+</div>
+<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;margin-bottom:14px">
+  <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">⚪ Outros Motivos</div>
+  ${catRow('ambiente',false)}${catRow('mudancaFaixa',false)}${catRow('maisUm',false)}
+  ${catRow('estrangeira',false)}${catRow('placa',false)}${catRow('renavam',false)}
+  ${catRow('marca',false)}${catRow('art280',false)}
+</div>
+${idR?`<div style="display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r2);padding:10px 14px;flex-wrap:wrap">
+  <div style="font-size:12px;color:var(--muted)">Desempenho (ID):</div>
+  <span class="badge ${idBadge(idR.c_ID)}" style="font-size:14px">${fmt(idR.c_ID)}</span>
+  <span style="font-size:12px;color:var(--muted)">IDF: <span class="text-mono">${fmt(idR.c_IDF)}</span></span>
+  <span style="font-size:12px;color:var(--muted)">IEF: <span class="text-mono">${fmt(idR.c_IEF)}</span></span>
+  <button class="btn btn-sm" style="margin-left:auto" onclick="closeModal();openDetail('${esc(equip)}','${faixa}')">Ver Análise de Desempenho →</button>
+</div>`:''}`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// BOOT
+// ════════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  loadFromStorage();
+  renderHistoryList();
+  // Restore ID badge if period already active
+  if(STATE.activePeriod&&STATE.periods[STATE.activePeriod]){
+    const idBd=document.getElementById('id-loaded-badge');
+    if(idBd){idBd.style.display='flex';idBd.style.alignItems='center';}
+    const idTxt=document.getElementById('id-loaded-text');
+    if(idTxt)idTxt.textContent=`Período ${STATE.activePeriod} · ${STATE.periods[STATE.activePeriod].length} faixas`;
+  }
+  // Restore inv badge
+  if(STATE.activeClass&&STATE.classifications[STATE.activeClass]){
+    const bd2=document.getElementById('inv-loaded-badge');
+    if(bd2){bd2.style.display='flex';bd2.style.alignItems='center';}
+    const bt2=document.getElementById('inv-loaded-text');
+    const cnt=STATE.classifications[STATE.activeClass].length;
+    if(bt2)bt2.textContent=`${cnt} faixas de inválidas carregadas`;
+  }
+});
+</script>
+</body>
+</html>
