@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
-import { calcGainPotential, getRecommendations } from '@/lib/calc-engine';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartsRadar, Legend } from 'recharts';
+import * as echarts from 'echarts';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -14,6 +13,291 @@ function idBadge(v: number | null) {
   return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green';
 }
 
+const CHART_THEME = {
+  backgroundColor: 'transparent',
+  textStyle: { color: '#7a8ba8', fontFamily: 'JetBrains Mono,monospace', fontSize: 11 },
+};
+
+function useEChart(deps: any[]) {
+  const ref = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(ref.current, undefined, { renderer: 'canvas' });
+    } else {
+      chartRef.current.resize();
+    }
+    return () => {
+      chartRef.current?.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleResize = () => chartRef.current?.resize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return { ref, chart: chartRef };
+}
+
+/* ─── Distribution Chart ─── */
+const ChartDist: React.FC<{ data: any[]; equipView: boolean }> = ({ data, equipView }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, undefined, { renderer: 'canvas' });
+    }
+    const bins = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01];
+    const labels = ['0-0.1', '0.1-0.2', '0.2-0.3', '0.3-0.4', '0.4-0.5', '0.5-0.6', '0.6-0.7', '0.7-0.8', '0.8-0.9', '0.9-1.0'];
+    const counts = new Array(10).fill(0);
+    data.forEach(r => {
+      const id = r.c_ID;
+      if (id === null || id === undefined) return;
+      for (let i = 0; i < 10; i++) { if (id >= bins[i] && id < bins[i + 1]) { counts[i]++; break; } }
+    });
+    const unitLabel = equipView ? 'equipamentos' : 'faixas';
+
+    chartRef.current.setOption({
+      ...CHART_THEME,
+      grid: { top: 10, bottom: 40, left: 36, right: 10 },
+      xAxis: { type: 'category', data: labels, axisLabel: { rotate: 30, fontSize: 10 } },
+      yAxis: { type: 'value', minInterval: 1, splitLine: { lineStyle: { color: 'rgba(255,255,255,.05)' } } },
+      series: [{
+        type: 'bar',
+        data: counts.map((v, i) => ({
+          value: v,
+          itemStyle: { color: i < 6 ? 'rgba(239,68,68,.7)' : i < 8 ? 'rgba(245,158,11,.7)' : 'rgba(16,185,129,.7)' }
+        })),
+        label: { show: true, position: 'top', fontSize: 10, color: '#e8edf5' },
+        barMaxWidth: 36,
+      }],
+      tooltip: { trigger: 'item', formatter: (p: any) => `${p.name}: <b>${p.value}</b> ${unitLabel}` }
+    });
+
+    return () => {};
+  }, [data, equipView]);
+
+  useEffect(() => {
+    const handleResize = () => chartRef.current?.resize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chartRef.current?.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+};
+
+/* ─── Equipment Bar Chart ─── */
+const ChartEquipment: React.FC<{ records: any[] }> = ({ records }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, undefined, { renderer: 'canvas' });
+    }
+    const byEquip: Record<string, { sum: number; cnt: number }> = {};
+    records.forEach(r => {
+      const k = r.equipamento;
+      if (!byEquip[k]) byEquip[k] = { sum: 0, cnt: 0 };
+      if (r.c_ID !== null) { byEquip[k].sum += r.c_ID; byEquip[k].cnt++; }
+    });
+    const sorted = Object.entries(byEquip)
+      .map(([k, v]) => ({ name: k, label: equipLabel(k), labelFull: equipLabelFull(k), avg: v.cnt ? v.sum / v.cnt : 0 }))
+      .sort((a, b) => a.avg - b.avg)
+      .slice(0, 20);
+
+    chartRef.current.setOption({
+      ...CHART_THEME,
+      grid: { top: 10, bottom: 40, left: 100, right: 50 },
+      xAxis: { type: 'value', max: 1, axisLabel: { formatter: (v: number) => v.toFixed(2) }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.05)' } } },
+      yAxis: { type: 'category', data: sorted.map(x => x.label), axisLabel: { fontSize: 9 } },
+      series: [{
+        type: 'bar',
+        data: sorted.map(x => ({
+          value: +x.avg.toFixed(4),
+          itemStyle: { color: x.avg < 0.6 ? 'rgba(239,68,68,.8)' : x.avg < 0.85 ? 'rgba(245,158,11,.8)' : 'rgba(16,185,129,.8)' }
+        })),
+        barMaxWidth: 16,
+        label: { show: true, position: 'right', fontSize: 10, color: '#e8edf5', formatter: (p: any) => fmt(p.value) }
+      }],
+      tooltip: { formatter: (p: any) => { const d = sorted[p.dataIndex]; return `<b>${d.labelFull}</b>: ID=${fmt(p.value)}`; } }
+    });
+  }, [records]);
+
+  useEffect(() => {
+    const handleResize = () => chartRef.current?.resize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chartRef.current?.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+};
+
+/* ─── Radar Chart ─── */
+const ChartRadar: React.FC<{ records: any[] }> = ({ records }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, undefined, { renderer: 'canvas' });
+    }
+    const tipos = [...new Set(records.map((r: any) => r.tipo))] as string[];
+    const fields = ['c_IDF', 'c_IEF', 'c_ICV', 'c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt'] as const;
+    const labels = ['IDF', 'IEF', 'ICV', 'ICId', 'ICIn', 'IEVri', 'IEVdt'];
+    const colors = ['rgba(245,158,11,.8)', 'rgba(59,130,246,.8)', 'rgba(16,185,129,.8)', 'rgba(168,85,247,.8)'];
+
+    const avgField = (recs: any[], f: string) => {
+      const vals = recs.map(r => r[f]).filter((v: any) => v !== null && v !== undefined);
+      return vals.length ? vals.reduce((s: number, v: number) => s + v, 0) / vals.length : 0;
+    };
+
+    const series = tipos.map((t, i) => {
+      const tr = records.filter((r: any) => r.tipo === t);
+      const vals = fields.map(f => +avgField(tr, f).toFixed(3));
+      return {
+        name: t, type: 'radar' as const,
+        data: [{ value: vals, name: t }],
+        lineStyle: { color: colors[i % 4] },
+        areaStyle: { color: colors[i % 4].replace('.8', '.15') },
+        itemStyle: { color: colors[i % 4] }
+      };
+    });
+
+    chartRef.current.setOption({
+      ...CHART_THEME,
+      legend: { data: tipos, bottom: 0, textStyle: { color: '#7a8ba8', fontSize: 11 } },
+      radar: {
+        indicator: labels.map(n => ({ name: n, max: 1 })),
+        center: ['50%', '45%'], radius: '60%',
+        axisLine: { lineStyle: { color: 'rgba(255,255,255,.1)' } },
+        splitLine: { lineStyle: { color: 'rgba(255,255,255,.05)' } },
+        axisName: { color: '#7a8ba8', fontSize: 11 },
+      },
+      series,
+      tooltip: { trigger: 'item' }
+    });
+  }, [records]);
+
+  useEffect(() => {
+    const handleResize = () => chartRef.current?.resize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chartRef.current?.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+};
+
+/* ─── Images Stacked Bar Chart ─── */
+const ChartImages: React.FC<{ records: any[] }> = ({ records }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<echarts.ECharts | null>(null);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (!chartRef.current) {
+      chartRef.current = echarts.init(containerRef.current, undefined, { renderer: 'canvas' });
+    }
+    const byEquip: Record<string, { validas: number; invalidas: number; infracoes: number }> = {};
+    records.forEach((r: any) => {
+      const k = r.equipamento;
+      if (!byEquip[k]) byEquip[k] = { validas: 0, invalidas: 0, infracoes: 0 };
+      byEquip[k].validas += (r.validas || 0);
+      byEquip[k].invalidas += (r.invalidas || 0);
+      byEquip[k].infracoes += (r.infracoes || 0);
+    });
+    const sorted = Object.entries(byEquip)
+      .map(([k, v]) => ({ name: k, label: equipLabel(k), labelFull: equipLabelFull(k), ...v, total: v.validas + v.invalidas }))
+      .filter(x => x.total > 0)
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 16);
+
+    if (!sorted.length) {
+      chartRef.current.setOption({ ...CHART_THEME, title: { text: 'Sem dados de imagens', left: 'center', top: 'center', textStyle: { color: '#7a8ba8', fontSize: 13 } } });
+      return;
+    }
+
+    chartRef.current.setOption({
+      ...CHART_THEME,
+      grid: { top: 14, bottom: 44, left: 108, right: 16 },
+      xAxis: { type: 'value', axisLabel: { formatter: (v: number) => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : String(v), fontSize: 10 }, splitLine: { lineStyle: { color: 'rgba(255,255,255,.05)' } } },
+      yAxis: { type: 'category', data: sorted.map(x => x.label).reverse(), axisLabel: { fontSize: 9, width: 100, overflow: 'truncate' } },
+      legend: { data: ['Válidas', 'Inválidas'], bottom: 4, textStyle: { color: '#7a8ba8', fontSize: 11 }, itemWidth: 12, itemHeight: 8 },
+      series: [
+        {
+          name: 'Válidas', type: 'bar', stack: 'imgs',
+          data: sorted.map(x => x.validas).reverse(),
+          itemStyle: { color: 'rgba(16,185,129,.75)' },
+        },
+        {
+          name: 'Inválidas', type: 'bar', stack: 'imgs',
+          data: sorted.map(x => x.invalidas).reverse(),
+          itemStyle: { color: 'rgba(239,68,68,.65)', borderRadius: [0, 3, 3, 0] },
+          label: {
+            show: true, position: 'right', fontSize: 9, color: '#7a8ba8',
+            formatter: (p: any) => {
+              const d = sorted[sorted.length - 1 - p.dataIndex];
+              const tot = d.validas + d.invalidas;
+              if (!tot) return '';
+              return tot >= 1000 ? (tot / 1000).toFixed(1) + 'k' : String(tot);
+            }
+          },
+        },
+      ],
+      tooltip: {
+        trigger: 'axis', axisPointer: { type: 'shadow' },
+        formatter: (params: any) => {
+          const idx = params[0].dataIndex;
+          const d = sorted[sorted.length - 1 - idx];
+          const tot = d.validas + d.invalidas;
+          const pct = tot ? ((d.validas / tot) * 100).toFixed(1) : '0';
+          return `<b>${d.labelFull}</b><br>` +
+            `✅ Válidas: <b>${d.validas.toLocaleString('pt-BR')}</b><br>` +
+            `❌ Inválidas: <b>${d.invalidas.toLocaleString('pt-BR')}</b><br>` +
+            `📦 Infrações: <b>${d.infracoes.toLocaleString('pt-BR')}</b><br>` +
+            `Taxa válidas: <b>${pct}%</b>`;
+        }
+      }
+    });
+  }, [records]);
+
+  useEffect(() => {
+    const handleResize = () => chartRef.current?.resize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      chartRef.current?.dispose();
+      chartRef.current = null;
+    };
+  }, []);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD PAGE
+   ═══════════════════════════════════════════════════════════════ */
 const DashboardPage: React.FC = () => {
   const { getActiveRecords, activePeriod } = useData();
   const records = getActiveRecords();
@@ -43,53 +327,13 @@ const DashboardPage: React.FC = () => {
   const below6 = withID.filter(r => r.c_ID! < 0.6).length;
   const below85 = withID.filter(r => r.c_ID! < 0.85).length;
 
-  // Distribution chart data
-  const distData = useMemo(() => {
-    const bins = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.01];
-    const labels = bins.slice(0, -1).map((b, i) => `${b.toFixed(1)}–${bins[i + 1].toFixed(1)}`);
-    const counts = new Array(10).fill(0);
-    const items = dashView === 'equip' ? groups.filter(g => g.c_ID !== null) : withID;
-    items.forEach(r => {
-      const id = 'c_ID' in r ? (r as any).c_ID : 0;
-      for (let i = 0; i < 10; i++) { if (id >= bins[i] && id < bins[i + 1]) { counts[i]++; break; } }
-    });
-    return labels.map((l, i) => ({ name: l, count: counts[i], fill: i < 6 ? '#ef4444b3' : i < 8 ? '#f59e0bb3' : '#10b981b3' }));
-  }, [dashView, groups, withID]);
-
-  // Radar chart data
-  const radarData = useMemo(() => {
-    const fields = ['c_IDF', 'c_IEF', 'c_ICV', 'c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt'] as const;
-    const labels = ['IDF', 'IEF', 'ICV', 'ICId', 'ICIn', 'IEVri', 'IEVdt'];
-    const tiposUniq = [...new Set(filtered.map(r => r.tipo))];
-    return labels.map((l, i) => {
-      const entry: any = { subject: l };
-      tiposUniq.forEach(t => {
-        const tr = filtered.filter(r => r.tipo === t);
-        const vals = tr.map(r => r[fields[i]]).filter((v): v is number => v !== null);
-        entry[t] = vals.length ? +(vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(3) : 0;
-      });
-      return entry;
-    });
-  }, [filtered]);
-  const radarTipos = useMemo(() => [...new Set(filtered.map(r => r.tipo))], [filtered]);
-  const radarColors = ['#f59e0bcc', '#3b82f6cc', '#10b981cc', '#a855f7cc'];
+  const chartData = useMemo(() =>
+    dashView === 'equip' ? groups.filter(g => g.c_ID !== null) : withID
+  , [dashView, groups, withID]);
 
   // Top 10 worst/best
   const worst10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (a.c_ID ?? 0) - (b.c_ID ?? 0)).slice(0, 10), [groups]);
   const best10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (b.c_ID ?? 0) - (a.c_ID ?? 0)).slice(0, 10), [groups]);
-
-  // Equipment bar chart
-  const equipBarData = useMemo(() => {
-    const byEquip: Record<string, { sum: number; cnt: number }> = {};
-    filtered.forEach(r => {
-      if (!byEquip[r.equipamento]) byEquip[r.equipamento] = { sum: 0, cnt: 0 };
-      if (r.c_ID !== null) { byEquip[r.equipamento].sum += r.c_ID; byEquip[r.equipamento].cnt++; }
-    });
-    return Object.entries(byEquip)
-      .map(([k, v]) => ({ name: equipLabel(k), avg: v.cnt ? +(v.sum / v.cnt).toFixed(4) : 0 }))
-      .sort((a, b) => a.avg - b.avg)
-      .slice(0, 20);
-  }, [filtered]);
 
   if (!records.length) {
     return (
@@ -113,19 +357,27 @@ const DashboardPage: React.FC = () => {
             <button className={`toggle-btn ${dashView === 'faixa' ? 'active' : ''}`} onClick={() => setDashView('faixa')}>Por Faixa</button>
             <button className={`toggle-btn ${dashView === 'equip' ? 'active' : ''}`} onClick={() => setDashView('equip')}>Por Equipamento</button>
           </div>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
+          <select value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
             <option value="">Todas rodovias</option>
             {rodovias.map(r => <option key={r}>{r}</option>)}
           </select>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fTipo} onChange={e => setFTipo(e.target.value)}>
+          <select value={fTipo} onChange={e => setFTipo(e.target.value)}>
             <option value="">Todos tipos</option>
             {tipos.map(t => <option key={t}>{t}</option>)}
+          </select>
+          <select value={fMunicipio} onChange={e => setFMunicipio(e.target.value)}>
+            <option value="">Todos municípios</option>
+            {municipios.map(m => <option key={m}>{m}</option>)}
+          </select>
+          <select value={fEquip} onChange={e => setFEquip(e.target.value)}>
+            <option value="">Todos equipamentos</option>
+            {equips.map(e => <option key={e} value={e}>{equipLabel(e)}</option>)}
           </select>
         </div>
       </div>
 
       {/* KPIs */}
-      <div className="kpis grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3.5 mb-6">
+      <div className="kpis">
         <div className={`kpi ${avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}`}>
           <div className="kpi-label">ID Médio</div>
           <div className="kpi-val">{fmt(avg)}</div>
@@ -144,103 +396,80 @@ const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="card">
-          <div className="card-header"><h3>Distribuição do ID</h3></div>
-          <div className="card-body" style={{ height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={distData}>
-                <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#7a8ba8' }} angle={-30} textAnchor="end" height={50} />
-                <YAxis tick={{ fontSize: 10, fill: '#7a8ba8' }} />
-                <Tooltip contentStyle={{ background: '#151b25', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, fontSize: 12, color: '#e8edf5' }} />
-                <Bar dataKey="count" radius={[3, 3, 0, 0]} maxBarSize={36}>
-                  {distData.map((entry, i) => <rect key={i} fill={entry.fill} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+      {/* ECharts Grid */}
+      <div className="charts-grid">
+        <div className="chart-box">
+          <div className="chart-title">Distribuição do Índice de Desempenho (ID)</div>
+          <div className="chart-area">
+            <ChartDist data={chartData} equipView={dashView === 'equip'} />
           </div>
         </div>
-
-        <div className="card">
-          <div className="card-header"><h3>ID por Equipamento (Top 20)</h3></div>
-          <div className="card-body" style={{ height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={equipBarData} layout="vertical">
-                <XAxis type="number" domain={[0, 1]} tick={{ fontSize: 10, fill: '#7a8ba8' }} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 9, fill: '#7a8ba8' }} width={90} />
-                <Tooltip contentStyle={{ background: '#151b25', border: '1px solid rgba(255,255,255,.1)', borderRadius: 8, fontSize: 12, color: '#e8edf5' }} />
-                <Bar dataKey="avg" radius={[0, 3, 3, 0]} maxBarSize={16} fill="#f59e0bcc" />
-              </BarChart>
-            </ResponsiveContainer>
+        <div className="chart-box">
+          <div className="chart-title">ID por Equipamento (Top 20)</div>
+          <div className="chart-area">
+            <ChartEquipment records={filtered} />
           </div>
         </div>
-
-        <div className="card">
-          <div className="card-header"><h3>Subíndices — Média por Tipo</h3></div>
-          <div className="card-body" style={{ height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData}>
-                <PolarGrid stroke="rgba(255,255,255,.08)" />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#7a8ba8' }} />
-                <PolarRadiusAxis domain={[0, 1]} tick={{ fontSize: 9, fill: '#4a5a72' }} />
-                {radarTipos.map((t, i) => (
-                  <RechartsRadar key={t} name={t} dataKey={t} stroke={radarColors[i % 4]} fill={radarColors[i % 4]} fillOpacity={0.15} />
-                ))}
-                <Legend wrapperStyle={{ fontSize: 11, color: '#7a8ba8' }} />
-              </RadarChart>
-            </ResponsiveContainer>
+        <div className="chart-box">
+          <div className="chart-title">Subíndices — Média por Tipo</div>
+          <div className="chart-area">
+            <ChartRadar records={filtered} />
+          </div>
+        </div>
+        <div className="chart-box">
+          <div className="chart-title">Imagens por Equipamento — Válidas vs Inválidas</div>
+          <div className="chart-area">
+            <ChartImages records={filtered} />
           </div>
         </div>
       </div>
 
-      {/* Top 10 */}
-      <div className="card mb-4">
+      {/* Top 10 Worst */}
+      <div className="card" style={{ marginTop: 24 }}>
         <div className="card-header"><h3>🔴 Top 10 Piores Equipamentos</h3></div>
-        <div className="table-wrap overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="table-wrap">
+          <table>
             <thead><tr>
-              <th className="p-2 text-left text-[10.5px] font-semibold text-muted-foreground uppercase">Série</th>
-              <th className="p-2 text-left">Equipamento</th><th className="p-2">Tipo</th><th className="p-2">Rodovia</th>
-              <th className="p-2">Faixas</th><th className="p-2">IDF</th><th className="p-2">IEF</th><th className="p-2">ICV</th><th className="p-2">ID</th>
+              <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Rodovia</th>
+              <th>Faixas</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th>
             </tr></thead>
             <tbody>{worst10.map(g => (
               <tr key={g.equipamento} className={g.c_ID !== null && g.c_ID < 0.6 ? 'id-critical' : g.c_ID !== null && g.c_ID < 0.85 ? 'id-low' : 'id-ok'}>
-                <td className="p-2 font-mono text-primary font-bold">{g.serie ?? '—'}</td>
-                <td className="p-2 text-muted-foreground text-[11px]">{g.equipamento}</td>
-                <td className="p-2"><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
-                <td className="p-2 text-muted-foreground text-[11px]">{g.rodovia}</td>
-                <td className="p-2 font-mono">{g.numFaixas}</td>
-                <td className="p-2 font-mono">{fmt(g.c_IDF)}</td>
-                <td className="p-2 font-mono">{fmt(g.c_IEF)}</td>
-                <td className="p-2 font-mono">{fmt(g.c_ICV)}</td>
-                <td className="p-2"><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <td className="font-mono" style={{ color: 'var(--amber)', fontWeight: 700 }}>{g.serie ?? '—'}</td>
+                <td style={{ color: 'var(--muted)', fontSize: 11 }}>{g.equipamento}</td>
+                <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
+                <td style={{ color: 'var(--muted)', fontSize: 11 }}>{g.rodovia}</td>
+                <td className="font-mono">{g.numFaixas}</td>
+                <td className="font-mono">{fmt(g.c_IDF)}</td>
+                <td className="font-mono">{fmt(g.c_IEF)}</td>
+                <td className="font-mono">{fmt(g.c_ICV)}</td>
+                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
               </tr>
             ))}</tbody>
           </table>
         </div>
       </div>
 
-      <div className="card">
+      {/* Top 10 Best */}
+      <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header"><h3>🟢 Top 10 Melhores Equipamentos</h3></div>
-        <div className="table-wrap overflow-x-auto">
-          <table className="w-full text-xs">
+        <div className="table-wrap">
+          <table>
             <thead><tr>
-              <th className="p-2 text-left text-[10.5px] font-semibold text-muted-foreground uppercase">Série</th>
-              <th className="p-2 text-left">Equipamento</th><th className="p-2">Tipo</th><th className="p-2">Rodovia</th>
-              <th className="p-2">Faixas</th><th className="p-2">IDF</th><th className="p-2">IEF</th><th className="p-2">ICV</th><th className="p-2">ID</th>
+              <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Rodovia</th>
+              <th>Faixas</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th>
             </tr></thead>
             <tbody>{best10.map(g => (
               <tr key={g.equipamento} className="id-ok">
-                <td className="p-2 font-mono text-primary font-bold">{g.serie ?? '—'}</td>
-                <td className="p-2 text-muted-foreground text-[11px]">{g.equipamento}</td>
-                <td className="p-2"><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
-                <td className="p-2 text-muted-foreground text-[11px]">{g.rodovia}</td>
-                <td className="p-2 font-mono">{g.numFaixas}</td>
-                <td className="p-2 font-mono">{fmt(g.c_IDF)}</td>
-                <td className="p-2 font-mono">{fmt(g.c_IEF)}</td>
-                <td className="p-2 font-mono">{fmt(g.c_ICV)}</td>
-                <td className="p-2"><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <td className="font-mono" style={{ color: 'var(--amber)', fontWeight: 700 }}>{g.serie ?? '—'}</td>
+                <td style={{ color: 'var(--muted)', fontSize: 11 }}>{g.equipamento}</td>
+                <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
+                <td style={{ color: 'var(--muted)', fontSize: 11 }}>{g.rodovia}</td>
+                <td className="font-mono">{g.numFaixas}</td>
+                <td className="font-mono">{fmt(g.c_IDF)}</td>
+                <td className="font-mono">{fmt(g.c_IEF)}</td>
+                <td className="font-mono">{fmt(g.c_ICV)}</td>
+                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
               </tr>
             ))}</tbody>
           </table>
