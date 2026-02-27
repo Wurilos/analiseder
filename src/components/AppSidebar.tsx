@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, AlertTriangle, LogOut, Radar } from 'lucide-react';
+import { Upload, LayoutDashboard, List, CheckCircle, Activity, AlertCircle, DollarSign, Radar } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useLocation } from 'react-router-dom';
 import {
@@ -16,8 +16,13 @@ import {
 } from '@/components/ui/sidebar';
 
 const mainMenu = [
-  { title: 'Análise de Imagens', url: '/classificacao', icon: AlertTriangle },
-  { title: 'Análise de Índices', url: '/indices', icon: BarChart3 },
+  { title: 'Upload', url: '/upload', icon: Upload },
+  { title: 'Dashboard', url: '/dashboard', icon: LayoutDashboard },
+  { title: 'Ranking', url: '/ranking', icon: List },
+  { title: 'Validação', url: '/validacao', icon: CheckCircle },
+  { title: 'Comparativo', url: '/comparativo', icon: Activity },
+  { title: 'Inválidas', url: '/invalidas', icon: AlertCircle },
+  { title: 'Valores', url: '/valores', icon: DollarSign },
 ];
 
 export function AppSidebar() {
@@ -31,11 +36,11 @@ export function AppSidebar() {
             <Radar className="w-5 h-5 text-sidebar-foreground" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-sidebar-foreground tracking-tight">
-              RadarAnalytics
+            <h1 className="text-base font-display font-extrabold text-sidebar-foreground tracking-tight">
+              DER Analytics
             </h1>
-            <p className="text-[11px] text-sidebar-foreground/60 leading-none">
-              Análise de Imagens
+            <p className="text-[10.5px] text-sidebar-foreground/60 leading-none font-mono">
+              Índices de Desempenho
             </p>
           </div>
         </div>
@@ -69,23 +74,12 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
       </SidebarContent>
 
       <SidebarFooter className="px-5 pb-5">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
-            SS
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-foreground truncate">Sergio Silva</div>
-            <div className="text-[11px] text-muted-foreground">Administrador</div>
-          </div>
+        <div className="text-[11px] text-muted-foreground/40 font-mono">
+          Edital 145/2023
         </div>
-        <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full px-1">
-          <LogOut className="w-4 h-4" />
-          <span>Sair do Sistema</span>
-        </button>
       </SidebarFooter>
     </Sidebar>
   );
