@@ -19,15 +19,14 @@ function idBadge(v: number | null) {
   return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green';
 }
 function idxCell(v: number | null) {
-  if (v === null || v === undefined) return <span className="text-muted-foreground/40">—</span>;
-  const color = v < 0.5 ? 'text-destructive' : v < 0.8 ? 'text-primary' : 'text-emerald-400';
+  if (v === null || v === undefined) return <span className="text-muted-foreground">—</span>;
+  const color = v < 0.5 ? 'text-red-600 dark:text-destructive' : v < 0.8 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
   return <span className={`font-mono ${color}`}>{fmt(v)}</span>;
 }
 
 const RankingPage: React.FC = () => {
   const { getActiveRecords } = useData();
   const records = getActiveRecords();
-  const [rankView, setRankView] = useState<'faixa' | 'equip'>('faixa');
   const [search, setSearch] = useState('');
   const [fTipo, setFTipo] = useState('');
   const [fRodovia, setFRodovia] = useState('');
@@ -79,27 +78,27 @@ const RankingPage: React.FC = () => {
   }, [records, search, fTipo, fRodovia, sortBy, idxFilter]);
 
   if (!records.length) {
-    return <div className="empty-state"><h3>Sem dados</h3><p>Importe uma planilha primeiro.</p></div>;
+    return <div className="empty-state"><div className="text-5xl mb-4">📋</div><h3 className="text-lg font-semibold mb-1">Sem dados</h3><p>Importe uma planilha primeiro.</p></div>;
   }
 
   return (
     <div>
-      <div className="page-header flex items-start justify-between gap-4 flex-wrap mb-6">
+      <div className="page-header">
         <div>
           <div className="page-title">Ranking & Diagnóstico</div>
           <div className="page-subtitle">Todos os equipamentos com análise de causa e potencial de melhoria</div>
         </div>
-        <div className="filters flex gap-2 flex-wrap items-center">
-          <input type="text" className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs w-44" placeholder="Buscar série/equip..." value={search} onChange={e => setSearch(e.target.value)} />
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fTipo} onChange={e => setFTipo(e.target.value)}>
+        <div className="filters">
+          <input type="text" placeholder="Buscar série/equip..." value={search} onChange={e => setSearch(e.target.value)} className="w-44" />
+          <select value={fTipo} onChange={e => setFTipo(e.target.value)}>
             <option value="">Todos tipos</option>
             {tipos.map(t => <option key={t}>{t}</option>)}
           </select>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
+          <select value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
             <option value="">Todas rodovias</option>
             {rodovias.map(r => <option key={r}>{r}</option>)}
           </select>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <optgroup label="Índice de Desempenho">
               <option value="id_asc">ID ↑ (pior primeiro)</option>
               <option value="id_desc">ID ↓ (melhor primeiro)</option>
@@ -111,7 +110,7 @@ const RankingPage: React.FC = () => {
             </optgroup>
             <optgroup label="Análise"><option value="gain_desc">Maior Ganho Potencial</option></optgroup>
           </select>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs min-w-[140px]" value={idxFilter} onChange={e => setIdxFilter(e.target.value)}>
+          <select className="min-w-[140px]" value={idxFilter} onChange={e => setIdxFilter(e.target.value)}>
             <option value="">Filtrar por índice...</option>
             <optgroup label="ID"><option value="c_ID|lt|0.60">ID &lt; 0.60</option><option value="c_ID|lt|0.85">ID &lt; 0.85</option><option value="c_ID|gte|0.85">ID ≥ 0.85</option></optgroup>
             <optgroup label="IDF"><option value="c_IDF|lt|0.95">IDF &lt; 0.95</option><option value="c_IDF|lt|0.80">IDF &lt; 0.80</option></optgroup>
@@ -130,12 +129,12 @@ const RankingPage: React.FC = () => {
           </div>
         </div>
         <div className="table-wrap overflow-x-auto">
-          <table className="w-full text-xs">
+          <table>
             <thead><tr>
-              <th className="p-2 text-[10.5px]">#</th><th className="p-2">Série</th><th className="p-2">Equip</th><th className="p-2">Tipo</th><th className="p-2">Faixa</th><th className="p-2">Rodovia</th><th className="p-2">Km</th>
-              <th className="p-2">IDF</th><th className="p-2">IEF</th><th className="p-2">ICV</th>
-              <th className="p-2">ICId</th><th className="p-2">ICIn</th><th className="p-2">IEVri</th><th className="p-2">IEVdt</th><th className="p-2">ILPd</th><th className="p-2">ILPn</th>
-              <th className="p-2">ID</th><th className="p-2">Causa Principal</th><th className="p-2">Ganho</th><th className="p-2">Ação</th>
+              <th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
+              <th>IDF</th><th>IEF</th><th>ICV</th>
+              <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
+              <th>ID</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
             </tr></thead>
             <tbody>
               {sorted.map((r, i) => {
@@ -145,28 +144,28 @@ const RankingPage: React.FC = () => {
                 const main = recos[0];
                 return (
                   <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => setDetail(r)}>
-                    <td className="p-2 text-muted-foreground">{i + 1}</td>
-                    <td className="p-2 font-mono text-primary font-bold">{r.serie ?? '—'}</td>
-                    <td className="p-2 text-muted-foreground text-[11px]">{r.equipamento}</td>
-                    <td className="p-2"><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
-                    <td className="p-2 font-mono">{r.faixa}</td>
-                    <td className="p-2 text-muted-foreground text-[11px]">{r.rodovia}</td>
-                    <td className="p-2 font-mono text-muted-foreground text-[11px]">{r.km ?? '—'}</td>
-                    <td className="p-2">{idxCell(r.c_IDF)}</td>
-                    <td className="p-2">{idxCell(r.c_IEF)}</td>
-                    <td className="p-2">{idxCell(r.c_ICV)}</td>
-                    <td className="p-2">{idxCell(r.c_ICId)}</td>
-                    <td className="p-2">{idxCell(r.c_ICIn)}</td>
-                    <td className="p-2">{idxCell(r.c_IEVri)}</td>
-                    <td className="p-2">{idxCell(r.c_IEVdt)}</td>
-                    <td className="p-2">{idxCell(r.c_ILPd)}</td>
-                    <td className="p-2">{idxCell(r.c_ILPn)}</td>
-                    <td className="p-2"><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
-                    <td className="p-2 text-[11px] max-w-[180px] truncate" style={{ color: main?.priority === 'high' ? 'var(--red)' : main?.priority === 'medium' ? 'var(--amber)' : 'var(--muted)' }}>
+                    <td className="text-muted-foreground">{i + 1}</td>
+                    <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
+                    <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
+                    <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
+                    <td className="font-mono">{r.faixa}</td>
+                    <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
+                    <td className="font-mono text-muted-foreground text-[11px]">{r.km ?? '—'}</td>
+                    <td>{idxCell(r.c_IDF)}</td>
+                    <td>{idxCell(r.c_IEF)}</td>
+                    <td>{idxCell(r.c_ICV)}</td>
+                    <td>{idxCell(r.c_ICId)}</td>
+                    <td>{idxCell(r.c_ICIn)}</td>
+                    <td>{idxCell(r.c_IEVri)}</td>
+                    <td>{idxCell(r.c_IEVdt)}</td>
+                    <td>{idxCell(r.c_ILPd)}</td>
+                    <td>{idxCell(r.c_ILPn)}</td>
+                    <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                    <td className="text-[11px] max-w-[180px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                       {main ? main.title.split(' — ')[0] : '✓ Bom'}
                     </td>
-                    <td className="p-2 font-mono text-emerald-400">+{fmt(gain.total_gap)}</td>
-                    <td className="p-2"><button className="btn btn-sm" onClick={e => { e.stopPropagation(); setDetail(r); }}>Ver</button></td>
+                    <td className="font-mono text-green-600 dark:text-emerald-400">+{fmt(gain.total_gap)}</td>
+                    <td><button className="btn btn-sm" onClick={e => { e.stopPropagation(); setDetail(r); }}>Ver</button></td>
                   </tr>
                 );
               })}
@@ -177,7 +176,7 @@ const RankingPage: React.FC = () => {
 
       {/* Detail Modal */}
       <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
-        <DialogContent className="max-w-[860px] max-h-[90vh] overflow-y-auto bg-card border-border">
+        <DialogContent className="max-w-[860px] max-h-[90vh] overflow-y-auto">
           {detail && <DetailModal r={detail} />}
         </DialogContent>
       </Dialog>
@@ -189,46 +188,46 @@ function DetailModal({ r }: { r: IDRecord }) {
   const gain = calcGainPotential(r);
   const recos = getRecommendations(r);
   const cat = EQUIP_CATALOG[r.equipamento];
-  const idColor = (r.c_ID ?? 0) < 0.6 ? 'text-destructive' : (r.c_ID ?? 0) < 0.85 ? 'text-primary' : 'text-emerald-400';
-  const idfColor = r.c_IDF !== null && r.c_IDF < 0.95 ? 'text-primary' : 'text-emerald-400';
+  const idColor = (r.c_ID ?? 0) < 0.6 ? 'text-red-600 dark:text-destructive' : (r.c_ID ?? 0) < 0.85 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
+  const idfColor = r.c_IDF !== null && r.c_IDF < 0.95 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
 
   return (
     <div>
       <div className="mb-4">
-        <h2 className="font-display text-base font-extrabold">{cat ? `Nº ${cat.serie} — ` : ''}{r.equipamento} · Faixa {r.faixa}</h2>
+        <h2 className="text-base font-bold">{cat ? `Nº ${cat.serie} — ` : ''}{r.equipamento} · Faixa {r.faixa}</h2>
         <p className="text-xs text-muted-foreground mt-1">{r.tipo} · {r.rodovia} km {r.km} · {r.municipio}{cat ? ` · ${cat.lote}` : ''} · Período: {r.periodo}</p>
       </div>
 
       {/* Tree decomposition */}
       <div className="tree-node">
-        <div className="tree-node-header">
-          <div className={`tree-node-val ${idColor}`}>{fmt(r.c_ID)}</div>
+        <div className="flex items-center gap-3">
+          <div className={`font-mono text-xl font-bold ${idColor}`}>{fmt(r.c_ID)}</div>
           <div>
-            <div className="tree-node-label">ID — Índice de Desempenho</div>
-            <div className="tree-node-desc">{r.tipo} → IDF × (0.9×IEF + 0.1×ICV){r.f_ID !== null ? ` · planilha: ${fmt(r.f_ID)}` : ''}</div>
+            <div className="text-sm font-bold">ID — Índice de Desempenho</div>
+            <div className="text-[11px] text-muted-foreground">{r.tipo} → IDF × (0.9×IEF + 0.1×ICV){r.f_ID !== null ? ` · planilha: ${fmt(r.f_ID)}` : ''}</div>
           </div>
         </div>
         <div className="tree-children">
           <div className="tree-child">
-            <div className="tree-child-header">
-              <div className={`tree-child-val ${idfColor}`}>{fmt(r.c_IDF)}</div>
+            <div className="flex items-center gap-3">
+              <div className={`font-mono font-bold ${idfColor}`}>{fmt(r.c_IDF)}</div>
               <div>
-                <div className="tree-child-label">IDF — Disponibilidade</div>
+                <div className="text-xs font-bold">IDF — Disponibilidade</div>
                 <div className="text-[11px] text-muted-foreground">NHo/NHt = {r.NHo}/{r.NHt} = {r.NHt ? fmt(((r.NHo ?? 0) / r.NHt)) : '—'} {r.c_IDF !== null && r.c_IDF >= 0.95 ? '→ arred. 1.00' : ''}</div>
               </div>
-              <div className="ml-auto text-[11px] text-emerald-400 font-mono">+{fmt(gain.idf_gain)} se IDF=1</div>
+              <div className="ml-auto text-[11px] text-green-600 dark:text-emerald-400 font-mono">+{fmt(gain.idf_gain)} se IDF=1</div>
             </div>
           </div>
           <div className="tree-child">
-            <div className="tree-child-header">
-              <div className="tree-child-val">{fmt(r.c_IEF)}</div>
+            <div className="flex items-center gap-3">
+              <div className="font-mono font-bold">{fmt(r.c_IEF)}</div>
               <div>
-                <div className="tree-child-label">IEF — Eficiência</div>
+                <div className="text-xs font-bold">IEF — Eficiência</div>
                 <div className="text-[11px] text-muted-foreground">0.8×(ICId+ICIn)/2×(IEVri+IEVdt)/2 + 0.2×(ILPd+ILPn)/2</div>
               </div>
-              <div className="ml-auto text-[11px] text-emerald-400 font-mono">+{fmt(gain.ief_gain)} se IEF=1</div>
+              <div className="ml-auto text-[11px] text-green-600 dark:text-emerald-400 font-mono">+{fmt(gain.ief_gain)} se IEF=1</div>
             </div>
-            <div className="tree-grandchildren">
+            <div className="mt-2 space-y-1">
               <LeafRow name="ICId" label="Captura Diurna" calc={r.c_ICId} file={r.f_ICId} formula={`(${r.IVd}+${r.INd})/${r.TId} = ${fmt(r.ICId_raw, 3)}`} />
               <LeafRow name="ICIn" label="Captura Noturna" calc={r.c_ICIn} file={r.f_ICIn} formula={`(${r.IVn}+${r.INn})/${r.TIn} = ${fmt(r.ICIn_raw, 3)}`} />
               <LeafRow name="IEVri" label="Envio Imagens" calc={r.c_IEVri} file={r.f_IEVri} formula={`[${r.rfri1},${r.rfri2},${r.rfri3},${r.rfri4},${r.rfri5}] / ${r.pktsInf}`} />
@@ -238,21 +237,21 @@ function DetailModal({ r }: { r: IDRecord }) {
             </div>
           </div>
           <div className="tree-child">
-            <div className="tree-child-header">
-              <div className="tree-child-val">{fmt(r.c_ICV)}</div>
+            <div className="flex items-center gap-3">
+              <div className="font-mono font-bold">{fmt(r.c_ICV)}</div>
               <div>
-                <div className="tree-child-label">ICV — Classificação de Veículos</div>
+                <div className="text-xs font-bold">ICV — Classificação de Veículos</div>
                 <div className="text-[11px] text-muted-foreground">QVc/QVt = {r.QVc}/{r.QVt}</div>
               </div>
-              <div className="ml-auto text-[11px] text-emerald-400 font-mono">+{fmt(gain.icv_gain)} se ICV=1</div>
+              <div className="ml-auto text-[11px] text-green-600 dark:text-emerald-400 font-mono">+{fmt(gain.icv_gain)} se ICV=1</div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Gain potential */}
-      <div className="mt-4 bg-card border border-border rounded-lg p-3">
-        <div className="text-xs font-bold text-primary mb-2 font-display">💡 Potencial de Melhoria</div>
+      <div className="mt-4 border border-border rounded-lg p-4">
+        <div className="text-xs font-bold text-primary mb-2">💡 Potencial de Melhoria</div>
         <div className="grid grid-cols-3 gap-2">
           <GainCard label="IDF=1.0" gain={gain.idf_gain} desc="Disponibilidade 100%" />
           <GainCard label="IEF=1.0" gain={gain.ief_gain} desc="Eficiência 100%" />
@@ -262,19 +261,23 @@ function DetailModal({ r }: { r: IDRecord }) {
 
       {/* Recommendations */}
       <div className="mt-4">
-        <div className="text-[13px] font-bold font-display mb-2">🎯 Recomendações</div>
+        <div className="text-sm font-bold mb-2">🎯 Recomendações</div>
         <div className="space-y-2">
           {recos.length ? recos.map((re, i) => (
-            <div key={i} className={`reco ${re.priority}`}>
-              <div className="reco-icon">{re.priority === 'high' ? '🔴' : re.priority === 'medium' ? '🟡' : '🔵'}</div>
-              <div className="reco-body">
-                <div className="reco-title">{re.title}</div>
-                <div className="reco-desc">{re.desc}</div>
-                {re.gain && <div className="reco-gain">Potencial: {re.gain}</div>}
+            <div key={i} className={`border rounded-lg p-3 ${re.priority === 'high' ? 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/5' : re.priority === 'medium' ? 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/5' : 'border-blue-200 bg-blue-50 dark:border-blue-500/25 dark:bg-blue-500/5'}`}>
+              <div className="flex items-start gap-2">
+                <span>{re.priority === 'high' ? '🔴' : re.priority === 'medium' ? '🟡' : '🔵'}</span>
+                <div>
+                  <div className="text-xs font-bold">{re.title}</div>
+                  <div className="text-[11px] text-muted-foreground">{re.desc}</div>
+                  {re.gain && <div className="text-[11px] text-green-600 dark:text-emerald-400 font-mono mt-1">Potencial: {re.gain}</div>}
+                </div>
               </div>
             </div>
           )) : (
-            <div className="reco low"><div className="reco-icon">✅</div><div className="reco-body"><div className="reco-title">Equipamento com bom desempenho</div></div></div>
+            <div className="border border-green-200 bg-green-50 dark:border-green-500/25 dark:bg-green-500/5 rounded-lg p-3 flex items-center gap-2">
+              <span>✅</span><span className="text-xs font-bold">Equipamento com bom desempenho</span>
+            </div>
           )}
         </div>
       </div>
@@ -299,29 +302,29 @@ function DetailModal({ r }: { r: IDRecord }) {
 
 function LeafRow({ name, label, calc, file, formula }: { name: string; label: string; calc: number | null; file: number | null; formula: string }) {
   const cv = calc ?? 0;
-  const color = cv < 0.5 ? 'text-destructive' : cv < 0.8 ? 'text-primary' : 'text-emerald-400';
+  const color = cv < 0.5 ? 'text-red-600 dark:text-destructive' : cv < 0.8 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
   const diff = (file !== null && calc !== null) ? Math.abs(cv - file) : null;
   const match = diff !== null ? diff < 0.001 : null;
   return (
     <div className="tree-leaf">
-      <span className="tree-leaf-name">{name}</span>
-      <span className={`tree-leaf-val ${color}`}>{fmt(calc)}</span>
+      <span className="font-mono font-bold text-xs w-10">{name}</span>
+      <span className={`font-mono font-bold ${color}`}>{fmt(calc)}</span>
       {file !== null && (
         <>
-          <span className="text-muted-foreground/40 text-[10px]">plan:{fmt(file)}</span>
-          <span className={`text-[10px] ${match ? 'text-emerald-400' : 'text-destructive'}`}>{match ? '✓' : `Δ${fmt(diff, 3)}`}</span>
+          <span className="text-muted-foreground text-[10px]">plan:{fmt(file)}</span>
+          <span className={`text-[10px] ${match ? 'text-green-600 dark:text-emerald-400' : 'text-red-600 dark:text-destructive'}`}>{match ? '✓' : `Δ${fmt(diff, 3)}`}</span>
         </>
       )}
-      <span className="text-[10px] text-muted-foreground/40 ml-auto font-mono">{formula}</span>
+      <span className="text-[10px] text-muted-foreground ml-auto font-mono">{formula}</span>
     </div>
   );
 }
 
 function GainCard({ label, gain, desc }: { label: string; gain: number; desc: string }) {
   return (
-    <div className="bg-card border border-border rounded-lg p-3 text-center">
+    <div className="bg-green-50 dark:bg-emerald-500/5 border border-green-200 dark:border-emerald-500/25 rounded-lg p-3 text-center">
       <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
-      <div className="font-mono text-lg font-bold text-emerald-400">+{fmt(gain)}</div>
+      <div className="font-mono text-lg font-bold text-green-600 dark:text-emerald-400">+{fmt(gain)}</div>
       <div className="text-[10px] text-muted-foreground">{desc}</div>
     </div>
   );
