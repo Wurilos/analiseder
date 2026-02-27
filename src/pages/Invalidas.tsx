@@ -3,6 +3,8 @@ import { useData } from '@/context/DataContext';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
 import { ClassRecord } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import KPICard from '@/components/KPICard';
+import { FileCheck, CheckCircle, AlertTriangle, XCircle, FileX } from 'lucide-react';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -60,8 +62,8 @@ const InvalidasPage: React.FC = () => {
   if (!inv.length) {
     return (
       <div className="empty-state">
-        <div className="text-5xl mb-3">📂</div>
-        <h3>Importe a planilha de classificação</h3>
+        <div className="text-5xl mb-4">📂</div>
+        <h3 className="text-lg font-semibold mb-1">Importe a planilha de classificação</h3>
         <p>Vá até a tela de <strong>Upload</strong> e importe o arquivo de Classificação de Infração Inválida.</p>
       </div>
     );
@@ -71,30 +73,29 @@ const InvalidasPage: React.FC = () => {
 
   return (
     <div>
-      <div className="page-header flex items-start justify-between gap-4 flex-wrap mb-6">
+      <div className="page-header">
         <div>
           <div className="page-title">Análise de Infrações Inválidas</div>
           <div className="page-subtitle">Classificação por responsabilidade — Splice vs. Outros Motivos</div>
         </div>
-        <div className="filters flex gap-2">
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
+        <div className="filters">
+          <select value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
             <option value="">Todas rodovias</option>
             {rodovias.map(r => <option key={r}>{r}</option>)}
           </select>
-          <select className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs" value={fTipo} onChange={e => setFTipo(e.target.value)}>
+          <select value={fTipo} onChange={e => setFTipo(e.target.value)}>
             <option value="">Todos tipos</option>
             {tipos.map(t => <option key={t}>{t}</option>)}
           </select>
         </div>
       </div>
 
-      {/* KPIs */}
-      <div className="kpis grid grid-cols-[repeat(auto-fill,minmax(170px,1fr))] gap-3.5 mb-6">
-        <div className="kpi info"><div className="kpi-label">Total Conferidas</div><div className="kpi-val">{totConf.toLocaleString('pt-BR')}</div><div className="kpi-sub">{filtered.length} faixas</div></div>
-        <div className="kpi good"><div className="kpi-label">Válidas</div><div className="kpi-val">{totValidas.toLocaleString('pt-BR')}</div><div className="kpi-sub">{totConf > 0 ? pct(totValidas / totConf) : '0%'} do total</div></div>
-        <div className={`kpi ${totSplice > 0 ? 'danger' : 'good'}`}><div className="kpi-label">Inválidas — Splice</div><div className="kpi-val" style={{ color: 'var(--red)' }}>{totSplice.toLocaleString('pt-BR')}</div><div className="kpi-sub">{pct(pctSpliceGlobal)} das inválidas</div></div>
-        <div className="kpi warn"><div className="kpi-label">Inválidas — Outros</div><div className="kpi-val">{totOutros.toLocaleString('pt-BR')}</div><div className="kpi-sub">{totInv > 0 ? pct(totOutros / totInv) : '0%'}</div></div>
-        <div className="kpi"><div className="kpi-label">Total Inválidas</div><div className="kpi-val">{totInv.toLocaleString('pt-BR')}</div><div className="kpi-sub">{totConf > 0 ? pct(totInv / totConf) : '0%'} do total</div></div>
+      <div className="kpis">
+        <KPICard label="Total Conferidas" value={totConf.toLocaleString('pt-BR')} sub={`${filtered.length} faixas`} icon={<FileCheck size={22} />} iconColor="blue" severity="info" />
+        <KPICard label="Válidas" value={totValidas.toLocaleString('pt-BR')} sub={totConf > 0 ? pct(totValidas / totConf) + ' do total' : '0%'} icon={<CheckCircle size={22} />} iconColor="green" severity="good" />
+        <KPICard label="Inválidas — Splice" value={totSplice.toLocaleString('pt-BR')} sub={pct(pctSpliceGlobal) + ' das inválidas'} icon={<XCircle size={22} />} iconColor="red" severity={totSplice > 0 ? 'danger' : 'good'} />
+        <KPICard label="Inválidas — Outros" value={totOutros.toLocaleString('pt-BR')} sub={totInv > 0 ? pct(totOutros / totInv) : '0%'} icon={<AlertTriangle size={22} />} iconColor="amber" severity="warn" />
+        <KPICard label="Total Inválidas" value={totInv.toLocaleString('pt-BR')} sub={totConf > 0 ? pct(totInv / totConf) + ' do total' : '0%'} icon={<FileX size={22} />} iconColor="slate" />
       </div>
 
       {/* Category breakdown */}
@@ -103,7 +104,7 @@ const InvalidasPage: React.FC = () => {
         <div className="card-body">
           <div className="grid grid-cols-2 gap-5">
             <div>
-              <div className="text-[11px] font-bold text-destructive uppercase tracking-wider mb-2.5">🔴 Responsabilidade Splice — {totSplice.toLocaleString('pt-BR')}</div>
+              <div className="text-xs font-bold text-destructive uppercase tracking-wider mb-2.5">🔴 Responsabilidade Splice — {totSplice.toLocaleString('pt-BR')}</div>
               {SPLICE_CATS.map(k => (
                 <div key={k} className="mb-2">
                   <div className="flex justify-between text-xs mb-1">
@@ -117,7 +118,7 @@ const InvalidasPage: React.FC = () => {
               ))}
             </div>
             <div>
-              <div className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-2.5">⚪ Outros Motivos — {totOutros.toLocaleString('pt-BR')}</div>
+              <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2.5">⚪ Outros Motivos — {totOutros.toLocaleString('pt-BR')}</div>
               {OUTROS_CATS.map(k => (
                 <div key={k} className="mb-1.5">
                   <div className="flex justify-between text-xs mb-0.5">
@@ -138,32 +139,32 @@ const InvalidasPage: React.FC = () => {
       <div className="card">
         <div className="card-header"><h3>📋 Detalhamento por Faixa — ordenado por Splice ↓</h3></div>
         <div className="table-wrap overflow-x-auto">
-          <table className="w-full text-xs">
+          <table>
             <thead><tr>
-              <th className="p-2 text-left">Série</th><th className="p-2">Equip</th><th className="p-2">Tipo</th><th className="p-2">Faixa</th><th className="p-2">Rodovia</th>
-              <th className="p-2">Válidas</th><th className="p-2">Total Inv.</th>
-              <th className="p-2" title="Imagem">Img</th><th className="p-2" title="Enquadramento">Enq</th><th className="p-2" title="Sinalização">Sin</th>
-              <th className="p-2">🔴 Splice</th><th className="p-2">% Splice</th>
-              <th className="p-2">ID</th><th className="p-2">+</th>
+              <th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th>
+              <th>Válidas</th><th>Total Inv.</th>
+              <th title="Imagem">Img</th><th title="Enquadramento">Enq</th><th title="Sinalização">Sin</th>
+              <th>🔴 Splice</th><th>% Splice</th>
+              <th>ID</th><th>+</th>
             </tr></thead>
             <tbody>
               {sorted.map((r, i) => {
                 const id = getID(r.equipamento, r.faixa);
-                const sc = r.totalSplice === 0 ? 'var(--green)' : r.pctSplice > 0.3 ? 'var(--red)' : 'var(--amber)';
+                const sc = r.totalSplice === 0 ? '#059669' : r.pctSplice > 0.3 ? '#dc2626' : '#d97706';
                 return (
                   <tr key={`${r.equipamento}-${r.faixa}-${i}`} className="cursor-pointer" onClick={() => setDetail(r)}>
-                    <td className="p-2 font-mono text-primary font-bold">{EQUIP_CATALOG[r.equipamento]?.serie ?? '—'}</td>
-                    <td className="p-2 text-muted-foreground text-[11px]">{r.equipamento}</td>
-                    <td className="p-2"><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
-                    <td className="p-2 font-mono">{r.faixa}</td>
-                    <td className="p-2 text-muted-foreground text-[11px]">{r.rodovia}</td>
-                    <td className="p-2 font-mono">{r.validas.toLocaleString('pt-BR')}</td>
-                    <td className="p-2 font-mono">{r.totalInvalidas.toLocaleString('pt-BR')}</td>
-                    <td className="p-2 font-mono" style={{ color: r.imagem > 0 ? '#ef4444' : 'var(--muted2)' }}>{r.imagem}</td>
-                    <td className="p-2 font-mono" style={{ color: r.enquadramento > 0 ? '#f97316' : 'var(--muted2)' }}>{r.enquadramento}</td>
-                    <td className="p-2 font-mono" style={{ color: r.sinalizacao > 0 ? '#eab308' : 'var(--muted2)' }}>{r.sinalizacao}</td>
-                    <td className="p-2 font-mono font-bold" style={{ color: sc }}>{r.totalSplice.toLocaleString('pt-BR')}</td>
-                    <td className="p-2">
+                    <td className="font-mono text-primary font-bold">{EQUIP_CATALOG[r.equipamento]?.serie ?? '—'}</td>
+                    <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
+                    <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
+                    <td className="font-mono">{r.faixa}</td>
+                    <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
+                    <td className="font-mono">{r.validas.toLocaleString('pt-BR')}</td>
+                    <td className="font-mono">{r.totalInvalidas.toLocaleString('pt-BR')}</td>
+                    <td className="font-mono" style={{ color: r.imagem > 0 ? '#ef4444' : undefined }}>{r.imagem}</td>
+                    <td className="font-mono" style={{ color: r.enquadramento > 0 ? '#f97316' : undefined }}>{r.enquadramento}</td>
+                    <td className="font-mono" style={{ color: r.sinalizacao > 0 ? '#eab308' : undefined }}>{r.sinalizacao}</td>
+                    <td className="font-mono font-bold" style={{ color: sc }}>{r.totalSplice.toLocaleString('pt-BR')}</td>
+                    <td>
                       <div className="flex items-center gap-1.5">
                         <div className="idx-bar" style={{ width: 50, height: 5 }}>
                           <div className="idx-bar-fill" style={{ width: `${Math.round(r.pctSplice * 100)}%`, background: sc }} />
@@ -171,8 +172,8 @@ const InvalidasPage: React.FC = () => {
                         <span className="font-mono text-[11px]" style={{ color: sc }}>{pct(r.pctSplice)}</span>
                       </div>
                     </td>
-                    <td className="p-2">{id !== null ? <span className={`badge ${idBadge(id)}`}>{fmt(id)}</span> : <span className="text-muted-foreground/40">—</span>}</td>
-                    <td className="p-2"><button className="btn btn-sm" onClick={e => { e.stopPropagation(); setDetail(r); }}>Ver</button></td>
+                    <td>{id !== null ? <span className={`badge ${idBadge(id)}`}>{fmt(id)}</span> : <span className="text-muted-foreground">—</span>}</td>
+                    <td><button className="btn btn-sm" onClick={e => { e.stopPropagation(); setDetail(r); }}>Ver</button></td>
                   </tr>
                 );
               })}
@@ -183,7 +184,7 @@ const InvalidasPage: React.FC = () => {
 
       {/* Detail Modal */}
       <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
-        <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto bg-card border-border">
+        <DialogContent className="max-w-[700px] max-h-[90vh] overflow-y-auto">
           {detail && <InvDetailModal r={detail} getID={getID} />}
         </DialogContent>
       </Dialog>
@@ -194,18 +195,18 @@ const InvalidasPage: React.FC = () => {
 function InvDetailModal({ r, getID }: { r: ClassRecord; getID: (e: string, f: string) => number | null }) {
   const cat = EQUIP_CATALOG[r.equipamento];
   const id = getID(r.equipamento, r.faixa);
-  const sc = r.totalSplice === 0 ? 'var(--green)' : r.pctSplice > 0.3 ? 'var(--red)' : 'var(--amber)';
+  const sc = r.totalSplice === 0 ? '#059669' : r.pctSplice > 0.3 ? '#dc2626' : '#d97706';
   const total = r.totalInvalidas;
 
   return (
     <div>
-      <h2 className="font-display text-base font-extrabold mb-1">{cat ? `Nº ${cat.serie} — ` : ''}{r.equipamento} · Faixa {r.faixa}</h2>
+      <h2 className="text-base font-bold mb-1">{cat ? `Nº ${cat.serie} — ` : ''}{r.equipamento} · Faixa {r.faixa}</h2>
       <p className="text-xs text-muted-foreground mb-4">{r.tipo} · {r.rodovia} km {r.km} · {r.municipio}{cat ? ` · ${cat.lote}` : ''}</p>
 
       <div className="grid grid-cols-4 gap-2 mb-4">
         <div className="bg-card border border-border rounded-lg p-3 text-center">
           <div className="text-[10px] text-muted-foreground uppercase">Válidas</div>
-          <div className="font-mono text-lg font-bold text-emerald-400">{r.validas.toLocaleString('pt-BR')}</div>
+          <div className="font-mono text-lg font-bold text-green-600">{r.validas.toLocaleString('pt-BR')}</div>
         </div>
         <div className="bg-card border border-border rounded-lg p-3 text-center">
           <div className="text-[10px] text-muted-foreground uppercase">Total Inválidas</div>
@@ -222,7 +223,7 @@ function InvDetailModal({ r, getID }: { r: ClassRecord; getID: (e: string, f: st
         </div>
       </div>
 
-      <div className="text-[13px] font-bold font-display mb-2">Detalhamento por Categoria</div>
+      <div className="text-sm font-bold mb-2">Detalhamento por Categoria</div>
       <div className="space-y-1.5">
         {[...SPLICE_CATS, ...OUTROS_CATS].map(k => {
           const v = (r as any)[k] || 0;
@@ -230,8 +231,8 @@ function InvDetailModal({ r, getID }: { r: ClassRecord; getID: (e: string, f: st
           const bw = total > 0 ? Math.round(v / total * 100) : 0;
           return (
             <div key={k} className="flex items-center gap-2.5 py-1.5 border-b border-border">
-              <div className="w-[130px] text-xs" style={{ color: isSplice ? CAT_COLORS[k] : 'var(--muted)', fontWeight: isSplice ? 600 : 400 }}>{CAT_LABELS[k]}</div>
-              <div className="flex-1"><div className="idx-bar" style={{ height: 6 }}><div className="idx-bar-fill" style={{ width: `${bw}%`, background: isSplice ? CAT_COLORS[k] : 'var(--muted)' }} /></div></div>
+              <div className="w-[130px] text-xs" style={{ color: isSplice ? CAT_COLORS[k] : undefined, fontWeight: isSplice ? 600 : 400 }}>{CAT_LABELS[k]}</div>
+              <div className="flex-1"><div className="idx-bar" style={{ height: 6 }}><div className="idx-bar-fill" style={{ width: `${bw}%`, background: isSplice ? CAT_COLORS[k] : '#94a3b8' }} /></div></div>
               <div className="font-mono text-xs w-12 text-right">{v}</div>
               <div className="font-mono text-[10px] text-muted-foreground w-12 text-right">{total > 0 ? pct(v / total) : '—'}</div>
             </div>
