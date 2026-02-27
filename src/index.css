@@ -190,8 +190,87 @@
   .card-body { padding: 18px; }
   .card-body-compact { padding: 12px 18px; }
 
+  /* Global select styling */
+  select, .filter-select {
+    background: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 6px 28px 6px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8ba8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    transition: 0.15s all;
+  }
+  select:hover, .filter-select:hover {
+    border-color: hsl(var(--primary) / 0.4);
+  }
+  select:focus, .filter-select:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+  }
+  select option {
+    background: hsl(var(--card));
+    color: hsl(var(--foreground));
+  }
+
+  /* Global input styling */
+  input[type="text"], input[type="search"], .filter-input {
+    background: hsl(var(--secondary));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    outline: none;
+    transition: 0.15s all;
+  }
+  input[type="text"]:focus, input[type="search"]:focus, .filter-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.15);
+  }
+  input[type="text"]::placeholder, input[type="search"]::placeholder {
+    color: hsl(var(--muted-foreground));
+  }
+
   /* Tables */
   .table-wrap { overflow-x: auto; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  table thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border));
+    white-space: nowrap;
+    background: hsl(var(--secondary) / 0.5);
+  }
+  table tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid hsl(var(--border));
+    color: hsl(var(--foreground));
+    white-space: nowrap;
+  }
+  table tbody tr:hover {
+    background: hsl(var(--secondary) / 0.5);
+  }
+  table tbody tr:last-child td {
+    border-bottom: none;
+  }
 
   /* Page header */
   .page-header { margin-bottom: 24px; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
