@@ -28,7 +28,7 @@ const mainMenu = [
 
 export function AppSidebar() {
   const location = useLocation();
-
+  const { theme, toggleTheme } = useTheme();
   return (
     <Sidebar className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className="px-5 pt-5 pb-2">
