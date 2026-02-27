@@ -1,6 +1,7 @@
 import React from 'react';
-import { Upload, LayoutDashboard, List, CheckCircle, Activity, AlertCircle, DollarSign, Radar } from 'lucide-react';
+import { Upload, LayoutDashboard, List, CheckCircle, Activity, AlertCircle, DollarSign, Radar, Sun, Moon } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
+import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from 'react-router-dom';
 import {
   Sidebar,
@@ -76,7 +77,14 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="px-5 pb-5">
+      <SidebarFooter className="px-5 pb-5 flex flex-col gap-3">
+        <button
+          onClick={() => toggleTheme()}
+          className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors w-full px-2 py-1.5 rounded-md hover:bg-accent"
+        >
+          {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          <span>{theme === 'dark' ? 'Tema Claro' : 'Tema Escuro'}</span>
+        </button>
         <div className="text-[11px] text-muted-foreground/40 font-mono">
           Edital 145/2023
         </div>
