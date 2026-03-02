@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EquipGroup } from '@/types';
 import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
-import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download } from 'lucide-react';
 
 function severidade(id: number | null): { label: string; color: string; icon: React.ElementType } {
   if (id === null) return { label: 'Sem dados', color: 'text-muted-foreground', icon: Info };
