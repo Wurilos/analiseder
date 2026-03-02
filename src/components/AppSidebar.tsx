@@ -24,6 +24,7 @@ const mainMenu = [
   { title: 'Comparativo', url: '/comparativo', icon: Activity },
   { title: 'Inválidas', url: '/invalidas', icon: AlertCircle },
   { title: 'Valores', url: '/valores', icon: DollarSign },
+  { title: 'Equipamentos', url: '/equipamentos', icon: Radar },
 ];
 
 export function AppSidebar() {
