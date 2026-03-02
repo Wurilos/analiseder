@@ -144,13 +144,6 @@ export default function ResumoPage() {
       </div>
 
       <div ref={contentRef}>
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Diagnóstico por equipamento com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
-        </p>
-      </motion.div>
-
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
