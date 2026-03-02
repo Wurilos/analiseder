@@ -101,7 +101,8 @@ export default function ResumoPage() {
       .from(contentRef.current)
       .save();
   };
-  const records = getActiveRecords();
+
+
 
   const groups = useMemo(() => {
     if (!records.length) return [];
