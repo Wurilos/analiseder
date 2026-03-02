@@ -33,10 +33,16 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
     const cat = EQUIP_CATALOG[equip];
     const valorTotal = cat ? cat.valor : getValorEquip(equip, first.tipo) * n;
     const valorFaixa = valorTotal / n;
-    const valorRecebidoTotal = recs.reduce((s, r) => s + valorFaixa * (r.c_ID ?? 0), 0);
+    // Use file (planilha) values for financial calculations
+    const f_IDF_avg = avg(recs.map(r => r.f_IDF)) ?? c_IDF;
+    const f_IEF_avg = avg(recs.map(r => r.f_IEF)) ?? c_IEF;
+    const f_ICV_avg = avg(recs.map(r => r.f_ICV)) ?? c_ICV;
+    const f_ID_avg = avg(recs.map(r => r.f_ID)) ?? c_ID;
+
+    const valorRecebidoTotal = recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
     const descontoTotal = valorTotal - valorRecebidoTotal;
 
-    const idf = c_IDF ?? 0, ief = c_IEF ?? 0, icv = c_ICV ?? 0, id = c_ID ?? 0;
+    const idf = f_IDF_avg ?? 0, ief = f_IEF_avg ?? 0, icv = f_ICV_avg ?? 0, id = f_ID_avg ?? 0;
     const id_idf1 = calcID(first.tipo, 1.0, ief, icv) ?? 0;
     const id_ief1 = calcID(first.tipo, idf, 1.0, icv) ?? 0;
     const id_icv1 = calcID(first.tipo, idf, ief, 1.0) ?? 0;

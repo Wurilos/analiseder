@@ -26,8 +26,8 @@ function calcFinanceiro(r: IDRecord, allRecs: IDRecord[]) {
   const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento).length || 1;
   const valorEquip = getValorEquip(r.equipamento, r.tipo);
   const valorBase = valorEquip / faixasDoEquip;
-  const id = r.c_ID ?? 0;
-  const idf = r.c_IDF ?? 0, ief = r.c_IEF ?? 0, icv = r.c_ICV ?? 0;
+  const id = r.f_ID ?? r.c_ID ?? 0;
+  const idf = r.f_IDF ?? r.c_IDF ?? 0, ief = r.f_IEF ?? r.c_IEF ?? 0, icv = r.f_ICV ?? r.c_ICV ?? 0;
   const valorRecebido = valorBase * id;
   const descontoTotal = valorBase * (1 - id);
   const id_idf1 = calcID(r.tipo, 1.0, ief, icv) ?? 0;
