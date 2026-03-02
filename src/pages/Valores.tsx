@@ -266,8 +266,8 @@ function EquipDetailModal({ equip, records }: { equip: string; records: IDRecord
   const n = faixas.length;
   const valorTotal = cat ? cat.valor : getValorEquip(equip, faixas[0]?.tipo) * n;
   const valorFaixa = valorTotal / n;
-  const avgID = faixas.reduce((s, r) => s + (r.c_ID ?? 0), 0) / n;
-  const valorRec = faixas.reduce((s, r) => s + valorFaixa * (r.c_ID ?? 0), 0);
+  const avgID = faixas.reduce((s, r) => s + (r.f_ID ?? r.c_ID ?? 0), 0) / n;
+  const valorRec = faixas.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
   const desconto = valorTotal - valorRec;
   const groups = groupByEquipamento(faixas);
   const g = groups[0];
