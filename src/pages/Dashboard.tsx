@@ -427,6 +427,7 @@ const DashboardPage: React.FC = () => {
           <table>
             <thead><tr>
               <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Rodovia</th>
+              <th>Km</th><th>Faixa</th>
               <th>Faixas</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th>
             </tr></thead>
             <tbody>{worst10.map(g => (
@@ -435,6 +436,8 @@ const DashboardPage: React.FC = () => {
                 <td className="text-muted-foreground text-[11px]">{g.equipamento}</td>
                 <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
                 <td className="text-muted-foreground text-[11px]">{g.rodovia}</td>
+                <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
+                <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
                 <td className="font-mono">{fmt(g.c_IDF)}</td>
                 <td className="font-mono">{fmt(g.c_IEF)}</td>
@@ -453,6 +456,7 @@ const DashboardPage: React.FC = () => {
           <table>
             <thead><tr>
               <th>Série</th><th>Equipamento</th><th>Tipo</th><th>Rodovia</th>
+              <th>Km</th><th>Faixa</th>
               <th>Faixas</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ID</th>
             </tr></thead>
             <tbody>{best10.map(g => (
@@ -461,6 +465,8 @@ const DashboardPage: React.FC = () => {
                 <td className="text-muted-foreground text-[11px]">{g.equipamento}</td>
                 <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
                 <td className="text-muted-foreground text-[11px]">{g.rodovia}</td>
+                <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
+                <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
                 <td className="font-mono">{fmt(g.c_IDF)}</td>
                 <td className="font-mono">{fmt(g.c_IEF)}</td>
