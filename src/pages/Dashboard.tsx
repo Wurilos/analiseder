@@ -362,7 +362,7 @@ const DashboardPage: React.FC = () => {
       <div className="kpis">
         <KPICard
           label="ID Médio"
-          value={fmt(avg)}
+          value={(avg * 100).toFixed(1) + '%'}
           sub={dashView === 'equip' ? groups.length + ' equipamentos' : withID.length + ' faixas'}
           icon={<BarChart3 size={22} />}
           iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
@@ -370,7 +370,7 @@ const DashboardPage: React.FC = () => {
         />
         <KPICard
           label="Mediana"
-          value={fmt(med)}
+          value={(med * 100).toFixed(1) + '%'}
           icon={<Target size={22} />}
           iconColor="blue"
         />
