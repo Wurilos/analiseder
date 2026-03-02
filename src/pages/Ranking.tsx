@@ -286,7 +286,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                   const recos = getRecommendations(r);
                   const main = recos[0];
                   return (
-                    <tr key={`${r.equipamento}-${r.faixa}-${fi}`} className="bg-secondary/20 dark:bg-secondary/10 cursor-pointer" onClick={() => onDetail(r)}>
+                    <tr key={`${r.equipamento}-${r.faixa}-${fi}`} className="bg-blue-50/60 dark:bg-blue-950/20 border-l-2 border-l-primary/40 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/20" onClick={() => onDetail(r)}>
                       <td></td>
                       <td></td>
                       <td className="text-[11px] text-muted-foreground pl-8">↳ Faixa {r.faixa}</td>
