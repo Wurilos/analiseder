@@ -429,7 +429,7 @@ export function getSerie(equip: string): number | null {
  */
 export function equipLabel(equip: string): string {
   const cat = EQUIP_CATALOG[equip.trim()];
-  return cat ? `Nº ${cat.serie}` : equip;
+  return cat && cat.serie > 0 ? `Nº ${cat.serie}` : equip;
 }
 
 /**
@@ -437,7 +437,7 @@ export function equipLabel(equip: string): string {
  */
 export function equipLabelFull(equip: string): string {
   const cat = EQUIP_CATALOG[equip.trim()];
-  return cat ? `Nº ${cat.serie} (${equip})` : equip;
+  return cat && cat.serie > 0 ? `Nº ${cat.serie} (${equip})` : equip;
 }
 
 /**
