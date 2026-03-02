@@ -130,6 +130,20 @@ export default function ResumoPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
+      <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Diagnóstico por equipamento com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
+          </p>
+        </motion.div>
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+          <Download className="w-4 h-4" />
+          Exportar PDF
+        </Button>
+      </div>
+
+      <div ref={contentRef}>
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
         <p className="text-sm text-muted-foreground mt-1">
