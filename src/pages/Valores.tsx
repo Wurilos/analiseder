@@ -26,8 +26,8 @@ function calcFinanceiro(r: IDRecord, allRecs: IDRecord[]) {
   const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento).length || 1;
   const valorEquip = getValorEquip(r.equipamento, r.tipo);
   const valorBase = valorEquip / faixasDoEquip;
-  const id = r.c_ID ?? 0;
-  const idf = r.c_IDF ?? 0, ief = r.c_IEF ?? 0, icv = r.c_ICV ?? 0;
+  const id = r.f_ID ?? r.c_ID ?? 0;
+  const idf = r.f_IDF ?? r.c_IDF ?? 0, ief = r.f_IEF ?? r.c_IEF ?? 0, icv = r.f_ICV ?? r.c_ICV ?? 0;
   const valorRecebido = valorBase * id;
   const descontoTotal = valorBase * (1 - id);
   const id_idf1 = calcID(r.tipo, 1.0, ief, icv) ?? 0;
@@ -266,8 +266,8 @@ function EquipDetailModal({ equip, records }: { equip: string; records: IDRecord
   const n = faixas.length;
   const valorTotal = cat ? cat.valor : getValorEquip(equip, faixas[0]?.tipo) * n;
   const valorFaixa = valorTotal / n;
-  const avgID = faixas.reduce((s, r) => s + (r.c_ID ?? 0), 0) / n;
-  const valorRec = faixas.reduce((s, r) => s + valorFaixa * (r.c_ID ?? 0), 0);
+  const avgID = faixas.reduce((s, r) => s + (r.f_ID ?? r.c_ID ?? 0), 0) / n;
+  const valorRec = faixas.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
   const desconto = valorTotal - valorRec;
   const groups = groupByEquipamento(faixas);
   const g = groups[0];
