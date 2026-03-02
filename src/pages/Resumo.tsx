@@ -84,6 +84,24 @@ function gerarTextoMelhoria(g: EquipGroup): string[] {
 export default function ResumoPage() {
   const { getActiveRecords, activePeriod } = useData();
   const records = getActiveRecords();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!contentRef.current) return;
+    const html2pdf = (await import('html2pdf.js')).default;
+    html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `Resumo_${activePeriod || 'geral'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      })
+      .from(contentRef.current)
+      .save();
+  };
+  const records = getActiveRecords();
 
   const groups = useMemo(() => {
     if (!records.length) return [];
