@@ -1,11 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EquipGroup } from '@/types';
 import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
-import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download } from 'lucide-react';
 
 function severidade(id: number | null): { label: string; color: string; icon: React.ElementType } {
   if (id === null) return { label: 'Sem dados', color: 'text-muted-foreground', icon: Info };
@@ -83,6 +84,25 @@ function gerarTextoMelhoria(g: EquipGroup): string[] {
 export default function ResumoPage() {
   const { getActiveRecords, activePeriod } = useData();
   const records = getActiveRecords();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!contentRef.current) return;
+    const html2pdf = (await import('html2pdf.js')).default;
+    html2pdf()
+      .set({
+        margin: [10, 10, 10, 10],
+        filename: `Resumo_${activePeriod || 'geral'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+      })
+      .from(contentRef.current)
+      .save();
+  };
+
+
 
   const groups = useMemo(() => {
     if (!records.length) return [];
@@ -110,13 +130,20 @@ export default function ResumoPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Diagnóstico por equipamento com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
-        </p>
-      </motion.div>
+      <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
+          <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Diagnóstico por equipamento com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
+          </p>
+        </motion.div>
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+          <Download className="w-4 h-4" />
+          Exportar PDF
+        </Button>
+      </div>
 
+      <div ref={contentRef}>
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
@@ -211,6 +238,7 @@ export default function ResumoPage() {
             </motion.div>
           );
         })}
+      </div>
       </div>
     </div>
   );
