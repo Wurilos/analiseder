@@ -239,6 +239,7 @@ export default function ResumoPage() {
           );
         })}
       </div>
+      </div>
     </div>
   );
 }
