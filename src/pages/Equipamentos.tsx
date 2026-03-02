@@ -121,7 +121,7 @@ export default function EquipamentosPage() {
                   <TableCell>
                     <span className="inline-flex items-center gap-1 text-xs">
                       <Hash className="w-3 h-3 text-muted-foreground" />
-                      {r.serie}
+                      {r.serie > 0 ? r.serie : <span className="text-muted-foreground italic">Pendente</span>}
                     </span>
                   </TableCell>
                   <TableCell>
