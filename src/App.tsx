@@ -13,6 +13,7 @@ import ComparativoPage from "./pages/Comparativo";
 import InvalidasPage from "./pages/Invalidas";
 import ValoresPage from "./pages/Valores";
 import EquipamentosPage from "./pages/Equipamentos";
+import ResumoPage from "./pages/Resumo";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
 import { ThemeProvider } from "./hooks/use-theme";
@@ -45,6 +46,7 @@ const App = () => (
                       <Route path="/invalidas" element={<InvalidasPage />} />
                       <Route path="/valores" element={<ValoresPage />} />
                       <Route path="/equipamentos" element={<EquipamentosPage />} />
+                      <Route path="/resumo" element={<ResumoPage />} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </div>
