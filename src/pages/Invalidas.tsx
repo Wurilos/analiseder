@@ -141,7 +141,7 @@ const InvalidasPage: React.FC = () => {
         <div className="table-wrap overflow-x-auto">
           <table>
             <thead><tr>
-              <th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th>
+              <th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
               <th>Válidas</th><th>Total Inv.</th>
               <th title="Imagem">Img</th><th title="Enquadramento">Enq</th><th title="Sinalização">Sin</th>
               <th>🔴 Splice</th><th>% Splice</th>
@@ -158,6 +158,7 @@ const InvalidasPage: React.FC = () => {
                     <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
                     <td className="font-mono">{r.faixa}</td>
                     <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
+                    <td className="font-mono text-muted-foreground text-[11px]">{r.km ?? '—'}</td>
                     <td className="font-mono">{r.validas.toLocaleString('pt-BR')}</td>
                     <td className="font-mono">{r.totalInvalidas.toLocaleString('pt-BR')}</td>
                     <td className="font-mono" style={{ color: r.imagem > 0 ? '#ef4444' : undefined }}>{r.imagem}</td>
