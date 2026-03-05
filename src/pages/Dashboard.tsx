@@ -499,7 +499,7 @@ const DashboardPage: React.FC = () => {
               </tr>
             ))}</tbody>
           </table>
-    </TooltipProvider>
+        </div>
       </div>
 
       {/* Top 10 Best */}
