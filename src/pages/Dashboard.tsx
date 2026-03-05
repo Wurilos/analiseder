@@ -530,7 +530,7 @@ const DashboardPage: React.FC = () => {
           </table>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
