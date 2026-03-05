@@ -4,7 +4,7 @@ import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { BarChart3, Target, AlertTriangle, TrendingDown } from 'lucide-react';
+import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers } from 'lucide-react';
 import * as echarts from 'echarts';
 
 function fmt(v: number | null, d = 3) {
@@ -360,6 +360,18 @@ const DashboardPage: React.FC = () => {
 
       {/* KPIs */}
       <div className="kpis">
+        <KPICard
+          label="Total Equipamentos"
+          value={String(groups.length)}
+          icon={<Monitor size={22} />}
+          iconColor="blue"
+        />
+        <KPICard
+          label="Total Faixas"
+          value={String(filtered.length)}
+          icon={<Layers size={22} />}
+          iconColor="purple"
+        />
         <KPICard
           label="ID Médio"
           value={(avg * 100).toFixed(1) + '%'}
