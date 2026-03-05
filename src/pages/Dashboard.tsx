@@ -6,6 +6,8 @@ import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
 import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers } from 'lucide-react';
 import * as echarts from 'echarts';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { EquipGroup } from '@/types';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -14,6 +16,38 @@ function fmt(v: number | null, d = 3) {
 function idBadge(v: number | null) {
   if (v === null || v === undefined) return 'badge-slate';
   return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green';
+}
+
+function indexTooltipText(index: 'IDF' | 'IEF' | 'ICV' | 'ID', g: EquipGroup): string {
+  const f = (v: number | null) => v !== null && v !== undefined ? Number(v).toFixed(3) : '—';
+  switch (index) {
+    case 'IDF':
+      return `IDF = NHo / NHt\n≥ 0.95 → 1.000\nMédia das faixas: ${f(g.c_IDF)}`;
+    case 'IEF':
+      return `IEF = 0.8 × (ICId+ICIn)/2 × (IEVri+IEVdt)/2 + 0.2 × (ILPd+ILPn)/2\nICId=${f(g.c_ICId)}  ICIn=${f(g.c_ICIn)}\nIEVri=${f(g.c_IEVri)}  IEVdt=${f(g.c_IEVdt)}\nILPd=${f(g.c_ILPd)}  ILPn=${f(g.c_ILPn)}\nResultado: ${f(g.c_IEF)}`;
+    case 'ICV':
+      return `ICV = QVc / QVt\nClassificação por faixas:\n≥ 0.80 → 1.000 | ≥ 0.70 → 0.750\n≥ 0.60 → 0.250 | < 0.60 → 0.000\nMédia: ${f(g.c_ICV)}`;
+    case 'ID':
+      return `ID = IDF × (0.9 × IEF + 0.1 × ICV)\nIDF=${f(g.c_IDF)}  IEF=${f(g.c_IEF)}  ICV=${f(g.c_ICV)}\nResultado: ${f(g.c_ID)}`;
+  }
+}
+
+function IndexCell({ index, g, badge }: { index: 'IDF' | 'IEF' | 'ICV' | 'ID'; g: EquipGroup; badge?: boolean }) {
+  const val = g[`c_${index}` as keyof EquipGroup] as number | null;
+  const tip = indexTooltipText(index, g);
+  const content = badge
+    ? <span className={`badge ${idBadge(val)}`}>{fmt(val)}</span>
+    : <span>{fmt(val)}</span>;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <td className="font-mono cursor-help">{content}</td>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">
+        {tip}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 function getChartTheme(isDark: boolean) {
@@ -334,7 +368,7 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <TooltipProvider delayDuration={200}>
       {/* Header */}
       <div className="page-header">
         <div>
@@ -458,10 +492,10 @@ const DashboardPage: React.FC = () => {
                 <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
                 <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
-                <td className="font-mono">{fmt(g.c_IDF)}</td>
-                <td className="font-mono">{fmt(g.c_IEF)}</td>
-                <td className="font-mono">{fmt(g.c_ICV)}</td>
-                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <IndexCell index="IDF" g={g} />
+                <IndexCell index="IEF" g={g} />
+                <IndexCell index="ICV" g={g} />
+                <IndexCell index="ID" g={g} badge />
               </tr>
             ))}</tbody>
           </table>
@@ -487,16 +521,16 @@ const DashboardPage: React.FC = () => {
                 <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
                 <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
-                <td className="font-mono">{fmt(g.c_IDF)}</td>
-                <td className="font-mono">{fmt(g.c_IEF)}</td>
-                <td className="font-mono">{fmt(g.c_ICV)}</td>
-                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <IndexCell index="IDF" g={g} />
+                <IndexCell index="IEF" g={g} />
+                <IndexCell index="ICV" g={g} />
+                <IndexCell index="ID" g={g} badge />
               </tr>
             ))}</tbody>
           </table>
         </div>
       </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
