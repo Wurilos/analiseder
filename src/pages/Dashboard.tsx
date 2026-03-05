@@ -306,8 +306,15 @@ const DashboardPage: React.FC = () => {
   const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
-  const below6 = withID.filter(r => r.c_ID! < 0.6).length;
-  const below85 = withID.filter(r => r.c_ID! < 0.85).length;
+  const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
+  const below6 = useMemo(() => dashView === 'equip'
+    ? groupsWithID.filter(g => g.c_ID! < 0.6).length
+    : withID.filter(r => r.c_ID! < 0.6).length
+  , [dashView, groupsWithID, withID]);
+  const below85 = useMemo(() => dashView === 'equip'
+    ? groupsWithID.filter(g => g.c_ID! < 0.85).length
+    : withID.filter(r => r.c_ID! < 0.85).length
+  , [dashView, groupsWithID, withID]);
 
   const chartData = useMemo(() =>
     dashView === 'equip' ? groups.filter(g => g.c_ID !== null) : withID
@@ -389,7 +396,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.60"
           value={String(below6)}
-          sub="críticos"
+          sub={dashView === 'equip' ? 'equipamentos críticos' : 'faixas críticas'}
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
@@ -397,7 +404,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.85"
           value={String(below85)}
-          sub="abaixo da meta"
+          sub={dashView === 'equip' ? 'equipamentos abaixo' : 'faixas abaixo'}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={below85 > 0 ? 'warn' : 'good'}
