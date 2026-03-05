@@ -396,7 +396,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.60"
           value={String(below6)}
-          sub="críticos"
+          sub={dashView === 'equip' ? 'equipamentos críticos' : 'faixas críticas'}
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
@@ -404,7 +404,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.85"
           value={String(below85)}
-          sub="abaixo da meta"
+          sub={dashView === 'equip' ? 'equipamentos abaixo' : 'faixas abaixo'}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={below85 > 0 ? 'warn' : 'good'}
