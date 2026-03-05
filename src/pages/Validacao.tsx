@@ -2,10 +2,54 @@ import React, { useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import KPICard from '@/components/KPICard';
 import { CheckCircle, Check, AlertTriangle, XCircle } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { IDRecord } from '@/types';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
   return Number(v).toFixed(d);
+}
+
+type IndexKey = 'ICId' | 'ICIn' | 'IEVri' | 'IEVdt' | 'ILPd' | 'ILPn' | 'IEF' | 'IDF' | 'ICV' | 'ID';
+
+function indexTooltip(idx: IndexKey, r: IDRecord): string {
+  const f = (v: number | null) => v !== null && v !== undefined ? Number(v).toFixed(3) : '—';
+  switch (idx) {
+    case 'ICId':
+      return `ICId = (IVd + INd) / TId\n= (${f(r.IVd)} + ${f(r.INd)}) / ${f(r.TId)}\nRatio: ${f(r.ICId_raw)} → ${f(r.c_ICId)}`;
+    case 'ICIn':
+      return `ICIn = (IVn + INn) / TIn\n= (${f(r.IVn)} + ${f(r.INn)}) / ${f(r.TIn)}\nRatio: ${f(r.ICIn_raw)} → ${f(r.c_ICIn)}`;
+    case 'IEVri':
+      return `IEVri = (1×R1 + 0.8×R2 + 0.6×R3 + 0.4×R4 + 0.2×R5) / Total\nR1=${f(r.rfri1)} R2=${f(r.rfri2)} R3=${f(r.rfri3)}\nR4=${f(r.rfri4)} R5=${f(r.rfri5)}\nResultado: ${f(r.c_IEVri)}`;
+    case 'IEVdt':
+      return `IEVdt = (1×R1 + 0.9×R2 + 0.8×R3 + 0.7×R4 + 0.4×R5 + 0.2×R6) / Total\nR1=${f(r.rfdt1)} R2=${f(r.rfdt2)} R3=${f(r.rfdt3)}\nR4=${f(r.rfdt4)} R5=${f(r.rfdt5)} R6=${f(r.rfdt6)}\nResultado: ${f(r.c_IEVdt)}`;
+    case 'ILPd':
+      return `ILPd = LPd / IVd\n= ${f(r.LPd)} / ${f(r.IVd_ocr)}\nRatio: ${f(r.ILPd_raw)} → ${f(r.c_ILPd)}`;
+    case 'ILPn':
+      return `ILPn = LPn / IVn\n= ${f(r.LPn)} / ${f(r.IVn_ocr)}\nRatio: ${f(r.ILPn_raw)} → ${f(r.c_ILPn)}`;
+    case 'IEF':
+      return `IEF = 0.8 × (ICId+ICIn)/2 × (IEVri+IEVdt)/2 + 0.2 × (ILPd+ILPn)/2\nICId=${f(r.c_ICId)}  ICIn=${f(r.c_ICIn)}\nIEVri=${f(r.c_IEVri)}  IEVdt=${f(r.c_IEVdt)}\nILPd=${f(r.c_ILPd)}  ILPn=${f(r.c_ILPn)}\nResultado: ${f(r.c_IEF)}`;
+    case 'IDF':
+      return `IDF = NHo / NHt\n= ${f(r.NHo)} / ${f(r.NHt)}\n≥ 0.95 → 1.000\nResultado: ${f(r.c_IDF)}`;
+    case 'ICV':
+      return `ICV = QVc / QVt\n= ${f(r.QVc)} / ${f(r.QVt)}\n≥ 0.80→1 | ≥0.70→0.75 | ≥0.60→0.25 | <0.60→0\nResultado: ${f(r.c_ICV)}`;
+    case 'ID':
+      return `ID = IDF × (0.9 × IEF + 0.1 × ICV)\nIDF=${f(r.c_IDF)}  IEF=${f(r.c_IEF)}  ICV=${f(r.c_ICV)}\nResultado: ${f(r.c_ID)}`;
+  }
+}
+
+function IdxCell({ idx, r }: { idx: IndexKey; r: IDRecord }) {
+  const val = r[`c_${idx}` as keyof IDRecord] as number | null;
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <td className="font-mono cursor-help">{fmt(val)}</td>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">
+        {indexTooltip(idx, r)}
+      </TooltipContent>
+    </Tooltip>
+  );
 }
 
 interface Divergence {
@@ -46,6 +90,7 @@ const ValidacaoPage: React.FC = () => {
   const matchPct = total > 0 ? ((matches / total) * 100).toFixed(1) : '0';
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div>
       <div className="page-header mb-6">
         <div>
@@ -110,16 +155,21 @@ const ValidacaoPage: React.FC = () => {
                     <td className="font-mono text-[11px]">{r.equipamento}</td>
                     <td className="font-mono">{r.faixa}</td>
                     <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
-                    <td className="font-mono">{fmt(r.c_ICId)}</td>
-                    <td className="font-mono">{fmt(r.c_ICIn)}</td>
-                    <td className="font-mono">{fmt(r.c_IEVri)}</td>
-                    <td className="font-mono">{fmt(r.c_IEVdt)}</td>
-                    <td className="font-mono">{fmt(r.c_ILPd)}</td>
-                    <td className="font-mono">{fmt(r.c_ILPn)}</td>
-                    <td className="font-mono">{fmt(r.c_IEF)}</td>
-                    <td className="font-mono">{fmt(r.c_IDF)}</td>
-                    <td className="font-mono">{fmt(r.c_ICV)}</td>
-                    <td className="font-mono font-bold">{fmt(r.c_ID)}</td>
+                    <IdxCell idx="ICId" r={r} />
+                    <IdxCell idx="ICIn" r={r} />
+                    <IdxCell idx="IEVri" r={r} />
+                    <IdxCell idx="IEVdt" r={r} />
+                    <IdxCell idx="ILPd" r={r} />
+                    <IdxCell idx="ILPn" r={r} />
+                    <IdxCell idx="IEF" r={r} />
+                    <IdxCell idx="IDF" r={r} />
+                    <IdxCell idx="ICV" r={r} />
+                    <td className="font-mono font-bold cursor-help">
+                      <Tooltip>
+                        <TooltipTrigger asChild><span>{fmt(r.c_ID)}</span></TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">{indexTooltip('ID', r)}</TooltipContent>
+                      </Tooltip>
+                    </td>
                     <td className="font-mono text-primary">{fmt(r.f_ID)}</td>
                     <td className={`font-mono font-bold ${delta !== null && delta >= 0.01 ? 'text-destructive' : delta !== null && delta >= 0.001 ? 'text-primary' : 'text-green-600'}`}>
                       {delta !== null ? fmt(delta, 4) : '—'}
@@ -132,6 +182,7 @@ const ValidacaoPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
