@@ -41,14 +41,16 @@ function indexTooltip(idx: IndexKey, r: IDRecord): string {
 function IdxCell({ idx, r }: { idx: IndexKey; r: IDRecord }) {
   const val = r[`c_${idx}` as keyof IDRecord] as number | null;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <td className="font-mono cursor-help">{fmt(val)}</td>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">
-        {indexTooltip(idx, r)}
-      </TooltipContent>
-    </Tooltip>
+    <td className="font-mono">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help">{fmt(val)}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" align="center" className="max-w-xs whitespace-pre-wrap font-mono text-[11px] pointer-events-none">
+          {indexTooltip(idx, r)}
+        </TooltipContent>
+      </Tooltip>
+    </td>
   );
 }
 
@@ -164,10 +166,10 @@ const ValidacaoPage: React.FC = () => {
                     <IdxCell idx="IEF" r={r} />
                     <IdxCell idx="IDF" r={r} />
                     <IdxCell idx="ICV" r={r} />
-                    <td className="font-mono font-bold cursor-help">
+                    <td className="font-mono font-bold">
                       <Tooltip>
-                        <TooltipTrigger asChild><span>{fmt(r.c_ID)}</span></TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">{indexTooltip('ID', r)}</TooltipContent>
+                        <TooltipTrigger asChild><span className="cursor-help">{fmt(r.c_ID)}</span></TooltipTrigger>
+                        <TooltipContent side="top" align="center" className="max-w-xs whitespace-pre-wrap font-mono text-[11px] pointer-events-none">{indexTooltip('ID', r)}</TooltipContent>
                       </Tooltip>
                     </td>
                     <td className="font-mono text-primary">{fmt(r.f_ID)}</td>
