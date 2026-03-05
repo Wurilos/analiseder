@@ -120,10 +120,19 @@ const ValidacaoPage: React.FC = () => {
               {divergences.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">✓ Nenhuma divergência encontrada</td></tr>
               ) : divergences.map((d, i) => (
-                <tr key={i}>
-                  <td className="font-mono text-[11px]">{d.equip}</td>
-                  <td className="font-mono">{d.faixa}</td>
-                  <td className="font-mono font-bold text-primary">{d.indice}</td>
+                 <tr key={i}>
+                   <td className="font-mono text-[11px]">{d.equip}</td>
+                   <td className="font-mono">{d.faixa}</td>
+                   <td className="font-mono font-bold text-primary">
+                     <Tooltip>
+                       <TooltipTrigger asChild>
+                         <span className="cursor-help">{d.indice}</span>
+                       </TooltipTrigger>
+                       <TooltipContent side="top" align="center" className="max-w-xs whitespace-pre-wrap font-mono text-[11px] pointer-events-none">
+                         {indexTooltip(d.indice as IndexKey, records.find(r => r.equipamento === d.equip && r.faixa === d.faixa)!)}
+                       </TooltipContent>
+                     </Tooltip>
+                   </td>
                   <td className="font-mono">{fmt(d.sistema)}</td>
                   <td className="font-mono">{fmt(d.planilha)}</td>
                   <td className={`font-mono font-bold ${d.delta >= 0.01 ? 'text-destructive' : 'text-primary'}`}>{fmt(d.delta, 4)}</td>
