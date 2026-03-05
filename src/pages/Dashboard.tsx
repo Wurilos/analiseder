@@ -6,6 +6,8 @@ import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
 import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers } from 'lucide-react';
 import * as echarts from 'echarts';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { EquipGroup } from '@/types';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
