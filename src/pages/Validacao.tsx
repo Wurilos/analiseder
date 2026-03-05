@@ -90,6 +90,7 @@ const ValidacaoPage: React.FC = () => {
   const matchPct = total > 0 ? ((matches / total) * 100).toFixed(1) : '0';
 
   return (
+    <TooltipProvider delayDuration={200}>
     <div>
       <div className="page-header mb-6">
         <div>
@@ -154,16 +155,21 @@ const ValidacaoPage: React.FC = () => {
                     <td className="font-mono text-[11px]">{r.equipamento}</td>
                     <td className="font-mono">{r.faixa}</td>
                     <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
-                    <td className="font-mono">{fmt(r.c_ICId)}</td>
-                    <td className="font-mono">{fmt(r.c_ICIn)}</td>
-                    <td className="font-mono">{fmt(r.c_IEVri)}</td>
-                    <td className="font-mono">{fmt(r.c_IEVdt)}</td>
-                    <td className="font-mono">{fmt(r.c_ILPd)}</td>
-                    <td className="font-mono">{fmt(r.c_ILPn)}</td>
-                    <td className="font-mono">{fmt(r.c_IEF)}</td>
-                    <td className="font-mono">{fmt(r.c_IDF)}</td>
-                    <td className="font-mono">{fmt(r.c_ICV)}</td>
-                    <td className="font-mono font-bold">{fmt(r.c_ID)}</td>
+                    <IdxCell idx="ICId" r={r} />
+                    <IdxCell idx="ICIn" r={r} />
+                    <IdxCell idx="IEVri" r={r} />
+                    <IdxCell idx="IEVdt" r={r} />
+                    <IdxCell idx="ILPd" r={r} />
+                    <IdxCell idx="ILPn" r={r} />
+                    <IdxCell idx="IEF" r={r} />
+                    <IdxCell idx="IDF" r={r} />
+                    <IdxCell idx="ICV" r={r} />
+                    <td className="font-mono font-bold cursor-help">
+                      <Tooltip>
+                        <TooltipTrigger asChild><span>{fmt(r.c_ID)}</span></TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-xs whitespace-pre-wrap font-mono text-[11px]">{indexTooltip('ID', r)}</TooltipContent>
+                      </Tooltip>
+                    </td>
                     <td className="font-mono text-primary">{fmt(r.f_ID)}</td>
                     <td className={`font-mono font-bold ${delta !== null && delta >= 0.01 ? 'text-destructive' : delta !== null && delta >= 0.001 ? 'text-primary' : 'text-green-600'}`}>
                       {delta !== null ? fmt(delta, 4) : '—'}
@@ -176,6 +182,7 @@ const ValidacaoPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </TooltipProvider>
   );
 };
 
