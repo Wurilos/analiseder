@@ -368,7 +368,7 @@ const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div>
+    <TooltipProvider delayDuration={200}>
       {/* Header */}
       <div className="page-header">
         <div>
@@ -492,14 +492,14 @@ const DashboardPage: React.FC = () => {
                 <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
                 <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
-                <td className="font-mono">{fmt(g.c_IDF)}</td>
-                <td className="font-mono">{fmt(g.c_IEF)}</td>
-                <td className="font-mono">{fmt(g.c_ICV)}</td>
-                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <IndexCell index="IDF" g={g} />
+                <IndexCell index="IEF" g={g} />
+                <IndexCell index="ICV" g={g} />
+                <IndexCell index="ID" g={g} badge />
               </tr>
             ))}</tbody>
           </table>
-        </div>
+    </TooltipProvider>
       </div>
 
       {/* Top 10 Best */}
@@ -521,10 +521,10 @@ const DashboardPage: React.FC = () => {
                 <td className="font-mono text-[11px]">{g.km ?? '—'}</td>
                 <td className="text-[11px]">{g.faixas.join(', ')}</td>
                 <td className="font-mono">{g.numFaixas}</td>
-                <td className="font-mono">{fmt(g.c_IDF)}</td>
-                <td className="font-mono">{fmt(g.c_IEF)}</td>
-                <td className="font-mono">{fmt(g.c_ICV)}</td>
-                <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                <IndexCell index="IDF" g={g} />
+                <IndexCell index="IEF" g={g} />
+                <IndexCell index="ICV" g={g} />
+                <IndexCell index="ID" g={g} badge />
               </tr>
             ))}</tbody>
           </table>
