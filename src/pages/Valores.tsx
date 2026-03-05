@@ -185,8 +185,8 @@ const ValoresPage: React.FC = () => {
           {viewMode === 'equip' ? (
             <table>
               <thead><tr>
-                <th>Série</th><th>Equip</th><th>Tipo</th><th>Rodovia</th><th>Faixas</th>
-                <th>ID</th><th>Valor Equip</th><th>Recebido</th><th>Desconto</th><th>Melhor Alavanca</th><th>Ação</th>
+                <th>Série</th><th>Equip</th><th>Tipo</th><th>Rodovia</th><th>Km</th><th>Faixas</th>
+                 <th>ID</th><th>Valor Equip</th><th>Recebido</th><th>Desconto</th><th>Melhor Alavanca</th><th>Ação</th>
               </tr></thead>
               <tbody>
                 {[...groups].sort((a, b) => b.descontoTotal - a.descontoTotal).map(g => {
@@ -198,6 +198,7 @@ const ValoresPage: React.FC = () => {
                       <td className="text-muted-foreground text-[11px]">{g.equipamento}</td>
                       <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
                       <td className="text-muted-foreground text-[11px]">{g.rodovia}</td>
+                      <td className="font-mono text-muted-foreground text-[11px]">{g.km ?? '—'}</td>
                       <td className="font-mono">{g.numFaixas}</td>
                       <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
                       <td className="font-mono text-muted-foreground">{moeda(g.valorTotal)}</td>
@@ -217,8 +218,8 @@ const ValoresPage: React.FC = () => {
           ) : (
             <table>
               <thead><tr>
-                <th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th>
-                <th>ID</th><th>Valor Faixa</th><th>Recebido</th><th>Desconto</th><th>Alavanca</th>
+                <th>Série</th><th>Equip</th><th>Tipo</th><th>Rodovia</th><th>Km</th><th>Faixa</th>
+                 <th>ID</th><th>Valor Faixa</th><th>Recebido</th><th>Desconto</th><th>Alavanca</th>
               </tr></thead>
               <tbody>
                 {[...filtered].sort((a, b) => {
@@ -233,6 +234,8 @@ const ValoresPage: React.FC = () => {
                       <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
                       <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
                       <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
+                      <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
+                      <td className="font-mono text-muted-foreground text-[11px]">{r.km ?? '—'}</td>
                       <td className="font-mono">{r.faixa}</td>
                       <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
                       <td className="font-mono text-muted-foreground">{moeda(f.valorBase)}</td>
