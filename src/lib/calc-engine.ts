@@ -94,6 +94,42 @@ export function calcID(tipo: string, IDF: number | null, IEF: number | null, ICV
   return IDF * (0.9 * IEF + 0.1 * ICV);
 }
 
+/**
+ * Calcula o ID "atual" ajustando o NHt proporcionalmente aos dias decorridos no período.
+ * Período sempre vai do dia 16 ao dia 15 do mês seguinte.
+ */
+export function calcIDAtual(r: { NHo: number | null; NHt: number | null; c_IEF: number | null; c_ICV: number | null; tipo: string; dias: number | null }): number | null {
+  if (r.NHo === null || r.NHt === null || !r.NHt || r.c_IEF === null || r.c_ICV === null || !r.dias) return null;
+
+  const today = new Date();
+  const day = today.getDate();
+
+  // Determine period start date
+  let startDate: Date;
+  if (day >= 16) {
+    // Current period started on the 16th of this month
+    startDate = new Date(today.getFullYear(), today.getMonth(), 16);
+  } else {
+    // Current period started on the 16th of last month
+    startDate = new Date(today.getFullYear(), today.getMonth() - 1, 16);
+  }
+
+  // Days elapsed from period start to today (inclusive of today)
+  const elapsed = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  const totalDays = r.dias;
+
+  if (elapsed <= 0 || totalDays <= 0) return null;
+
+  // Proportional NHt for elapsed days
+  const ratio = Math.min(elapsed / totalDays, 1);
+  const NHt_atual = r.NHt * ratio;
+
+  if (NHt_atual <= 0) return null;
+
+  const idf_atual = calcIDF(r.NHo, NHt_atual);
+  return calcID(r.tipo, idf_atual, r.c_IEF, r.c_ICV);
+}
+
 export function calcGainPotential(r: { c_IDF: number | null; c_IEF: number | null; c_ICV: number | null; c_ID: number | null; tipo: string }) {
   const idf = r.c_IDF ?? 0, ief = r.c_IEF ?? 0, icv = r.c_ICV ?? 0, id = r.c_ID ?? 0;
   const idf1 = calcID(r.tipo, 1.0, ief, icv) ?? 0;

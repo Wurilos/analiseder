@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
-import { calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-engine';
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
@@ -186,7 +186,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
           <th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
           <th>IDF</th><th>IEF</th><th>ICV</th>
           <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
-          <th>ID</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
+          <th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
         </tr></thead>
         <tbody>
           {sorted.map((r, i) => {
@@ -213,6 +213,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
                 <td>{idxCell(r.c_ILPd)}</td>
                 <td>{idxCell(r.c_ILPn)}</td>
                 <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                 <td className="text-[11px] max-w-[180px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                   {main ? main.title.split(' — ')[0] : '✓ Bom'}
                 </td>
@@ -238,7 +239,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
           <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th>
           <th>IDF</th><th>IEF</th><th>ICV</th>
           <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
-          <th>ID Médio</th><th>Alavanca</th><th>Desconto</th>
+          <th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th>
         </tr></thead>
         <tbody>
           {groups.map((g, i) => {
@@ -271,6 +272,14 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                   <td>{idxCell(g.c_ILPd)}</td>
                   <td>{idxCell(g.c_ILPn)}</td>
                   <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                  <td>
+                    {(() => {
+                      const faixaRecs = records.filter(r => r.equipamento === g.equipamento);
+                      const idAtuais = faixaRecs.map(r => calcIDAtual(r)).filter((v): v is number => v !== null);
+                      const avgAtual = idAtuais.length ? idAtuais.reduce((s, v) => s + v, 0) / idAtuais.length : null;
+                      return <span className={`badge ${idBadge(avgAtual)}`}>{fmt(avgAtual)}</span>;
+                    })()}
+                  </td>
                   <td className="text-[11px]">
                     <span className={`font-semibold ${g.melhorAlavanca.perda > 0 ? 'text-red-600 dark:text-destructive' : 'text-green-600 dark:text-emerald-400'}`}>
                       {g.melhorAlavanca.perda > 0 ? `${g.melhorAlavanca.nome} (${fmtCurrency(g.melhorAlavanca.perda)})` : '✓ Bom'}
@@ -304,6 +313,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                       <td>{idxCell(r.c_ILPd)}</td>
                       <td>{idxCell(r.c_ILPn)}</td>
                       <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                      <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                       <td className="text-[11px] max-w-[150px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                         {main ? main.title.split(' — ')[0] : '✓ Bom'}
                       </td>
