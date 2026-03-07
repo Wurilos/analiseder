@@ -239,7 +239,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
           <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th>
           <th>IDF</th><th>IEF</th><th>ICV</th>
           <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
-          <th>ID Médio</th><th>Alavanca</th><th>Desconto</th>
+          <th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th>
         </tr></thead>
         <tbody>
           {groups.map((g, i) => {
@@ -272,6 +272,14 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                   <td>{idxCell(g.c_ILPd)}</td>
                   <td>{idxCell(g.c_ILPn)}</td>
                   <td><span className={`badge ${idBadge(g.c_ID)}`}>{fmt(g.c_ID)}</span></td>
+                  <td>
+                    {(() => {
+                      const faixaRecs = records.filter(r => r.equipamento === g.equipamento);
+                      const idAtuais = faixaRecs.map(r => calcIDAtual(r)).filter((v): v is number => v !== null);
+                      const avgAtual = idAtuais.length ? idAtuais.reduce((s, v) => s + v, 0) / idAtuais.length : null;
+                      return <span className={`badge ${idBadge(avgAtual)}`}>{fmt(avgAtual)}</span>;
+                    })()}
+                  </td>
                   <td className="text-[11px]">
                     <span className={`font-semibold ${g.melhorAlavanca.perda > 0 ? 'text-red-600 dark:text-destructive' : 'text-green-600 dark:text-emerald-400'}`}>
                       {g.melhorAlavanca.perda > 0 ? `${g.melhorAlavanca.nome} (${fmtCurrency(g.melhorAlavanca.perda)})` : '✓ Bom'}
