@@ -89,17 +89,29 @@ export default function ResumoPage() {
   const handleExportPDF = async () => {
     if (!contentRef.current) return;
     const html2pdf = (await import('html2pdf.js')).default;
+    
+    // Temporarily add print-friendly styles
+    const el = contentRef.current;
+    el.style.background = 'white';
+    el.style.color = '#111';
+    el.style.padding = '20px';
+    
     html2pdf()
       .set({
-        margin: [10, 10, 10, 10],
-        filename: `Resumo_${activePeriod || 'geral'}.pdf`,
+        margin: [8, 8, 8, 8],
+        filename: `Relatorio_Executivo_${activePeriod || 'geral'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
       })
-      .from(contentRef.current)
-      .save();
+      .from(el)
+      .save()
+      .then(() => {
+        el.style.background = '';
+        el.style.color = '';
+        el.style.padding = '';
+      });
   };
 
 
@@ -132,9 +144,9 @@ export default function ResumoPage() {
     <div className="space-y-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-2xl font-bold text-foreground">Resumo de Desempenho</h1>
+          <h1 className="text-2xl font-bold text-foreground">Relatório Executivo</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Diagnóstico por equipamento com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
+            Diagnóstico completo com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
           </p>
         </motion.div>
         <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
