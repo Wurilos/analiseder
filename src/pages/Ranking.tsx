@@ -186,7 +186,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
           <th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
           <th>IDF</th><th>IEF</th><th>ICV</th>
           <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
-          <th>ID</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
+          <th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
         </tr></thead>
         <tbody>
           {sorted.map((r, i) => {
@@ -213,6 +213,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
                 <td>{idxCell(r.c_ILPd)}</td>
                 <td>{idxCell(r.c_ILPn)}</td>
                 <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                 <td className="text-[11px] max-w-[180px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                   {main ? main.title.split(' — ')[0] : '✓ Bom'}
                 </td>
