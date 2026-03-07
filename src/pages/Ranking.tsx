@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
-import { calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-engine';
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
