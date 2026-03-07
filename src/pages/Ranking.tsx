@@ -313,6 +313,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                       <td>{idxCell(r.c_ILPd)}</td>
                       <td>{idxCell(r.c_ILPn)}</td>
                       <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                      <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                       <td className="text-[11px] max-w-[150px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                         {main ? main.title.split(' — ')[0] : '✓ Bom'}
                       </td>
