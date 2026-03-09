@@ -105,8 +105,17 @@ const ValoresPage: React.FC = () => {
     const perdaIDF = groups.reduce((s, g) => s + g.perdaIDF, 0);
     const perdaIEF = groups.reduce((s, g) => s + g.perdaIEF, 0);
     const perdaICV = groups.reduce((s, g) => s + g.perdaICV, 0);
-    return { valorTotal, valorRecebido, desconto, perdaIDF, perdaIEF, perdaICV };
-  }, [groups]);
+    // Cálculo com médias arredondadas (como a planilha faz)
+    const valorRecebidoArredondado = groups.reduce((s, g) => {
+      const avgID = g.numFaixas > 0
+        ? filtered.filter(r => r.equipamento === g.equipamento).reduce((sum, r) => sum + (r.f_ID ?? r.c_ID ?? 0), 0) / g.numFaixas
+        : 0;
+      const avgIDRounded = Math.round(avgID * 100) / 100; // arredonda para 2 casas (percentual inteiro)
+      return s + g.valorTotal * avgIDRounded;
+    }, 0);
+    const descontoArredondado = valorTotal - valorRecebidoArredondado;
+    return { valorTotal, valorRecebido, desconto, perdaIDF, perdaIEF, perdaICV, valorRecebidoArredondado, descontoArredondado };
+  }, [groups, filtered]);
 
   const chartData = useMemo(() =>
     [...groups].sort((a, b) => b.descontoTotal - a.descontoTotal).slice(0, 20).map(g => ({
