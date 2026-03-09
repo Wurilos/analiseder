@@ -39,10 +39,8 @@ export interface IDRecord {
   f_ILPd: number | null; f_ILPn: number | null;
   f_IEF: number | null; f_IDF: number | null;
   f_ICV: number | null; f_ID: number | null;
-  // financial (from spreadsheet)
+  // financial
   f_MediaEquip: number | null;
-  f_ValorEquip: number | null;
-  f_VlrCobrado: number | null;
   // extra
   infracoes: number | null; validas: number | null; invalidas: number | null;
   contagemVeic: number | null;

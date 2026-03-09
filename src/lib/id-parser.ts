@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { IDRecord } from '@/types';
 import { EQUIP_CATALOG } from './equip-catalog';
-import { sn, parseCurrency, calcICId, calcICIn, calcILPd, calcILPn, calcIEVri, calcIEVdt, calcIEF, calcIDF, calcICV, calcID } from './calc-engine';
+import { sn, calcICId, calcICIn, calcILPd, calcILPn, calcIEVri, calcIEVdt, calcIEF, calcIDF, calcICV, calcID } from './calc-engine';
 
 /** Column indices matching the reference HTML exactly */
 const COL = {
@@ -17,7 +17,7 @@ const COL = {
   LPn: 43, IVn_ocr: 44, ILPn: 45,
   IEF: 46, QVc: 47, QVt: 48, ICV: 49,
   periodo: 50, dias: 51, NHt: 52, NHo: 53, IDF: 54, ID: 55,
-  mediaEquip: 56, valorEquip: 57, vlrCobrado: 58,
+  mediaEquip: 56,
 };
 
 function getSerie(equip: string) { return EQUIP_CATALOG[equip]?.serie ?? null; }
@@ -79,8 +79,6 @@ function computeRecord(raw: unknown[]): IDRecord {
     f_IEF: g(COL.IEF), f_IDF: g(COL.IDF),
     f_ICV: g(COL.ICV), f_ID: g(COL.ID),
     f_MediaEquip: g(COL.mediaEquip),
-    f_ValorEquip: parseCurrency(raw[COL.valorEquip]),
-    f_VlrCobrado: parseCurrency(raw[COL.vlrCobrado]),
     infracoes: g(COL.infracoes), validas: g(COL.validas), invalidas: g(COL.invalidas),
     contagemVeic: g(COL.contagemVeic),
   };

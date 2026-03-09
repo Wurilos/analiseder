@@ -25,8 +25,7 @@ function idBadge(v: number | null) { if (v === null) return 'badge-slate'; retur
 function calcFinanceiro(r: IDRecord, allRecs: IDRecord[]) {
   const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento);
   const n = faixasDoEquip.length || 1;
-  const fileValor = faixasDoEquip.find(x => x.f_ValorEquip !== null)?.f_ValorEquip;
-  const valorEquip = fileValor ?? getValorEquip(r.equipamento, r.tipo);
+  const valorEquip = getValorEquip(r.equipamento, r.tipo);
   const valorBase = valorEquip / n;
   const id = r.f_ID ?? r.c_ID ?? 0;
   const idf = r.f_IDF ?? r.c_IDF ?? 0, ief = r.f_IEF ?? r.c_IEF ?? 0, icv = r.f_ICV ?? r.c_ICV ?? 0;
@@ -269,8 +268,7 @@ function EquipDetailModal({ equip, records }: { equip: string; records: IDRecord
   const faixas = records.filter(r => r.equipamento === equip);
   const cat = EQUIP_CATALOG[equip];
   const n = faixas.length;
-  const fileValor = faixas.find(r => r.f_ValorEquip !== null)?.f_ValorEquip;
-  const valorTotal = fileValor ?? (cat ? cat.valor : getValorEquip(equip, faixas[0]?.tipo) * n);
+  const valorTotal = cat ? cat.valor : getValorEquip(equip, faixas[0]?.tipo) * n;
   const valorFaixa = valorTotal / n;
   const avgID = faixas.reduce((s, r) => s + (r.f_ID ?? r.c_ID ?? 0), 0) / n;
   const valorRec = faixas.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
