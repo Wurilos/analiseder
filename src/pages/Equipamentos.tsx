@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EQUIP_CATALOG, EquipInfo } from '@/lib/equip-catalog';
+import { useParalisacao } from '@/context/ParalisacaoContext';
 import { formatMoeda } from '@/lib/format';
 import { Search, Server, MapPin, DollarSign, Hash } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -13,6 +14,7 @@ type EquipRow = EquipInfo & { codigo: string };
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
   const [loteFilter, setLoteFilter] = useState('todos');
+  const { isParalisado } = useParalisacao();
 
   const rows: EquipRow[] = useMemo(() =>
     Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({ codigo, ...info })),
@@ -116,7 +118,7 @@ export default function EquipamentosPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((r, i) => (
-                <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
+                <TableRow key={r.codigo} className={`${isParalisado(r.codigo) ? 'bg-salmon/20' : i % 2 === 0 ? 'bg-muted/30' : ''}`}>
                   <TableCell className="pl-6 font-mono text-xs font-medium">{r.codigo}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-1 text-xs">

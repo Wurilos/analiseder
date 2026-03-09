@@ -15,8 +15,10 @@ import ValoresPage from "./pages/Valores";
 import EquipamentosPage from "./pages/Equipamentos";
 import ResumoPage from "./pages/Resumo";
 import MapaPage from "./pages/Mapa";
+import ParalisacoesPage from "./pages/Paralisacoes";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
+import { ParalisacaoProvider } from "./context/ParalisacaoContext";
 import { ThemeProvider } from "./hooks/use-theme";
 
 const queryClient = new QueryClient();
@@ -29,32 +31,35 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <DataProvider>
-            <SidebarProvider>
-              <div className="min-h-screen flex w-full">
-                <AppSidebar />
-                <main className="flex-1 overflow-x-hidden">
-                  <header className="h-12 flex items-center border-b border-border px-4 sticky top-0 z-50 backdrop-blur-sm bg-background/80">
-                    <SidebarTrigger className="mr-4" />
-                  </header>
-                  <div className="p-6">
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/upload" replace />} />
-                      <Route path="/upload" element={<UploadPage />} />
-                      <Route path="/dashboard" element={<DashboardPage />} />
-                      <Route path="/ranking" element={<RankingPage />} />
-                      <Route path="/validacao" element={<ValidacaoPage />} />
-                      <Route path="/comparativo" element={<ComparativoPage />} />
-                      <Route path="/invalidas" element={<InvalidasPage />} />
-                      <Route path="/valores" element={<ValoresPage />} />
-                      <Route path="/equipamentos" element={<EquipamentosPage />} />
-                      <Route path="/mapa" element={<MapaPage />} />
-                      <Route path="/resumo" element={<ResumoPage />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </div>
-                </main>
-              </div>
-            </SidebarProvider>
+            <ParalisacaoProvider>
+              <SidebarProvider>
+                <div className="min-h-screen flex w-full">
+                  <AppSidebar />
+                  <main className="flex-1 overflow-x-hidden">
+                    <header className="h-12 flex items-center border-b border-border px-4 sticky top-0 z-50 backdrop-blur-sm bg-background/80">
+                      <SidebarTrigger className="mr-4" />
+                    </header>
+                    <div className="p-6">
+                      <Routes>
+                        <Route path="/" element={<Navigate to="/upload" replace />} />
+                        <Route path="/upload" element={<UploadPage />} />
+                        <Route path="/dashboard" element={<DashboardPage />} />
+                        <Route path="/ranking" element={<RankingPage />} />
+                        <Route path="/validacao" element={<ValidacaoPage />} />
+                        <Route path="/comparativo" element={<ComparativoPage />} />
+                        <Route path="/invalidas" element={<InvalidasPage />} />
+                        <Route path="/valores" element={<ValoresPage />} />
+                        <Route path="/equipamentos" element={<EquipamentosPage />} />
+                        <Route path="/mapa" element={<MapaPage />} />
+                        <Route path="/resumo" element={<ResumoPage />} />
+                        <Route path="/paralisacoes" element={<ParalisacoesPage />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </div>
+                  </main>
+                </div>
+              </SidebarProvider>
+            </ParalisacaoProvider>
           </DataProvider>
         </BrowserRouter>
       </TooltipProvider>
