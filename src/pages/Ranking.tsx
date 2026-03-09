@@ -229,7 +229,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
 }
 
 /* ============ EQUIPAMENTO TABLE ============ */
-function EquipTable({ groups, records, onDetail, isParalisado }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void; isParalisado: (eq: string) => boolean }) {
+function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
