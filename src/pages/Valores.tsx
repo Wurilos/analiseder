@@ -23,9 +23,11 @@ function pct(v: number) { return (v * 100).toFixed(1) + '%'; }
 function idBadge(v: number | null) { if (v === null) return 'badge-slate'; return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green'; }
 
 function calcFinanceiro(r: IDRecord, allRecs: IDRecord[]) {
-  const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento).length || 1;
-  const valorEquip = getValorEquip(r.equipamento, r.tipo);
-  const valorBase = valorEquip / faixasDoEquip;
+  const faixasDoEquip = allRecs.filter(x => x.equipamento === r.equipamento);
+  const n = faixasDoEquip.length || 1;
+  const fileValor = faixasDoEquip.find(x => x.f_ValorEquip !== null)?.f_ValorEquip;
+  const valorEquip = fileValor ?? getValorEquip(r.equipamento, r.tipo);
+  const valorBase = valorEquip / n;
   const id = r.f_ID ?? r.c_ID ?? 0;
   const idf = r.f_IDF ?? r.c_IDF ?? 0, ief = r.f_IEF ?? r.c_IEF ?? 0, icv = r.f_ICV ?? r.c_ICV ?? 0;
   const valorRecebido = valorBase * id;
