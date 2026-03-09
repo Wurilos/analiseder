@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
+import { useParalisacao } from '@/context/ParalisacaoContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, getValorEquip } from '@/lib/equip-catalog';
 import { calcID, calcIEF } from '@/lib/calc-engine';
