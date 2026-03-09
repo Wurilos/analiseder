@@ -62,6 +62,7 @@ interface Divergence {
 
 const ValidacaoPage: React.FC = () => {
   const { getActiveRecords } = useData();
+  const { isParalisado } = useParalisacao();
   const records = getActiveRecords();
 
   const indices = ['ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn', 'IEF', 'IDF', 'ICV', 'ID'] as const;
