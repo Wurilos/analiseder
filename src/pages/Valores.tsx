@@ -82,6 +82,7 @@ const ChartDesconto: React.FC<{ data: { name: string; recebido: number; desconto
 
 const ValoresPage: React.FC = () => {
   const { getActiveRecords } = useData();
+  const { isParalisado } = useParalisacao();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const records = getActiveRecords();
