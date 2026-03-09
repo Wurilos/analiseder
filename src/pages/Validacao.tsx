@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { useData } from '@/context/DataContext';
-import { useParalisacao } from '@/context/ParalisacaoContext';
 import KPICard from '@/components/KPICard';
 import { CheckCircle, Check, AlertTriangle, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
