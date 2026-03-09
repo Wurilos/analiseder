@@ -15,10 +15,8 @@ import ValoresPage from "./pages/Valores";
 import EquipamentosPage from "./pages/Equipamentos";
 import ResumoPage from "./pages/Resumo";
 import MapaPage from "./pages/Mapa";
-import ParalisacoesPage from "./pages/Paralisacoes";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
-import { ParalisacaoProvider } from "./context/ParalisacaoContext";
 import { ThemeProvider } from "./hooks/use-theme";
 
 const queryClient = new QueryClient();
@@ -31,7 +29,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <DataProvider>
-            <ParalisacaoProvider>
               <SidebarProvider>
                 <div className="min-h-screen flex w-full">
                   <AppSidebar />
@@ -52,14 +49,13 @@ const App = () => (
                         <Route path="/equipamentos" element={<EquipamentosPage />} />
                         <Route path="/mapa" element={<MapaPage />} />
                         <Route path="/resumo" element={<ResumoPage />} />
-                        <Route path="/paralisacoes" element={<ParalisacoesPage />} />
+                        
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </div>
                   </main>
                 </div>
               </SidebarProvider>
-            </ParalisacaoProvider>
           </DataProvider>
         </BrowserRouter>
       </TooltipProvider>

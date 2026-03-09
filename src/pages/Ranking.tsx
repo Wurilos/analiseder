@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
-import { useParalisacao } from '@/context/ParalisacaoContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
 import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-engine';
@@ -28,7 +27,6 @@ function fmtCurrency(v: number) {
 
 const RankingPage: React.FC = () => {
   const { getActiveRecords } = useData();
-  const { isParalisado } = useParalisacao();
   const records = getActiveRecords();
   const [search, setSearch] = useState('');
   const [fTipo, setFTipo] = useState('');
@@ -164,9 +162,9 @@ const RankingPage: React.FC = () => {
         </div>
 
         {viewMode === 'faixa' ? (
-          <FaixaTable sorted={sorted} onDetail={setDetail} isParalisado={isParalisado} />
+          <FaixaTable sorted={sorted} onDetail={setDetail} />
         ) : (
-          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} isParalisado={isParalisado} />
+          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} />
         )}
       </div>
 
@@ -180,7 +178,7 @@ const RankingPage: React.FC = () => {
 };
 
 /* ============ FAIXA TABLE ============ */
-function FaixaTable({ sorted, onDetail, isParalisado }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void; isParalisado: (eq: string) => boolean }) {
+function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void }) {
   return (
     <div className="table-wrap overflow-x-auto">
       <table>
@@ -196,9 +194,8 @@ function FaixaTable({ sorted, onDetail, isParalisado }: { sorted: IDRecord[]; on
             const recos = getRecommendations(r);
             const cl = r.c_ID! < 0.6 ? 'id-critical' : r.c_ID! < 0.85 ? 'id-low' : 'id-ok';
             const main = recos[0];
-            const salmonClass = isParalisado(r.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : '';
             return (
-              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} ${salmonClass} cursor-pointer`} onClick={() => onDetail(r)}>
+              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => onDetail(r)}>
                 <td className="text-muted-foreground">{i + 1}</td>
                 <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
                 <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
@@ -232,7 +229,7 @@ function FaixaTable({ sorted, onDetail, isParalisado }: { sorted: IDRecord[]; on
 }
 
 /* ============ EQUIPAMENTO TABLE ============ */
-function EquipTable({ groups, records, onDetail, isParalisado }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void; isParalisado: (eq: string) => boolean }) {
+function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
@@ -249,11 +246,10 @@ function EquipTable({ groups, records, onDetail, isParalisado }: { groups: Equip
             const cl = (g.c_ID ?? 0) < 0.6 ? 'id-critical' : (g.c_ID ?? 0) < 0.85 ? 'id-low' : 'id-ok';
             const isExpanded = expanded === g.equipamento;
             const faixaRecords = records.filter(r => r.equipamento === g.equipamento);
-            const salmonClass = isParalisado(g.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : '';
 
             return (
               <React.Fragment key={g.equipamento}>
-                <tr className={`${cl} ${salmonClass} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
+                <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
                   <td className="text-muted-foreground">{i + 1}</td>
                   <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
                   <td className="text-[11px]">

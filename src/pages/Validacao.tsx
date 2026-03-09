@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import { useData } from '@/context/DataContext';
-import { useParalisacao } from '@/context/ParalisacaoContext';
 import KPICard from '@/components/KPICard';
 import { CheckCircle, Check, AlertTriangle, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -62,7 +61,6 @@ interface Divergence {
 
 const ValidacaoPage: React.FC = () => {
   const { getActiveRecords } = useData();
-  const { isParalisado } = useParalisacao();
   const records = getActiveRecords();
 
   const indices = ['ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn', 'IEF', 'IDF', 'ICV', 'ID'] as const;
@@ -122,9 +120,8 @@ const ValidacaoPage: React.FC = () => {
               {divergences.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">✓ Nenhuma divergência encontrada</td></tr>
               ) : divergences.map((d, i) => {
-                const salmonClass = isParalisado(d.equip) ? 'bg-salmon/20' : '';
                 return (
-                 <tr key={i} className={salmonClass}>
+                 <tr key={i}>
                    <td className="font-mono text-[11px]">{d.equip}</td>
                    <td className="font-mono">{d.faixa}</td>
                    <td className="font-mono font-bold text-primary">
@@ -167,7 +164,7 @@ const ValidacaoPage: React.FC = () => {
               {records.map((r, i) => {
                 const delta = (r.c_ID !== null && r.f_ID !== null) ? Math.abs(r.c_ID - r.f_ID) : null;
                 return (
-                  <tr key={i} className={`${delta !== null && delta >= 0.01 ? 'id-critical' : ''} ${isParalisado(r.equipamento) ? 'bg-salmon/20' : ''}`}>
+                  <tr key={i} className={`${delta !== null && delta >= 0.01 ? 'id-critical' : ''}`}>
                     <td className="font-mono text-[11px]">{r.equipamento}</td>
                     <td className="font-mono">{r.faixa}</td>
                     <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>

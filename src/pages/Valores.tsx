@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '@/context/DataContext';
-import { useParalisacao } from '@/context/ParalisacaoContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, getValorEquip } from '@/lib/equip-catalog';
 import { calcID, calcIEF } from '@/lib/calc-engine';
@@ -82,7 +81,6 @@ const ChartDesconto: React.FC<{ data: { name: string; recebido: number; desconto
 
 const ValoresPage: React.FC = () => {
   const { getActiveRecords } = useData();
-  const { isParalisado } = useParalisacao();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const records = getActiveRecords();
@@ -196,7 +194,7 @@ const ValoresPage: React.FC = () => {
                   const descPct = g.valorTotal > 0 ? g.descontoTotal / g.valorTotal : 0;
                   const descColor = descPct > 0.2 ? '#dc2626' : descPct > 0.05 ? '#d97706' : '#059669';
                   return (
-                    <tr key={g.equipamento} className={`cursor-pointer ${isParalisado(g.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : ''}`} onClick={() => setDetailEquip(g.equipamento)}>
+                    <tr key={g.equipamento} className="cursor-pointer" onClick={() => setDetailEquip(g.equipamento)}>
                       <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
                       <td className="text-muted-foreground text-[11px]">{g.equipamento}</td>
                       <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
@@ -233,7 +231,7 @@ const ValoresPage: React.FC = () => {
                   const descPct = f.valorBase > 0 ? f.descontoTotal / f.valorBase : 0;
                   const descColor = descPct > 0.2 ? '#dc2626' : descPct > 0.05 ? '#d97706' : '#059669';
                   return (
-                    <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={isParalisado(r.equipamento) ? 'bg-salmon/20' : ''}>
+                    <tr key={`${r.equipamento}-${r.faixa}-${i}`}>
                       <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
                       <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
                       <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Upload, LayoutDashboard, List, CheckCircle, Activity, AlertCircle, DollarSign, Radar, Sun, Moon, FileText, MapPin, PauseCircle } from 'lucide-react';
+import { Upload, LayoutDashboard, List, CheckCircle, Activity, AlertCircle, DollarSign, Radar, Sun, Moon, FileText, MapPin } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocation } from 'react-router-dom';
@@ -26,7 +26,6 @@ const mainMenu = [
   { title: 'Valores', url: '/valores', icon: DollarSign },
   { title: 'Equipamentos', url: '/equipamentos', icon: Radar },
   { title: 'Mapa', url: '/mapa', icon: MapPin },
-  { title: 'Paralisações', url: '/paralisacoes', icon: PauseCircle },
   { title: 'Resumo', url: '/resumo', icon: FileText },
 ];
 
