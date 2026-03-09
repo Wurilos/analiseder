@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import { IDRecord } from '@/types';
 import { EQUIP_CATALOG } from './equip-catalog';
-import { sn, calcICId, calcICIn, calcILPd, calcILPn, calcIEVri, calcIEVdt, calcIEF, calcIDF, calcICV, calcID } from './calc-engine';
+import { sn, parseCurrency, calcICId, calcICIn, calcILPd, calcILPn, calcIEVri, calcIEVdt, calcIEF, calcIDF, calcICV, calcID } from './calc-engine';
 
 /** Column indices matching the reference HTML exactly */
 const COL = {
