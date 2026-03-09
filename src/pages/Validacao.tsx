@@ -120,9 +120,8 @@ const ValidacaoPage: React.FC = () => {
               {divergences.length === 0 ? (
                 <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">✓ Nenhuma divergência encontrada</td></tr>
               ) : divergences.map((d, i) => {
-                const salmonClass = isParalisado(d.equip) ? 'bg-salmon/20' : '';
                 return (
-                 <tr key={i} className={salmonClass}>
+                 <tr key={i}>
                    <td className="font-mono text-[11px]">{d.equip}</td>
                    <td className="font-mono">{d.faixa}</td>
                    <td className="font-mono font-bold text-primary">
