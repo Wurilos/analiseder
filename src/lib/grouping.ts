@@ -41,8 +41,12 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
 
     // Use f_MediaEquip (full-precision equipment average from spreadsheet) when available
     // instead of averaging rounded per-lane f_ID values
-    const firstMediaEquip = recs.find(r => r.f_MediaEquip !== null && r.f_MediaEquip !== undefined)?.f_MediaEquip;
-    const valorRecebidoTotal = firstMediaEquip != null
+    let firstMediaEquip = recs.find(r => r.f_MediaEquip !== null && r.f_MediaEquip !== undefined)?.f_MediaEquip ?? null;
+    // Safety: if parsed as percentage integer (e.g. 63 instead of 0.63), convert
+    if (firstMediaEquip !== null && firstMediaEquip > 1) {
+      firstMediaEquip = firstMediaEquip / 100;
+    }
+    const valorRecebidoTotal = firstMediaEquip !== null
       ? valorTotal * firstMediaEquip
       : recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
     const descontoTotal = valorTotal - valorRecebidoTotal;
