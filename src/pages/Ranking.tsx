@@ -178,7 +178,7 @@ const RankingPage: React.FC = () => {
 };
 
 /* ============ FAIXA TABLE ============ */
-function FaixaTable({ sorted, onDetail, isParalisado }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void; isParalisado: (eq: string) => boolean }) {
+function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void }) {
   return (
     <div className="table-wrap overflow-x-auto">
       <table>
