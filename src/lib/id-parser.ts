@@ -78,6 +78,9 @@ function computeRecord(raw: unknown[]): IDRecord {
     f_ILPd: g(COL.ILPd), f_ILPn: g(COL.ILPn),
     f_IEF: g(COL.IEF), f_IDF: g(COL.IDF),
     f_ICV: g(COL.ICV), f_ID: g(COL.ID),
+    f_MediaEquip: g(COL.mediaEquip),
+    f_ValorEquip: parseCurrency(raw[COL.valorEquip]),
+    f_VlrCobrado: parseCurrency(raw[COL.vlrCobrado]),
     infracoes: g(COL.infracoes), validas: g(COL.validas), invalidas: g(COL.invalidas),
     contagemVeic: g(COL.contagemVeic),
   };
