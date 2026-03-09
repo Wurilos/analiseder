@@ -10,6 +10,30 @@ export function sn(v: unknown): number | null {
   return isNaN(n) ? null : n;
 }
 
+/**
+ * Parse currency values like "R$ 11.186,88" or "R$ 11,186.88"
+ */
+export function parseCurrency(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  if (typeof v === 'number') return isNaN(v) ? null : v;
+  let s = String(v).replace(/\s/g, '').replace(/[R$\u20AC$]/g, '');
+  const lastDot = s.lastIndexOf('.');
+  const lastComma = s.lastIndexOf(',');
+  if (lastDot === -1 && lastComma === -1) {
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  }
+  if (lastComma > lastDot) {
+    // BR format: 11.186,88
+    s = s.replace(/\./g, '').replace(',', '.');
+  } else {
+    // US format: 11,186.88
+    s = s.replace(/,/g, '');
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? null : n;
+}
+
 function clamp(v: number, mn = 0, mx = 1) { return Math.max(mn, Math.min(mx, v)); }
 
 export function calcICId(IVd: number, INd: number, TId: number | null): number | null {
