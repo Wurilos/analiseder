@@ -313,7 +313,7 @@ function EquipDetailModal({ equip, records }: { equip: string; records: IDRecord
           </tr></thead>
           <tbody>
             {faixas.map(r => {
-              const fRec = valorFaixa * (r.c_ID ?? 0);
+              const fRec = valorFaixa * (r.f_ID ?? r.c_ID ?? 0);
               const fDesc = valorFaixa - fRec;
               const fDescPct = valorFaixa > 0 ? fDesc / valorFaixa : 0;
               const fc = fDescPct > 0.2 ? '#dc2626' : fDescPct > 0.05 ? '#d97706' : '#059669';

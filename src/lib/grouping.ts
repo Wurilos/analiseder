@@ -31,7 +31,9 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
     const c_ID = avg(recs.map(r => r.c_ID));
 
     const cat = EQUIP_CATALOG[equip];
-    const valorTotal = cat ? cat.valor : getValorEquip(equip, first.tipo) * n;
+    // Prefer spreadsheet's own "Vlr. Equip." over catalog
+    const fileValor = recs.find(r => r.f_ValorEquip !== null)?.f_ValorEquip;
+    const valorTotal = fileValor ?? (cat ? cat.valor : getValorEquip(equip, first.tipo) * n);
     const valorFaixa = valorTotal / n;
     // Use file (planilha) values for financial calculations
     const f_IDF_avg = avg(recs.map(r => r.f_IDF)) ?? c_IDF;
