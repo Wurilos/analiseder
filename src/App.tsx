@@ -15,10 +15,8 @@ import ValoresPage from "./pages/Valores";
 import EquipamentosPage from "./pages/Equipamentos";
 import ResumoPage from "./pages/Resumo";
 import MapaPage from "./pages/Mapa";
-import ParalisacoesPage from "./pages/Paralisacoes";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
-import { ParalisacaoProvider } from "./context/ParalisacaoContext";
 import { ThemeProvider } from "./hooks/use-theme";
 
 const queryClient = new QueryClient();
