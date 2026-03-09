@@ -232,7 +232,7 @@ function FaixaTable({ sorted, onDetail, isParalisado }: { sorted: IDRecord[]; on
 }
 
 /* ============ EQUIPAMENTO TABLE ============ */
-function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void }) {
+function EquipTable({ groups, records, onDetail, isParalisado }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void; isParalisado: (eq: string) => boolean }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
@@ -249,10 +249,11 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
             const cl = (g.c_ID ?? 0) < 0.6 ? 'id-critical' : (g.c_ID ?? 0) < 0.85 ? 'id-low' : 'id-ok';
             const isExpanded = expanded === g.equipamento;
             const faixaRecords = records.filter(r => r.equipamento === g.equipamento);
+            const salmonClass = isParalisado(g.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : '';
 
             return (
               <React.Fragment key={g.equipamento}>
-                <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
+                <tr className={`${cl} ${salmonClass} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
                   <td className="text-muted-foreground">{i + 1}</td>
                   <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
                   <td className="text-[11px]">
