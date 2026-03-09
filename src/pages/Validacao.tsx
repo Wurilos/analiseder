@@ -164,7 +164,7 @@ const ValidacaoPage: React.FC = () => {
               {records.map((r, i) => {
                 const delta = (r.c_ID !== null && r.f_ID !== null) ? Math.abs(r.c_ID - r.f_ID) : null;
                 return (
-                  <tr key={i} className={`${delta !== null && delta >= 0.01 ? 'id-critical' : ''} ${isParalisado(r.equipamento) ? 'bg-salmon/20' : ''}`}>
+                  <tr key={i} className={`${delta !== null && delta >= 0.01 ? 'id-critical' : ''}`}>
                     <td className="font-mono text-[11px]">{r.equipamento}</td>
                     <td className="font-mono">{r.faixa}</td>
                     <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>

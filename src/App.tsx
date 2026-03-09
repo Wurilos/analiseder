@@ -56,7 +56,6 @@ const App = () => (
                   </main>
                 </div>
               </SidebarProvider>
-            </ParalisacaoProvider>
           </DataProvider>
         </BrowserRouter>
       </TooltipProvider>

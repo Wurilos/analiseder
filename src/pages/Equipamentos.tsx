@@ -116,7 +116,7 @@ export default function EquipamentosPage() {
             </TableHeader>
             <TableBody>
               {filtered.map((r, i) => (
-                <TableRow key={r.codigo} className={`${isParalisado(r.codigo) ? 'bg-salmon/20' : i % 2 === 0 ? 'bg-muted/30' : ''}`}>
+                <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
                   <TableCell className="pl-6 font-mono text-xs font-medium">{r.codigo}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-1 text-xs">
