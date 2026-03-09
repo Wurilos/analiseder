@@ -105,8 +105,17 @@ const ValoresPage: React.FC = () => {
     const perdaIDF = groups.reduce((s, g) => s + g.perdaIDF, 0);
     const perdaIEF = groups.reduce((s, g) => s + g.perdaIEF, 0);
     const perdaICV = groups.reduce((s, g) => s + g.perdaICV, 0);
-    return { valorTotal, valorRecebido, desconto, perdaIDF, perdaIEF, perdaICV };
-  }, [groups]);
+    // Cálculo com médias arredondadas (como a planilha faz)
+    const valorRecebidoArredondado = groups.reduce((s, g) => {
+      const avgID = g.numFaixas > 0
+        ? filtered.filter(r => r.equipamento === g.equipamento).reduce((sum, r) => sum + (r.f_ID ?? r.c_ID ?? 0), 0) / g.numFaixas
+        : 0;
+      const avgIDRounded = Math.round(avgID * 100) / 100; // arredonda para 2 casas (percentual inteiro)
+      return s + g.valorTotal * avgIDRounded;
+    }, 0);
+    const descontoArredondado = valorTotal - valorRecebidoArredondado;
+    return { valorTotal, valorRecebido, desconto, perdaIDF, perdaIEF, perdaICV, valorRecebidoArredondado, descontoArredondado };
+  }, [groups, filtered]);
 
   const chartData = useMemo(() =>
     [...groups].sort((a, b) => b.descontoTotal - a.descontoTotal).slice(0, 20).map(g => ({
@@ -147,6 +156,30 @@ const ValoresPage: React.FC = () => {
         <KPICard label="Valor Contratual Total" value={moeda(totals.valorTotal)} sub={`${groups.length} equipamentos`} icon={<DollarSign size={22} />} iconColor="blue" />
         <KPICard label="Valor Recebido" value={moeda(totals.valorRecebido)} sub={totals.valorTotal > 0 ? pct(totals.valorRecebido / totals.valorTotal) : '—'} icon={<TrendingUp size={22} />} iconColor="green" severity="good" />
         <KPICard label="Desconto Total" value={moeda(totals.desconto)} sub={totals.valorTotal > 0 ? pct(totals.desconto / totals.valorTotal) : '—'} icon={<TrendingDown size={22} />} iconColor="red" severity={totals.desconto > 0 ? 'danger' : 'good'} />
+      </div>
+
+      {/* Card com valores usando médias arredondadas (como a planilha calcula) */}
+      <div className="card mb-4">
+        <div className="card-header"><h3>📐 Valores com Médias Arredondadas (referência planilha)</h3></div>
+        <div className="card-body">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Valor Recebido (arredondado)</div>
+              <div className="font-mono text-lg font-bold text-green-600 dark:text-emerald-400">{moeda(totals.valorRecebidoArredondado)}</div>
+              <div className="text-[10px] text-muted-foreground">{totals.valorTotal > 0 ? pct(totals.valorRecebidoArredondado / totals.valorTotal) : '—'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Desconto (arredondado)</div>
+              <div className="font-mono text-lg font-bold text-red-600 dark:text-destructive">{moeda(totals.descontoArredondado)}</div>
+              <div className="text-[10px] text-muted-foreground">{totals.valorTotal > 0 ? pct(totals.descontoArredondado / totals.valorTotal) : '—'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Diferença (precisão)</div>
+              <div className="font-mono text-lg font-bold text-muted-foreground">{moeda(Math.abs(totals.valorRecebidoArredondado - totals.valorRecebido))}</div>
+              <div className="text-[10px] text-muted-foreground">entre cálculos preciso e arredondado</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Losses by index */}
