@@ -4,7 +4,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EQUIP_CATALOG, EquipInfo } from '@/lib/equip-catalog';
-import { useParalisacao } from '@/context/ParalisacaoContext';
 import { formatMoeda } from '@/lib/format';
 import { Search, Server, MapPin, DollarSign, Hash } from 'lucide-react';
 import { motion } from 'framer-motion';
