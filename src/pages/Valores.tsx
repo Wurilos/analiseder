@@ -194,7 +194,7 @@ const ValoresPage: React.FC = () => {
                   const descPct = g.valorTotal > 0 ? g.descontoTotal / g.valorTotal : 0;
                   const descColor = descPct > 0.2 ? '#dc2626' : descPct > 0.05 ? '#d97706' : '#059669';
                   return (
-                    <tr key={g.equipamento} className={`cursor-pointer ${isParalisado(g.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : ''}`} onClick={() => setDetailEquip(g.equipamento)}>
+                    <tr key={g.equipamento} className="cursor-pointer" onClick={() => setDetailEquip(g.equipamento)}>
                       <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
                       <td className="text-muted-foreground text-[11px]">{g.equipamento}</td>
                       <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
