@@ -194,9 +194,8 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
             const recos = getRecommendations(r);
             const cl = r.c_ID! < 0.6 ? 'id-critical' : r.c_ID! < 0.85 ? 'id-low' : 'id-ok';
             const main = recos[0];
-            const salmonClass = isParalisado(r.equipamento) ? 'bg-salmon/20 hover:bg-salmon/30' : '';
             return (
-              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} ${salmonClass} cursor-pointer`} onClick={() => onDetail(r)}>
+              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => onDetail(r)}>
                 <td className="text-muted-foreground">{i + 1}</td>
                 <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
                 <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
