@@ -14,6 +14,7 @@ type EquipRow = EquipInfo & { codigo: string };
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
   const [loteFilter, setLoteFilter] = useState('todos');
+  const { isParalisado } = useParalisacao();
 
   const rows: EquipRow[] = useMemo(() =>
     Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({ codigo, ...info })),
