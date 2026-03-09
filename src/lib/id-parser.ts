@@ -17,6 +17,7 @@ const COL = {
   LPn: 43, IVn_ocr: 44, ILPn: 45,
   IEF: 46, QVc: 47, QVt: 48, ICV: 49,
   periodo: 50, dias: 51, NHt: 52, NHo: 53, IDF: 54, ID: 55,
+  mediaEquip: 56, valorEquip: 57, vlrCobrado: 58,
 };
 
 function getSerie(equip: string) { return EQUIP_CATALOG[equip]?.serie ?? null; }
