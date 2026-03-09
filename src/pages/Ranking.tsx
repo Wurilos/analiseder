@@ -162,9 +162,9 @@ const RankingPage: React.FC = () => {
         </div>
 
         {viewMode === 'faixa' ? (
-          <FaixaTable sorted={sorted} onDetail={setDetail} isParalisado={isParalisado} />
+          <FaixaTable sorted={sorted} onDetail={setDetail} />
         ) : (
-          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} isParalisado={isParalisado} />
+          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} />
         )}
       </div>
 
