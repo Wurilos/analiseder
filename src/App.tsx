@@ -29,7 +29,6 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <DataProvider>
-            <ParalisacaoProvider>
               <SidebarProvider>
                 <div className="min-h-screen flex w-full">
                   <AppSidebar />
