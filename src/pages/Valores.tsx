@@ -233,7 +233,7 @@ const ValoresPage: React.FC = () => {
                   const descPct = f.valorBase > 0 ? f.descontoTotal / f.valorBase : 0;
                   const descColor = descPct > 0.2 ? '#dc2626' : descPct > 0.05 ? '#d97706' : '#059669';
                   return (
-                    <tr key={`${r.equipamento}-${r.faixa}-${i}`}>
+                    <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={isParalisado(r.equipamento) ? 'bg-salmon/20' : ''}>
                       <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
                       <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
                       <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
