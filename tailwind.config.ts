@@ -68,6 +68,7 @@ export default {
           red: "hsl(var(--neon-red))",
           purple: "hsl(var(--neon-purple))",
         },
+        salmon: "hsl(var(--salmon))",
       },
       borderRadius: {
         lg: "var(--radius)",
