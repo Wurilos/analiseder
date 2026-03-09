@@ -39,21 +39,7 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
     const f_ICV_avg = avg(recs.map(r => r.f_ICV)) ?? c_ICV;
     const f_ID_avg = avg(recs.map(r => r.f_ID)) ?? c_ID;
 
-    // Use f_MediaEquip (full-precision equipment average from spreadsheet) when available
-    // instead of averaging rounded per-lane f_ID values
-    let firstMediaEquip = recs.find(r => r.f_MediaEquip !== null && r.f_MediaEquip !== undefined)?.f_MediaEquip ?? null;
-    // Safety: if parsed as percentage integer (e.g. 63 instead of 0.63), convert
-    if (firstMediaEquip !== null && firstMediaEquip > 1) {
-      firstMediaEquip = firstMediaEquip / 100;
-    }
-    // DEBUG: log values for first few equipments
-    if (['CEC250136', 'CEC250181', 'CEV250148'].includes(equip)) {
-      console.log(`[DEBUG] equip=${equip} n=${n} valorTotal=${valorTotal} f_MediaEquip_raw=${recs.find(r => r.f_MediaEquip != null)?.f_MediaEquip} adjusted=${firstMediaEquip}`);
-      recs.forEach((r, i) => console.log(`  lane${i}: f_ID=${r.f_ID} c_ID=${r.c_ID} f_MediaEquip=${r.f_MediaEquip}`));
-    }
-    const valorRecebidoTotal = firstMediaEquip !== null
-      ? valorTotal * firstMediaEquip
-      : recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
+    const valorRecebidoTotal = recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
     const descontoTotal = valorTotal - valorRecebidoTotal;
 
     const idf = f_IDF_avg ?? 0, ief = f_IEF_avg ?? 0, icv = f_ICV_avg ?? 0, id = f_ID_avg ?? 0;
