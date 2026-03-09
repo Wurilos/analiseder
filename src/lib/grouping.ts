@@ -39,7 +39,12 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
     const f_ICV_avg = avg(recs.map(r => r.f_ICV)) ?? c_ICV;
     const f_ID_avg = avg(recs.map(r => r.f_ID)) ?? c_ID;
 
-    const valorRecebidoTotal = recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
+    // Use f_MediaEquip (full-precision equipment average from spreadsheet) when available
+    // instead of averaging rounded per-lane f_ID values
+    const firstMediaEquip = recs.find(r => r.f_MediaEquip !== null && r.f_MediaEquip !== undefined)?.f_MediaEquip;
+    const valorRecebidoTotal = firstMediaEquip != null
+      ? valorTotal * firstMediaEquip
+      : recs.reduce((s, r) => s + valorFaixa * (r.f_ID ?? r.c_ID ?? 0), 0);
     const descontoTotal = valorTotal - valorRecebidoTotal;
 
     const idf = f_IDF_avg ?? 0, ief = f_IEF_avg ?? 0, icv = f_ICV_avg ?? 0, id = f_ID_avg ?? 0;
