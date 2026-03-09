@@ -27,7 +27,6 @@ function fmtCurrency(v: number) {
 
 const RankingPage: React.FC = () => {
   const { getActiveRecords } = useData();
-  const { isParalisado } = useParalisacao();
   const records = getActiveRecords();
   const [search, setSearch] = useState('');
   const [fTipo, setFTipo] = useState('');
