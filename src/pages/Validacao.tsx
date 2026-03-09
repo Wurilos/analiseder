@@ -146,7 +146,8 @@ const ValidacaoPage: React.FC = () => {
                     </span>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
