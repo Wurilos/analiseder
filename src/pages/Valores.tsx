@@ -158,6 +158,30 @@ const ValoresPage: React.FC = () => {
         <KPICard label="Desconto Total" value={moeda(totals.desconto)} sub={totals.valorTotal > 0 ? pct(totals.desconto / totals.valorTotal) : '—'} icon={<TrendingDown size={22} />} iconColor="red" severity={totals.desconto > 0 ? 'danger' : 'good'} />
       </div>
 
+      {/* Card com valores usando médias arredondadas (como a planilha calcula) */}
+      <div className="card mb-4">
+        <div className="card-header"><h3>📐 Valores com Médias Arredondadas (referência planilha)</h3></div>
+        <div className="card-body">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Valor Recebido (arredondado)</div>
+              <div className="font-mono text-lg font-bold text-green-600 dark:text-emerald-400">{moeda(totals.valorRecebidoArredondado)}</div>
+              <div className="text-[10px] text-muted-foreground">{totals.valorTotal > 0 ? pct(totals.valorRecebidoArredondado / totals.valorTotal) : '—'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Desconto (arredondado)</div>
+              <div className="font-mono text-lg font-bold text-red-600 dark:text-destructive">{moeda(totals.descontoArredondado)}</div>
+              <div className="text-[10px] text-muted-foreground">{totals.valorTotal > 0 ? pct(totals.descontoArredondado / totals.valorTotal) : '—'}</div>
+            </div>
+            <div className="text-center">
+              <div className="text-[10px] text-muted-foreground uppercase mb-1">Diferença (precisão)</div>
+              <div className="font-mono text-lg font-bold text-muted-foreground">{moeda(Math.abs(totals.valorRecebidoArredondado - totals.valorRecebido))}</div>
+              <div className="text-[10px] text-muted-foreground">entre cálculos preciso e arredondado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Losses by index */}
       <div className="card mb-4">
         <div className="card-header"><h3>💸 Perdas por Subíndice (consolidado)</h3></div>
