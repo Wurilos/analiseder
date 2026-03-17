@@ -338,7 +338,7 @@ export default function MedicaoPage() {
           <Card className="overflow-hidden">
             <CardHeader className="pb-2"><CardTitle className="text-base">Pré-visualização — Memória de Cálculo</CardTitle></CardHeader>
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
-              <div ref={printRef14} style={{
+              <div ref={printRef14} data-pdf-root style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
                 fontSize: '9px', width: '280mm', lineHeight: 1.3, padding: '10px 14px',
               }}>
