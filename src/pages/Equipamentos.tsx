@@ -8,7 +8,7 @@ import { formatMoeda } from '@/lib/format';
 import { Search, Server, MapPin, DollarSign, Hash } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type EquipRow = EquipInfo & { codigo: string };
+type EquipRow = EquipInfo & { codigo: string; codMedicao?: string };
 
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
