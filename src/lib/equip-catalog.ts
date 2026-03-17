@@ -7,6 +7,7 @@ export interface EquipInfo {
   valor: number;
   lote: string;
   endereco: string;
+  codMedicao?: string;
 }
 
 export const EQUIP_CATALOG: Record<string, EquipInfo> = {
