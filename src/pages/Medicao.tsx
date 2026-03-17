@@ -9,8 +9,7 @@ import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2pdf from 'html2pdf.js';
 
-// Fixed structure of the DER-621 form for DR-08
-const SINALIZACAO_ROWS = [
+const SINALIZACAO = [
   { cod: '28.88.30.01', desc: 'Placa Alum. Composto, Esp.3mm. Mod. Aérea Pelic.Ret Tipo III + II-F.1' },
   { cod: '28.88.30.02', desc: 'Semi-Portico Metalico com Vão de 8,3m, Vento 35 M/S' },
   { cod: '28.88.30.03', desc: 'Suporte com 3,90m P/Placa Sinaliz em Madeira Tratada 10x10 Forn.Implant' },
@@ -22,7 +21,7 @@ const SINALIZACAO_ROWS = [
   { cod: '28.88.30.10', desc: 'Suporte Duplo Metal. CO Galvan.C/M 6,00M Cada P/ - 4,00X3,00 F. I' },
 ];
 
-const EQUIP_ROWS = [
+const EQUIPAMENTOS = [
   { cod: '34.88.78.01', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 02 FXS' },
   { cod: '34.88.78.02', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
   { cod: '34.88.78.03', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 04 FXS' },
@@ -30,7 +29,13 @@ const EQUIP_ROWS = [
   { cod: '34.88.78.07', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
 ];
 
-const TOTAL_FORM_ROWS = 25; // total visible rows in the table
+const EMPTY_ROWS = 10;
+
+function formatDateBR(dateStr: string): string {
+  if (!dateStr) return '___/___/______';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
 
 export default function MedicaoPage() {
   const { getActiveRecords } = useData();
@@ -38,12 +43,9 @@ export default function MedicaoPage() {
   const [obrasAte, setObrasAte] = useState('');
   const printRef = useRef<HTMLDivElement>(null);
 
-  // Calculate ID sums per codMedicao for DR-08
   const idSums = useMemo(() => {
     const records = getActiveRecords();
     const sums: Record<string, number> = {};
-
-    // Get all DR-08 equipment codes grouped by codMedicao
     const dr08Equips: Record<string, string[]> = {};
     Object.entries(EQUIP_CATALOG).forEach(([codigo, info]) => {
       if (info.lote === 'DR-08' && info.codMedicao) {
@@ -51,8 +53,6 @@ export default function MedicaoPage() {
         dr08Equips[info.codMedicao].push(codigo);
       }
     });
-
-    // For each codMedicao group, sum the ID from active records
     Object.entries(dr08Equips).forEach(([codMed, equipCodes]) => {
       let sum = 0;
       equipCodes.forEach(code => {
@@ -64,27 +64,66 @@ export default function MedicaoPage() {
       });
       sums[codMed] = sum;
     });
-
     return sums;
   }, [getActiveRecords]);
 
   const handleExportPDF = () => {
     if (!printRef.current) return;
-    const opt = {
-      margin: [5, 5, 5, 5],
+    html2pdf().set({
+      margin: [2, 2, 2, 2],
       filename: `Medicao_${numMedicao || 'X'}_DR08.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2.5, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-    };
-    html2pdf().set(opt).from(printRef.current).save();
+    }).from(printRef.current).save();
   };
 
   const medicaoLabel = numMedicao ? `${numMedicao}ª MEDIÇÃO` : '___ª MEDIÇÃO';
-  const obrasLabel = obrasAte || '___/___/______';
+  const obrasLabel = formatDateBR(obrasAte);
 
-  // Empty rows to fill the table
-  const emptyRowsCount = TOTAL_FORM_ROWS - SINALIZACAO_ROWS.length - EQUIP_ROWS.length - 1; // -1 for blank separator
+  // Inline styles for PDF fidelity
+  const border = '1px solid #000';
+  const S: Record<string, React.CSSProperties> = {
+    page: {
+      background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
+      fontSize: '9.5px', width: '277mm', lineHeight: 1.3,
+    },
+    outerTable: { width: '100%', borderCollapse: 'collapse', border: '2px solid #000' },
+    // header
+    headerRow: {},
+    headerLeft: { border, padding: '8px 12px', verticalAlign: 'middle' },
+    headerRight: { border, padding: '8px 12px', textAlign: 'right' as const, verticalAlign: 'middle', fontSize: '9.5px' },
+    logoWrap: { display: 'flex', alignItems: 'center', gap: '12px' },
+    logoBox: { width: '52px', minWidth: '52px' },
+    headerTitles: { textAlign: 'center' as const, flex: 1 },
+    titleSub: { fontSize: '10px', fontWeight: 'normal' as const, margin: 0 },
+    titleMain: { fontSize: '13px', fontWeight: 'bold' as const, margin: '2px 0 0' },
+    // data rows
+    dataCell: { border, padding: '2.5px 8px', fontSize: '9.5px' },
+    valCell: { border, padding: '2.5px 8px', fontSize: '9.5px', textAlign: 'right' as const, width: '70px', fontFamily: 'Arial, sans-serif' },
+    emptyRow: { border, height: '20px', padding: 0 },
+    // footer
+    footerOuter: { border, padding: 0 },
+    footerTable: { width: '100%', borderCollapse: 'collapse' as const },
+    ftDeAcordo: { border, padding: '10px 8px', verticalAlign: 'bottom' as const, fontSize: '9px', width: '22%' },
+    ftContinua: { border, padding: '10px 8px', verticalAlign: 'bottom' as const, fontSize: '9px', width: '16%' },
+    ftMedicao: { border, padding: '8px', textAlign: 'center' as const, verticalAlign: 'top' as const, width: '22%' },
+    ftContrato: { border, padding: '8px', fontSize: '7.5px', lineHeight: '1.35', verticalAlign: 'top' as const, width: '32%' },
+    ftFls: { border, padding: '8px', textAlign: 'center' as const, verticalAlign: 'top' as const, fontSize: '9px', width: '8%' },
+    ftSigLeft: { border, padding: '6px 8px', fontSize: '8px', textAlign: 'center' as const, verticalAlign: 'bottom' as const },
+    ftSigRight: { border, padding: '6px 8px', fontSize: '8px', textAlign: 'center' as const, verticalAlign: 'bottom' as const },
+  };
+
+  const checkbox = (checked: boolean) => (
+    <span style={{
+      display: 'inline-block', width: '11px', height: '11px',
+      border: '1px solid #000', textAlign: 'center', lineHeight: '11px',
+      fontSize: '9px', verticalAlign: 'middle', marginRight: '2px',
+      background: checked ? '#000' : '#fff', color: checked ? '#fff' : '#000',
+    }}>
+      {checked ? '✓' : '\u00A0'}
+    </span>
+  );
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -95,165 +134,148 @@ export default function MedicaoPage() {
         </p>
       </motion.div>
 
-      {/* User inputs */}
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-base flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Dados da Medição
+            <FileText className="w-4 h-4" /> Dados da Medição
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 space-y-1.5">
             <Label htmlFor="numMedicao">Número da Medição</Label>
-            <Input
-              id="numMedicao"
-              placeholder="Ex: 12"
-              value={numMedicao}
-              onChange={e => setNumMedicao(e.target.value)}
-            />
+            <Input id="numMedicao" placeholder="Ex: 12" value={numMedicao} onChange={e => setNumMedicao(e.target.value)} />
           </div>
           <div className="flex-1 space-y-1.5">
             <Label htmlFor="obrasAte">Obras executadas até</Label>
-            <Input
-              id="obrasAte"
-              type="date"
-              value={obrasAte}
-              onChange={e => setObrasAte(e.target.value)}
-            />
+            <Input id="obrasAte" type="date" value={obrasAte} onChange={e => setObrasAte(e.target.value)} />
           </div>
           <div className="flex items-end">
             <Button onClick={handleExportPDF} className="gap-2">
-              <FileDown className="w-4 h-4" />
-              Exportar PDF
+              <FileDown className="w-4 h-4" /> Exportar PDF
             </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Preview */}
       <Card className="overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Pré-visualização</CardTitle>
         </CardHeader>
-        <CardContent className="p-0 overflow-x-auto">
-          <div ref={printRef} style={{ background: '#fff', color: '#000', padding: '0', fontFamily: 'Arial, sans-serif', fontSize: '10px', width: '277mm' }}>
-            {/* ====== FORM ====== */}
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1.5px solid #000' }}>
-              {/* Header */}
+        <CardContent className="p-2 overflow-x-auto bg-neutral-100">
+          {/* ============ PRINTABLE AREA ============ */}
+          <div ref={printRef} style={S.page}>
+            <table style={S.outerTable}>
+              {/* ── HEADER ── */}
               <thead>
                 <tr>
-                  <td colSpan={2} style={{ ...cellBase, borderRight: 'none', width: '60%', padding: '6px 10px', verticalAlign: 'middle' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: '7px', fontWeight: 'bold', textAlign: 'center', lineHeight: 1.1 }}>
-                          SECRETARIA<br />LOGÍSTICA
-                        </span>
+                  <td colSpan={2} style={S.headerLeft}>
+                    <div style={S.logoWrap}>
+                      <div style={S.logoBox}>
+                        {/* Simplified DER logo placeholder */}
+                        <svg viewBox="0 0 50 56" width="42" height="48" style={{ display: 'block' }}>
+                          <rect x="0" y="0" width="50" height="56" fill="none" />
+                          <text x="25" y="16" textAnchor="middle" fontSize="5" fontWeight="bold" fontFamily="Arial">SECRETARIA DOS</text>
+                          <text x="25" y="22" textAnchor="middle" fontSize="5" fontWeight="bold" fontFamily="Arial">TRANSPORTES</text>
+                          <path d="M15 28 L25 50 L35 28 Z" fill="#000" />
+                          <text x="25" y="40" textAnchor="middle" fontSize="5.5" fontWeight="bold" fill="#fff" fontFamily="Arial">DER</text>
+                          <text x="25" y="46" textAnchor="middle" fontSize="3.5" fill="#fff" fontFamily="Arial">SP</text>
+                        </svg>
                       </div>
-                      <div style={{ textAlign: 'center', flex: 1 }}>
-                        <div style={{ fontSize: '10px', fontWeight: 'normal' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
-                        <div style={{ fontSize: '13px', fontWeight: 'bold' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
+                      <div style={S.headerTitles}>
+                        <p style={S.titleSub}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</p>
+                        <p style={S.titleMain}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</p>
                       </div>
                     </div>
                   </td>
-                  <td style={{ ...cellBase, width: '40%', padding: '6px 10px', textAlign: 'right', fontSize: '10px' }}>
-                    Continuação: &nbsp; <span style={checkboxStyle}>☐</span> sim &nbsp; <span style={{ ...checkboxStyle, background: '#000', color: '#fff' }}>☒</span>não
+                  <td style={S.headerRight}>
+                    Continuação: &nbsp;{checkbox(false)} sim &nbsp;&nbsp;{checkbox(true)}não
                   </td>
                 </tr>
               </thead>
 
               <tbody>
-                {/* Sinalização rows */}
-                {SINALIZACAO_ROWS.map(row => (
-                  <tr key={row.cod}>
-                    <td style={{ ...cellBase, width: '90px', padding: '3px 6px', fontFamily: 'monospace', fontSize: '9px' }}>{row.cod}</td>
-                    <td style={{ ...cellBase, padding: '3px 6px', fontSize: '9px' }}>{row.desc}</td>
-                    <td style={{ ...cellBase, width: '60px', textAlign: 'right', padding: '3px 6px' }}></td>
+                {/* ── SINALIZAÇÃO ── */}
+                {SINALIZACAO.map(r => (
+                  <tr key={r.cod}>
+                    <td colSpan={2} style={S.dataCell}>{r.cod} {r.desc}</td>
+                    <td style={S.valCell}></td>
                   </tr>
                 ))}
 
-                {/* Blank separator row */}
+                {/* ── BLANK SEPARATOR ── */}
                 <tr>
-                  <td style={{ ...cellBase, height: '6px' }}></td>
-                  <td style={cellBase}></td>
-                  <td style={cellBase}></td>
+                  <td colSpan={2} style={{ ...S.emptyRow, border }}></td>
+                  <td style={{ ...S.emptyRow, border }}></td>
                 </tr>
 
-                {/* Equipment rows with values */}
-                {EQUIP_ROWS.map(row => {
-                  const val = idSums[row.cod] ?? 0;
-                  const display = val > 0 ? val.toFixed(2).replace('.', ',') : '';
+                {/* ── EQUIPAMENTOS ── */}
+                {EQUIPAMENTOS.map(r => {
+                  const val = idSums[r.cod] ?? 0;
                   return (
-                    <tr key={row.cod}>
-                      <td style={{ ...cellBase, padding: '3px 6px', fontFamily: 'monospace', fontSize: '9px' }}>{row.cod}</td>
-                      <td style={{ ...cellBase, padding: '3px 6px', fontSize: '9px' }}>{row.desc}</td>
-                      <td style={{ ...cellBase, textAlign: 'right', padding: '3px 6px', fontFamily: 'monospace', fontSize: '9px', fontWeight: 'bold' }}>
-                        {display}
-                      </td>
+                    <tr key={r.cod}>
+                      <td colSpan={2} style={S.dataCell}>{r.cod} {r.desc}</td>
+                      <td style={S.valCell}>{val > 0 ? val.toFixed(2).replace('.', ',') : ''}</td>
                     </tr>
                   );
                 })}
 
-                {/* Empty rows to fill the form */}
-                {Array.from({ length: emptyRowsCount }).map((_, i) => (
-                  <tr key={`empty-${i}`}>
-                    <td style={{ ...cellBase, height: '18px' }}></td>
-                    <td style={cellBase}></td>
-                    <td style={cellBase}></td>
+                {/* ── EMPTY ROWS ── */}
+                {Array.from({ length: EMPTY_ROWS }).map((_, i) => (
+                  <tr key={`e${i}`}>
+                    <td colSpan={2} style={{ ...S.emptyRow, border }}></td>
+                    <td style={{ ...S.emptyRow, border }}></td>
                   </tr>
                 ))}
 
-                {/* Footer section */}
+                {/* ── FOOTER ── */}
                 <tr>
-                  <td colSpan={3} style={{ ...cellBase, padding: 0 }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <td colSpan={3} style={S.footerOuter}>
+                    <table style={S.footerTable}>
                       <tbody>
                         <tr>
-                          {/* De acordo + Continua */}
-                          <td style={{ ...cellBase, width: '22%', padding: '8px 6px', verticalAlign: 'bottom', fontSize: '9px' }}>
-                            De acordo:____________________
+                          {/* De acordo */}
+                          <td style={S.ftDeAcordo}>
+                            De acordo:______________________
                           </td>
-                          <td style={{ ...cellBase, width: '18%', padding: '8px 6px', verticalAlign: 'bottom', fontSize: '9px' }}>
-                            Continua: &nbsp; <span style={checkboxStyle}>☐</span> sim &nbsp; <span style={{ ...checkboxStyle, background: '#000', color: '#fff' }}>☒</span> não
+                          {/* Continua */}
+                          <td style={S.ftContinua}>
+                            Continua: &nbsp;{checkbox(false)} sim &nbsp;{checkbox(true)} não
                           </td>
-
                           {/* Medição */}
-                          <td style={{ ...cellBase, width: '22%', padding: '6px', textAlign: 'center', verticalAlign: 'top' }}>
-                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '4px' }}>{medicaoLabel}</div>
-                            <div style={{ fontSize: '9px' }}>
-                              <span style={{ ...checkboxStyle, background: '#000', color: '#fff' }}>☒</span> Provisória
+                          <td style={S.ftMedicao}>
+                            <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>{medicaoLabel}</div>
+                            <div style={{ textAlign: 'left', paddingLeft: '20%' }}>
+                              <div>{checkbox(true)} Provisória</div>
+                              <div style={{ marginTop: '3px' }}>{checkbox(false)} Final</div>
                             </div>
-                            <div style={{ fontSize: '9px', marginTop: '2px' }}>
-                              <span style={checkboxStyle}>☐</span> Final
-                            </div>
-                            <div style={{ fontSize: '9px', marginTop: '6px' }}>
-                              obras executadas até {obrasLabel}
-                            </div>
+                            <div style={{ marginTop: '8px', fontSize: '9px' }}>obras executadas até {obrasLabel}</div>
                           </td>
-
-                          {/* Contrato info */}
-                          <td style={{ ...cellBase, width: '30%', padding: '6px', fontSize: '8px', lineHeight: 1.4, verticalAlign: 'top' }}>
+                          {/* Contrato */}
+                          <td style={S.ftContrato}>
                             <div>Contrato n.º: <strong>22.583-6</strong></div>
-                            <div>Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.</div>
-                            <div style={{ marginTop: '2px' }}>Empresa: <strong>Splice Industria Comércio e Serviços Ltda.</strong></div>
+                            <div style={{ marginTop: '1px' }}>
+                              Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória,
+                              nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.
+                            </div>
+                            <div style={{ marginTop: '2px' }}>
+                              <strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.
+                            </div>
                           </td>
-
                           {/* Fls */}
-                          <td style={{ ...cellBase, width: '8%', padding: '6px', textAlign: 'center', verticalAlign: 'top', fontSize: '9px' }}>
+                          <td style={S.ftFls}>
                             <div>Fls.</div>
-                            <div style={{ fontWeight: 'bold', marginTop: '4px' }}>01/01</div>
+                            <div style={{ fontWeight: 'bold', marginTop: '6px' }}>01/01</div>
                           </td>
                         </tr>
-
                         {/* Signature row */}
                         <tr>
-                          <td style={{ ...cellBase, padding: '4px 6px', fontSize: '8px', textAlign: 'center' }}>
+                          <td style={S.ftSigLeft}>
                             ________________________________<br />Contratante
                           </td>
-                          <td colSpan={2} style={{ ...cellBase, padding: '4px 6px', fontSize: '8px', textAlign: 'center' }}>
+                          <td colSpan={2} style={S.ftSigRight}>
                             ________________________________<br />Engenheiro Fiscal
                           </td>
-                          <td colSpan={2} style={{ ...cellBase, padding: '4px 6px' }}></td>
+                          <td colSpan={2} style={{ border, padding: '6px' }}></td>
                         </tr>
                       </tbody>
                     </table>
@@ -261,28 +283,10 @@ export default function MedicaoPage() {
                 </tr>
               </tbody>
             </table>
-
-            {/* DER-621 footer */}
-            <div style={{ fontSize: '8px', marginTop: '2px', padding: '0 4px' }}>DER-621</div>
+            <div style={{ fontSize: '8px', marginTop: '2px', paddingLeft: '4px' }}>DER-621</div>
           </div>
         </CardContent>
       </Card>
     </div>
   );
 }
-
-const cellBase: React.CSSProperties = {
-  border: '1px solid #000',
-  verticalAlign: 'middle',
-};
-
-const checkboxStyle: React.CSSProperties = {
-  display: 'inline-block',
-  width: '10px',
-  height: '10px',
-  border: '1px solid #000',
-  textAlign: 'center',
-  lineHeight: '10px',
-  fontSize: '8px',
-  verticalAlign: 'middle',
-};
