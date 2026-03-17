@@ -252,8 +252,8 @@ export default function MedicaoPage() {
                               <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '18%' }}>
                                 Continua: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
                               </td>
-                              <td style={{ borderTop: b, borderRight: b, padding: '8px 10px', textAlign: 'center', verticalAlign: 'top', width: '22%' }}>
-                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
+                              <td style={{ borderTop: b, borderRight: b, padding: '6px 8px', textAlign: 'center', verticalAlign: 'top', width: '22%' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>{medicaoLabel}</div>
                                 <div style={{ textAlign: 'left', paddingLeft: '24%', fontSize: '10px' }}>
                                   <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
                                   <div>{chk(false)} Final</div>
