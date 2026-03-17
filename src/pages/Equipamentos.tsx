@@ -8,7 +8,7 @@ import { formatMoeda } from '@/lib/format';
 import { Search, Server, MapPin, DollarSign, Hash } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type EquipRow = EquipInfo & { codigo: string };
+type EquipRow = EquipInfo & { codigo: string; codMedicao?: string };
 
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
@@ -107,7 +107,8 @@ export default function EquipamentosPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-6">Código</TableHead>
+                <TableHead className="pl-6">Cód. Medição</TableHead>
+                <TableHead>Código</TableHead>
                 <TableHead>Nº Série</TableHead>
                 <TableHead>Lote</TableHead>
                 <TableHead>Endereço</TableHead>
@@ -117,7 +118,10 @@ export default function EquipamentosPage() {
             <TableBody>
               {filtered.map((r, i) => (
                 <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
-                  <TableCell className="pl-6 font-mono text-xs font-medium">{r.codigo}</TableCell>
+                  <TableCell className="pl-6 font-mono text-xs">
+                    {r.codMedicao || <span className="text-muted-foreground italic">—</span>}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs font-medium">{r.codigo}</TableCell>
                   <TableCell>
                     <span className="inline-flex items-center gap-1 text-xs">
                       <Hash className="w-3 h-3 text-muted-foreground" />
@@ -137,7 +141,7 @@ export default function EquipamentosPage() {
               ))}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-10 text-muted-foreground">
                     Nenhum equipamento encontrado.
                   </TableCell>
                 </TableRow>
