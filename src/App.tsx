@@ -15,6 +15,7 @@ import ValoresPage from "./pages/Valores";
 import EquipamentosPage from "./pages/Equipamentos";
 import ResumoPage from "./pages/Resumo";
 import MapaPage from "./pages/Mapa";
+import MedicaoPage from "./pages/Medicao";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
 import { ThemeProvider } from "./hooks/use-theme";
