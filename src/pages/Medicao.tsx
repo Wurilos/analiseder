@@ -259,8 +259,8 @@ export default function MedicaoPage() {
                     {/* Sinalização */}
                     {DR08_SINALIZACAO.map(r => (
                       <tr key={r.cod}>
-                        <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
-                        <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right' }}></td>
+                        <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle' }}>{r.cod} {r.desc}</td>
+                        <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', verticalAlign: 'middle' }}></td>
                       </tr>
                     ))}
                     <tr><td style={{ borderBottom: b, height: '4px' }}></td><td style={{ borderBottom: b, height: '4px' }}></td></tr>
@@ -269,8 +269,8 @@ export default function MedicaoPage() {
                       const val = dr08Data.sums[r.cod] ?? 0;
                       return (
                         <tr key={r.cod}>
-                          <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
-                          <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right', fontSize: '9px' }}>
+                          <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle' }}>{r.cod} {r.desc}</td>
+                          <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle' }}>
                             {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
                           </td>
                         </tr>
@@ -494,9 +494,9 @@ export default function MedicaoPage() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '3px 6px', fontSize: '8.5px', fontWeight: 'bold', textAlign: 'center',
+  padding: '4px 6px', fontSize: '8.5px', fontWeight: 'bold', textAlign: 'center', verticalAlign: 'middle',
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: '2px 6px', verticalAlign: 'top',
+  padding: '4px 6px', verticalAlign: 'middle',
 };
