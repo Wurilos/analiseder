@@ -104,11 +104,12 @@ export default function MedicaoPage() {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
     html2pdf().set({
-      margin: [3, 3, 3, 3],
+      margin: [2, 2, 2, 2],
       filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2.5, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: 'avoid-all' },
     }).from(ref).save();
   };
 
@@ -191,14 +192,14 @@ export default function MedicaoPage() {
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
               <div ref={printRef08} style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '10px', width: '280mm', lineHeight: 1.25,
+                fontSize: '9px', width: '280mm', lineHeight: 1.2,
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
                   <tbody>
                     {/* Header */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '10px 14px', verticalAlign: 'middle', width: '85%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '85%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain' }} />
                           <div style={{ textAlign: 'center', flex: 1 }}>
                             <div style={{ fontSize: '11px', letterSpacing: '0.5px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
@@ -206,38 +207,38 @@ export default function MedicaoPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ borderBottom: b, padding: '10px 14px', textAlign: 'right', width: '15%' }}></td>
+                      <td style={{ borderBottom: b, padding: '6px 10px', textAlign: 'right', width: '15%' }}></td>
                     </tr>
                     {/* Continuação */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '4px 14px' }}></td>
-                      <td style={{ borderBottom: b, padding: '4px 14px', textAlign: 'right', fontSize: '10px', whiteSpace: 'nowrap' }}>
+                      <td style={{ borderBottom: b, padding: '2px 10px' }}></td>
+                      <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right', fontSize: '9px', whiteSpace: 'nowrap' }}>
                         Continuação: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)}não
                       </td>
                     </tr>
                     {/* Sinalização */}
                     {DR08_SINALIZACAO.map(r => (
                       <tr key={r.cod}>
-                        <td style={{ borderBottom: b, padding: '3px 14px', fontSize: '10px' }}>{r.cod} {r.desc}</td>
-                        <td style={{ borderBottom: b, padding: '3px 14px', textAlign: 'right' }}></td>
+                        <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
+                        <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right' }}></td>
                       </tr>
                     ))}
-                    <tr><td style={{ borderBottom: b, height: '8px' }}></td><td style={{ borderBottom: b, height: '8px' }}></td></tr>
+                    <tr><td style={{ borderBottom: b, height: '4px' }}></td><td style={{ borderBottom: b, height: '4px' }}></td></tr>
                     {/* Equipamentos */}
                     {DR08_EQUIPS.map(r => {
                       const val = dr08Data.sums[r.cod] ?? 0;
                       return (
                         <tr key={r.cod}>
-                          <td style={{ borderBottom: b, padding: '3px 14px', fontSize: '10px' }}>{r.cod} {r.desc}</td>
-                          <td style={{ borderBottom: b, padding: '3px 14px', textAlign: 'right', fontSize: '10px' }}>
+                          <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
+                          <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right', fontSize: '9px' }}>
                             {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
                           </td>
                         </tr>
                       );
                     })}
                     {/* Empty rows */}
-                    {Array.from({ length: 9 }).map((_, i) => (
-                      <tr key={`e${i}`}><td style={{ borderBottom: b, height: '22px' }}></td><td style={{ borderBottom: b, height: '22px' }}></td></tr>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={`e${i}`}><td style={{ borderBottom: b, height: '16px' }}></td><td style={{ borderBottom: b, height: '16px' }}></td></tr>
                     ))}
                     {/* Footer */}
                     <tr>
@@ -245,14 +246,14 @@ export default function MedicaoPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                           <tbody>
                             <tr>
-                              <td style={{ borderTop: b, borderRight: b, padding: '12px 10px 8px', verticalAlign: 'bottom', fontSize: '10px', width: '22%' }}>
+                              <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '22%' }}>
                                 De acordo:______________________
                               </td>
-                              <td style={{ borderTop: b, borderRight: b, padding: '12px 10px 8px', verticalAlign: 'bottom', fontSize: '10px', width: '18%' }}>
+                              <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '18%' }}>
                                 Continua: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
                               </td>
-                              <td style={{ borderTop: b, borderRight: b, padding: '8px 10px', textAlign: 'center', verticalAlign: 'top', width: '22%' }}>
-                                <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
+                              <td style={{ borderTop: b, borderRight: b, padding: '6px 8px', textAlign: 'center', verticalAlign: 'top', width: '22%' }}>
+                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '4px' }}>{medicaoLabel}</div>
                                 <div style={{ textAlign: 'left', paddingLeft: '24%', fontSize: '10px' }}>
                                   <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
                                   <div>{chk(false)} Final</div>
