@@ -494,9 +494,9 @@ export default function MedicaoPage() {
 }
 
 const thStyle: React.CSSProperties = {
-  padding: '3px 6px', fontSize: '8.5px', fontWeight: 'bold', textAlign: 'center',
+  padding: '4px 6px', fontSize: '8.5px', fontWeight: 'bold', textAlign: 'center', verticalAlign: 'middle',
 };
 
 const tdStyle: React.CSSProperties = {
-  padding: '2px 6px', verticalAlign: 'top',
+  padding: '4px 6px', verticalAlign: 'middle',
 };
