@@ -219,8 +219,8 @@ export default function MedicaoPage() {
                     {/* Sinalização */}
                     {DR08_SINALIZACAO.map(r => (
                       <tr key={r.cod}>
-                        <td style={{ borderBottom: b, padding: '3px 14px', fontSize: '10px' }}>{r.cod} {r.desc}</td>
-                        <td style={{ borderBottom: b, padding: '3px 14px', textAlign: 'right' }}></td>
+                        <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
+                        <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right' }}></td>
                       </tr>
                     ))}
                     <tr><td style={{ borderBottom: b, height: '8px' }}></td><td style={{ borderBottom: b, height: '8px' }}></td></tr>
