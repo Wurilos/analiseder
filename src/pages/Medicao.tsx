@@ -192,7 +192,7 @@ export default function MedicaoPage() {
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
               <div ref={printRef08} style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '10px', width: '280mm', lineHeight: 1.25,
+                fontSize: '9px', width: '280mm', lineHeight: 1.2,
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
                   <tbody>
