@@ -198,8 +198,8 @@ export default function MedicaoPage() {
                   <tbody>
                     {/* Header */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '10px 14px', verticalAlign: 'middle', width: '85%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '85%' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain' }} />
                           <div style={{ textAlign: 'center', flex: 1 }}>
                             <div style={{ fontSize: '11px', letterSpacing: '0.5px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
