@@ -100,17 +100,57 @@ export default function MedicaoPage() {
   const dr08Data = useEquipData('DR-08', records);
   const dr14Data = useEquipData('DR-14', records);
 
-  const handleExportPDF = () => {
+  const handleExportPDF = async () => {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
+
+    // Import html2canvas dynamically to render entire content as single image
+    const html2canvas = (await import('html2pdf.js')).default;
+    
+    // Use html2pdf with fit-to-page approach: scale down content to fit single page
     html2pdf().set({
       margin: [2, 2, 2, 2],
       filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2.5, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: ref.scrollWidth },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: 'avoid-all' },
-    }).from(ref).save();
+      pagebreak: { mode: ['avoid-all'] },
+    }).from(ref).toPdf().get('pdf').then((pdf: any) => {
+      // If content spans multiple pages, re-render scaled to fit single page
+      const totalPages = pdf.internal.getNumberOfPages();
+      if (totalPages > 1) {
+        // Delete extra pages and re-render with smaller scale
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        // Re-export with auto-fit
+        html2pdf().set({
+          margin: [2, 2, 2, 2],
+          filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            scrollY: 0,
+            windowWidth: ref.scrollWidth,
+            onclone: (doc: Document) => {
+              const el = doc.querySelector('[data-pdf-root]') as HTMLElement;
+              if (el) {
+                // Scale down to fit
+                const scaleFactor = 0.75;
+                el.style.transform = `scale(${scaleFactor})`;
+                el.style.transformOrigin = 'top left';
+                el.style.width = `${100 / scaleFactor}%`;
+              }
+            }
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+          pagebreak: { mode: ['avoid-all'] },
+        }).from(ref).save();
+      } else {
+        pdf.save(`Medicao_${numMedicao || 'X'}_${activeLote}.pdf`);
+      }
+    });
   };
 
   const medicaoLabel = numMedicao ? `${numMedicao}ª MEDIÇÃO` : '___ª MEDIÇÃO';
