@@ -26,6 +26,7 @@ const mainMenu = [
   { title: 'Valores', url: '/valores', icon: DollarSign },
   { title: 'Equipamentos', url: '/equipamentos', icon: Radar },
   { title: 'Mapa', url: '/mapa', icon: MapPin },
+  { title: 'Medição', url: '/medicao', icon: ClipboardList },
   { title: 'Resumo', url: '/resumo', icon: FileText },
 ];
 
