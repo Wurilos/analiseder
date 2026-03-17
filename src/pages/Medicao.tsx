@@ -207,7 +207,7 @@ export default function MedicaoPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ borderBottom: b, padding: '10px 14px', textAlign: 'right', width: '15%' }}></td>
+                      <td style={{ borderBottom: b, padding: '6px 10px', textAlign: 'right', width: '15%' }}></td>
                     </tr>
                     {/* Continuação */}
                     <tr>
