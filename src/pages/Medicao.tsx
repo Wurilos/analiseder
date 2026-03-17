@@ -29,7 +29,7 @@ const EQUIPAMENTOS = [
   { cod: '34.88.78.07', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
 ];
 
-const EMPTY_ROWS = 10;
+const EMPTY_ROWS = 9;
 
 function formatDateBR(dateStr: string): string {
   if (!dateStr) return '___/___/______';
@@ -70,7 +70,7 @@ export default function MedicaoPage() {
   const handleExportPDF = () => {
     if (!printRef.current) return;
     html2pdf().set({
-      margin: [2, 2, 2, 2],
+      margin: [3, 3, 3, 3],
       filename: `Medicao_${numMedicao || 'X'}_DR08.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2.5, useCORS: true },
@@ -81,48 +81,16 @@ export default function MedicaoPage() {
   const medicaoLabel = numMedicao ? `${numMedicao}ª MEDIÇÃO` : '___ª MEDIÇÃO';
   const obrasLabel = formatDateBR(obrasAte);
 
-  // Inline styles for PDF fidelity
-  const border = '1px solid #000';
-  const S: Record<string, React.CSSProperties> = {
-    page: {
-      background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-      fontSize: '9.5px', width: '277mm', lineHeight: 1.3,
-    },
-    outerTable: { width: '100%', borderCollapse: 'collapse', border: '2px solid #000' },
-    // header
-    headerRow: {},
-    headerLeft: { border, padding: '8px 12px', verticalAlign: 'middle' },
-    headerRight: { border, padding: '8px 12px', textAlign: 'right' as const, verticalAlign: 'middle', fontSize: '9.5px' },
-    logoWrap: { display: 'flex', alignItems: 'center', gap: '12px' },
-    logoBox: { width: '52px', minWidth: '52px' },
-    headerTitles: { textAlign: 'center' as const, flex: 1 },
-    titleSub: { fontSize: '10px', fontWeight: 'normal' as const, margin: 0 },
-    titleMain: { fontSize: '13px', fontWeight: 'bold' as const, margin: '2px 0 0' },
-    // data rows
-    dataCell: { border, padding: '2.5px 8px', fontSize: '9.5px' },
-    valCell: { border, padding: '2.5px 8px', fontSize: '9.5px', textAlign: 'right' as const, width: '70px', fontFamily: 'Arial, sans-serif' },
-    emptyRow: { border, height: '20px', padding: 0 },
-    // footer
-    footerOuter: { border, padding: 0 },
-    footerTable: { width: '100%', borderCollapse: 'collapse' as const },
-    ftDeAcordo: { border, padding: '10px 8px', verticalAlign: 'bottom' as const, fontSize: '9px', width: '22%' },
-    ftContinua: { border, padding: '10px 8px', verticalAlign: 'bottom' as const, fontSize: '9px', width: '16%' },
-    ftMedicao: { border, padding: '8px', textAlign: 'center' as const, verticalAlign: 'top' as const, width: '22%' },
-    ftContrato: { border, padding: '8px', fontSize: '7.5px', lineHeight: '1.35', verticalAlign: 'top' as const, width: '32%' },
-    ftFls: { border, padding: '8px', textAlign: 'center' as const, verticalAlign: 'top' as const, fontSize: '9px', width: '8%' },
-    ftSigLeft: { border, padding: '6px 8px', fontSize: '8px', textAlign: 'center' as const, verticalAlign: 'bottom' as const },
-    ftSigRight: { border, padding: '6px 8px', fontSize: '8px', textAlign: 'center' as const, verticalAlign: 'bottom' as const },
-  };
+  const b = '1px solid #000';
+  const bNone = 'none';
 
-  const checkbox = (checked: boolean) => (
+  const chk = (filled: boolean) => (
     <span style={{
-      display: 'inline-block', width: '11px', height: '11px',
-      border: '1px solid #000', textAlign: 'center', lineHeight: '11px',
-      fontSize: '9px', verticalAlign: 'middle', marginRight: '2px',
-      background: checked ? '#000' : '#fff', color: checked ? '#fff' : '#000',
-    }}>
-      {checked ? '✓' : '\u00A0'}
-    </span>
+      display: 'inline-block', width: '12px', height: '12px',
+      border: '1.5px solid #000', verticalAlign: 'middle', marginRight: '3px',
+      background: filled ? '#000' : '#fff', lineHeight: '12px',
+      textAlign: 'center', fontSize: '9px', color: filled ? '#fff' : '#000',
+    }}>{filled ? '' : '\u00A0'}</span>
   );
 
   return (
@@ -161,121 +129,151 @@ export default function MedicaoPage() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Pré-visualização</CardTitle>
         </CardHeader>
-        <CardContent className="p-2 overflow-x-auto bg-neutral-100">
+        <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
+
           {/* ============ PRINTABLE AREA ============ */}
-          <div ref={printRef} style={S.page}>
-            <table style={S.outerTable}>
-              {/* ── HEADER ── */}
-              <thead>
+          <div ref={printRef} style={{
+            background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
+            fontSize: '10px', width: '280mm', lineHeight: 1.25, padding: '0',
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
+
+              {/* ═══ HEADER ═══ */}
+              <tbody>
                 <tr>
-                  <td colSpan={2} style={S.headerLeft}>
-                    <div style={S.logoWrap}>
-                      <div style={S.logoBox}>
-                        {/* Simplified DER logo placeholder */}
-                        <svg viewBox="0 0 50 56" width="42" height="48" style={{ display: 'block' }}>
-                          <rect x="0" y="0" width="50" height="56" fill="none" />
-                          <text x="25" y="16" textAnchor="middle" fontSize="5" fontWeight="bold" fontFamily="Arial">SECRETARIA DOS</text>
-                          <text x="25" y="22" textAnchor="middle" fontSize="5" fontWeight="bold" fontFamily="Arial">TRANSPORTES</text>
-                          <path d="M15 28 L25 50 L35 28 Z" fill="#000" />
-                          <text x="25" y="40" textAnchor="middle" fontSize="5.5" fontWeight="bold" fill="#fff" fontFamily="Arial">DER</text>
-                          <text x="25" y="46" textAnchor="middle" fontSize="3.5" fill="#fff" fontFamily="Arial">SP</text>
-                        </svg>
-                      </div>
-                      <div style={S.headerTitles}>
-                        <p style={S.titleSub}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</p>
-                        <p style={S.titleMain}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</p>
+                  <td style={{ borderBottom: b, borderRight: bNone, padding: '10px 14px', verticalAlign: 'middle', width: '85%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <img src="/images/brasao-sp.png" alt="Brasão SP" style={{ width: '56px', height: '60px', objectFit: 'contain' }} />
+                      <div style={{ textAlign: 'center', flex: 1 }}>
+                        <div style={{ fontSize: '11px', letterSpacing: '0.5px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.5px' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
                       </div>
                     </div>
                   </td>
-                  <td style={S.headerRight}>
-                    Continuação: &nbsp;{checkbox(false)} sim &nbsp;&nbsp;{checkbox(true)}não
+                  <td style={{ borderBottom: b, padding: '10px 14px', verticalAlign: 'middle', textAlign: 'right', width: '15%' }}>
                   </td>
                 </tr>
-              </thead>
 
-              <tbody>
-                {/* ── SINALIZAÇÃO ── */}
+                {/* ═══ CONTINUAÇÃO ROW ═══ */}
+                <tr>
+                  <td style={{ borderBottom: b, borderRight: bNone, padding: '4px 14px' }}></td>
+                  <td style={{ borderBottom: b, padding: '4px 14px', textAlign: 'right', fontSize: '10px', whiteSpace: 'nowrap' }}>
+                    Continuação: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)}não
+                  </td>
+                </tr>
+
+                {/* ═══ SINALIZAÇÃO ROWS ═══ */}
                 {SINALIZACAO.map(r => (
                   <tr key={r.cod}>
-                    <td colSpan={2} style={S.dataCell}>{r.cod} {r.desc}</td>
-                    <td style={S.valCell}></td>
+                    <td style={{ borderBottom: b, borderRight: bNone, padding: '3px 14px', fontSize: '10px' }}>
+                      {r.cod} {r.desc}
+                    </td>
+                    <td style={{ borderBottom: b, padding: '3px 14px', textAlign: 'right', fontSize: '10px' }}></td>
                   </tr>
                 ))}
 
-                {/* ── BLANK SEPARATOR ── */}
+                {/* ═══ BLANK SEPARATOR ═══ */}
                 <tr>
-                  <td colSpan={2} style={{ ...S.emptyRow, border }}></td>
-                  <td style={{ ...S.emptyRow, border }}></td>
+                  <td style={{ borderBottom: b, borderRight: bNone, height: '8px' }}></td>
+                  <td style={{ borderBottom: b, height: '8px' }}></td>
                 </tr>
 
-                {/* ── EQUIPAMENTOS ── */}
+                {/* ═══ EQUIPAMENTOS ROWS ═══ */}
                 {EQUIPAMENTOS.map(r => {
                   const val = idSums[r.cod] ?? 0;
                   return (
                     <tr key={r.cod}>
-                      <td colSpan={2} style={S.dataCell}>{r.cod} {r.desc}</td>
-                      <td style={S.valCell}>{val > 0 ? val.toFixed(2).replace('.', ',') : ''}</td>
+                      <td style={{ borderBottom: b, borderRight: bNone, padding: '3px 14px', fontSize: '10px' }}>
+                        {r.cod} {r.desc}
+                      </td>
+                      <td style={{ borderBottom: b, padding: '3px 14px', textAlign: 'right', fontSize: '10px', fontFamily: 'Arial, sans-serif' }}>
+                        {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
+                      </td>
                     </tr>
                   );
                 })}
 
-                {/* ── EMPTY ROWS ── */}
+                {/* ═══ EMPTY ROWS ═══ */}
                 {Array.from({ length: EMPTY_ROWS }).map((_, i) => (
                   <tr key={`e${i}`}>
-                    <td colSpan={2} style={{ ...S.emptyRow, border }}></td>
-                    <td style={{ ...S.emptyRow, border }}></td>
+                    <td style={{ borderBottom: b, borderRight: bNone, height: '22px' }}></td>
+                    <td style={{ borderBottom: b, height: '22px' }}></td>
                   </tr>
                 ))}
 
-                {/* ── FOOTER ── */}
+                {/* ═══ FOOTER ═══ */}
                 <tr>
-                  <td colSpan={3} style={S.footerOuter}>
-                    <table style={S.footerTable}>
+                  <td colSpan={2} style={{ padding: 0 }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                       <tbody>
+                        {/* Footer main row */}
                         <tr>
-                          {/* De acordo */}
-                          <td style={S.ftDeAcordo}>
+                          <td style={{
+                            borderTop: b, borderRight: b, padding: '12px 10px 8px',
+                            verticalAlign: 'bottom', fontSize: '10px', width: '22%',
+                          }}>
                             De acordo:______________________
                           </td>
-                          {/* Continua */}
-                          <td style={S.ftContinua}>
-                            Continua: &nbsp;{checkbox(false)} sim &nbsp;{checkbox(true)} não
+                          <td style={{
+                            borderTop: b, borderRight: b, padding: '12px 10px 8px',
+                            verticalAlign: 'bottom', fontSize: '10px', width: '18%',
+                          }}>
+                            Continua: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
                           </td>
-                          {/* Medição */}
-                          <td style={S.ftMedicao}>
-                            <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '4px' }}>{medicaoLabel}</div>
-                            <div style={{ textAlign: 'left', paddingLeft: '20%' }}>
-                              <div>{checkbox(true)} Provisória</div>
-                              <div style={{ marginTop: '3px' }}>{checkbox(false)} Final</div>
+                          <td style={{
+                            borderTop: b, borderRight: b, padding: '8px 10px',
+                            textAlign: 'center', verticalAlign: 'top', width: '22%',
+                          }}>
+                            <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
+                            <div style={{ textAlign: 'left', paddingLeft: '24%', fontSize: '10px' }}>
+                              <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
+                              <div>{chk(false)} Final</div>
                             </div>
-                            <div style={{ marginTop: '8px', fontSize: '9px' }}>obras executadas até {obrasLabel}</div>
+                            <div style={{ marginTop: '10px', fontSize: '10px' }}>obras executadas até {obrasLabel}</div>
                           </td>
-                          {/* Contrato */}
-                          <td style={S.ftContrato}>
+                          <td style={{
+                            borderTop: b, borderRight: b, padding: '8px 10px',
+                            fontSize: '8px', lineHeight: '1.4', verticalAlign: 'top', width: '30%',
+                          }}>
                             <div>Contrato n.º: <strong>22.583-6</strong></div>
-                            <div style={{ marginTop: '1px' }}>
-                              Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória,
-                              nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.
+                            <div>
+                              Objeto: Contratação de Serviços de Fiscalização do
+                              Controle de Velocidade e Contagem Classificatória,
+                              nas Rodovias Localizadas no Estado de São Paulo
+                              Sob Circunscrição do DER/SP, divididos em 14
+                              lotes. Lote 8.
                             </div>
                             <div style={{ marginTop: '2px' }}>
                               <strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.
                             </div>
                           </td>
-                          {/* Fls */}
-                          <td style={S.ftFls}>
+                          <td style={{
+                            borderTop: b, padding: '8px 10px',
+                            textAlign: 'center', verticalAlign: 'top', fontSize: '10px', width: '8%',
+                          }}>
                             <div>Fls.</div>
-                            <div style={{ fontWeight: 'bold', marginTop: '6px' }}>01/01</div>
+                            <div style={{ fontWeight: 'bold', marginTop: '8px' }}>01/01</div>
                           </td>
                         </tr>
+
                         {/* Signature row */}
                         <tr>
-                          <td style={S.ftSigLeft}>
-                            ________________________________<br />Contratante
+                          <td style={{
+                            borderTop: b, borderRight: b, padding: '4px 10px 6px',
+                            textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom',
+                          }}>
+                            <div style={{ marginBottom: '2px' }}>________________________________</div>
+                            Contratante
                           </td>
-                          <td colSpan={2} style={S.ftSigRight}>
-                            ________________________________<br />Engenheiro Fiscal
+                          <td colSpan={2} style={{
+                            borderTop: b, borderRight: b, padding: '4px 10px 6px',
+                            textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom',
+                          }}>
+                            <div style={{ marginBottom: '2px' }}>________________________________</div>
+                            Engenheiro Fiscal
                           </td>
-                          <td colSpan={2} style={{ border, padding: '6px' }}></td>
+                          <td style={{ borderTop: b, borderRight: b, padding: '6px' }}></td>
+                          <td style={{ borderTop: b, padding: '6px' }}></td>
                         </tr>
                       </tbody>
                     </table>
@@ -283,7 +281,9 @@ export default function MedicaoPage() {
                 </tr>
               </tbody>
             </table>
-            <div style={{ fontSize: '8px', marginTop: '2px', paddingLeft: '4px' }}>DER-621</div>
+
+            {/* DER-621 */}
+            <div style={{ fontSize: '8px', marginTop: '3px', paddingLeft: '6px' }}>DER-621</div>
           </div>
         </CardContent>
       </Card>
