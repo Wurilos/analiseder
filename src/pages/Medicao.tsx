@@ -269,8 +269,8 @@ export default function MedicaoPage() {
                       const val = dr08Data.sums[r.cod] ?? 0;
                       return (
                         <tr key={r.cod}>
-                          <td style={{ borderBottom: b, padding: '2px 10px', fontSize: '9px' }}>{r.cod} {r.desc}</td>
-                          <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right', fontSize: '9px' }}>
+                          <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle' }}>{r.cod} {r.desc}</td>
+                          <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle' }}>
                             {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
                           </td>
                         </tr>
