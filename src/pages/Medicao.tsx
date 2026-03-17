@@ -237,8 +237,8 @@ export default function MedicaoPage() {
                       );
                     })}
                     {/* Empty rows */}
-                    {Array.from({ length: 9 }).map((_, i) => (
-                      <tr key={`e${i}`}><td style={{ borderBottom: b, height: '22px' }}></td><td style={{ borderBottom: b, height: '22px' }}></td></tr>
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <tr key={`e${i}`}><td style={{ borderBottom: b, height: '16px' }}></td><td style={{ borderBottom: b, height: '16px' }}></td></tr>
                     ))}
                     {/* Footer */}
                     <tr>
