@@ -104,11 +104,12 @@ export default function MedicaoPage() {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
     html2pdf().set({
-      margin: [3, 3, 3, 3],
+      margin: [2, 2, 2, 2],
       filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2.5, useCORS: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: 'avoid-all' },
     }).from(ref).save();
   };
 
