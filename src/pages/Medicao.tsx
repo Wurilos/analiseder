@@ -249,7 +249,7 @@ export default function MedicaoPage() {
                               <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '22%' }}>
                                 De acordo:______________________
                               </td>
-                              <td style={{ borderTop: b, borderRight: b, padding: '12px 10px 8px', verticalAlign: 'bottom', fontSize: '10px', width: '18%' }}>
+                              <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '18%' }}>
                                 Continua: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
                               </td>
                               <td style={{ borderTop: b, borderRight: b, padding: '8px 10px', textAlign: 'center', verticalAlign: 'top', width: '22%' }}>
