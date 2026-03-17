@@ -211,8 +211,8 @@ export default function MedicaoPage() {
                     </tr>
                     {/* Continuação */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '4px 14px' }}></td>
-                      <td style={{ borderBottom: b, padding: '4px 14px', textAlign: 'right', fontSize: '10px', whiteSpace: 'nowrap' }}>
+                      <td style={{ borderBottom: b, padding: '2px 10px' }}></td>
+                      <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right', fontSize: '9px', whiteSpace: 'nowrap' }}>
                         Continuação: &nbsp;{chk(false)} sim &nbsp;&nbsp;{chk(true)}não
                       </td>
                     </tr>
