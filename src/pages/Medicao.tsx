@@ -223,7 +223,7 @@ export default function MedicaoPage() {
                         <td style={{ borderBottom: b, padding: '2px 10px', textAlign: 'right' }}></td>
                       </tr>
                     ))}
-                    <tr><td style={{ borderBottom: b, height: '8px' }}></td><td style={{ borderBottom: b, height: '8px' }}></td></tr>
+                    <tr><td style={{ borderBottom: b, height: '4px' }}></td><td style={{ borderBottom: b, height: '4px' }}></td></tr>
                     {/* Equipamentos */}
                     {DR08_EQUIPS.map(r => {
                       const val = dr08Data.sums[r.cod] ?? 0;
