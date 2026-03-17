@@ -246,7 +246,7 @@ export default function MedicaoPage() {
                         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                           <tbody>
                             <tr>
-                              <td style={{ borderTop: b, borderRight: b, padding: '12px 10px 8px', verticalAlign: 'bottom', fontSize: '10px', width: '22%' }}>
+                              <td style={{ borderTop: b, borderRight: b, padding: '8px 8px 6px', verticalAlign: 'bottom', fontSize: '9px', width: '22%' }}>
                                 De acordo:______________________
                               </td>
                               <td style={{ borderTop: b, borderRight: b, padding: '12px 10px 8px', verticalAlign: 'bottom', fontSize: '10px', width: '18%' }}>
