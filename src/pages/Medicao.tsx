@@ -510,149 +510,167 @@ export default function MedicaoPage() {
           fontFamily: 'Arial, Helvetica, sans-serif',
           fontSize: '11px',
           boxSizing: 'border-box',
-          display: 'flex',
-          flexDirection: 'column',
-          padding: '0',
           overflow: 'hidden',
+          padding: '0',
         }}
       >
-        {/* Outer border */}
-        <div style={{
-          border: '2px solid #000',
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          overflow: 'hidden',
+        <table style={{
+          width: '100%',
+          height: '100%',
+          borderCollapse: 'collapse',
+          border: b2,
+          tableLayout: 'fixed',
         }}>
-          {/* ── HEADER ── */}
-          <div style={{
-            borderBottom: b,
-            display: 'flex',
-            alignItems: 'center',
-            padding: '8px 14px',
-          }}>
-            <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain', marginRight: '14px' }} />
-            <div style={{ flex: 1, textAlign: 'center' }}>
-              <div style={{ fontSize: '12px', letterSpacing: '0.5px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
-              <div style={{ fontSize: '15px', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.5px' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
-            </div>
-          </div>
+          <colgroup>
+            <col style={{ width: '90%' }} />
+            <col style={{ width: '10%' }} />
+          </colgroup>
+          <tbody>
+            {/* ── HEADER ROW ── */}
+            <tr>
+              <td colSpan={2} style={{ borderBottom: b, padding: '8px 14px', verticalAlign: 'middle', height: '70px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <tbody>
+                    <tr>
+                      <td style={{ width: '70px', verticalAlign: 'middle' }}>
+                        <img src="/images/brasao-sp.png" alt="" style={{ width: '52px', height: '56px', objectFit: 'contain' }} />
+                      </td>
+                      <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                        <div style={{ fontSize: '12px', letterSpacing: '0.3px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
+                        <div style={{ fontSize: '15px', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.3px' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
+                      </td>
+                      <td style={{ width: '70px' }}></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
 
-          {/* ── CONTINUAÇÃO ROW ── */}
-          <div style={{
-            borderBottom: b,
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            padding: '3px 14px',
-            fontSize: '10px',
-          }}>
-            Continuação: &nbsp;{chk(false)} sim &nbsp;&nbsp;&nbsp;{chk(true)} não
-          </div>
+            {/* ── CONTINUAÇÃO ROW ── */}
+            <tr>
+              <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px' }}></td>
+              <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', textAlign: 'right', fontSize: '10px', whiteSpace: 'nowrap', overflow: 'visible' }}>
+                <span style={{ whiteSpace: 'nowrap' }}>Continuação: {chk(false)} sim &nbsp;{chk(true)} não</span>
+              </td>
+            </tr>
 
-          {/* ── SINALIZAÇÃO ROWS ── */}
-          {DR08_SINALIZACAO.map(r => (
-            <div key={r.cod} style={{
-              borderBottom: b,
-              display: 'flex',
-              alignItems: 'center',
-              height: '22px',
-              lineHeight: '22px',
-              padding: '0 14px',
-              fontSize: '11px',
-            }}>
-              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {r.cod} {r.desc}
-              </span>
-            </div>
-          ))}
-
-          {/* ── SEPARATOR ── */}
-          <div style={{ borderBottom: b, height: '8px' }}></div>
-
-          {/* ── EQUIPAMENTO ROWS ── */}
-          {DR08_EQUIPS.map(r => {
-            const val = dr08Data.sums[r.cod] ?? 0;
-            return (
-              <div key={r.cod} style={{
-                borderBottom: b,
-                display: 'flex',
-                alignItems: 'center',
-                height: '22px',
-                lineHeight: '22px',
-                padding: '0 14px',
-                fontSize: '11px',
-              }}>
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {/* ── SINALIZAÇÃO ROWS ── */}
+            {DR08_SINALIZACAO.map(r => (
+              <tr key={r.cod}>
+                <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {r.cod} {r.desc}
-                </span>
-                <span style={{ width: '80px', textAlign: 'right', fontFamily: 'Arial, sans-serif', flexShrink: 0 }}>
-                  {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
-                </span>
-              </div>
-            );
-          })}
-
-          {/* ── EMPTY SPACE (flex-grow fills the page) ── */}
-          <div style={{ flex: 1, borderBottom: b }}></div>
-
-          {/* ── FOOTER BLOCK ── */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-            <colgroup>
-              <col style={{ width: '20%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '20%' }} />
-              <col style={{ width: '35%' }} />
-              <col style={{ width: '10%' }} />
-            </colgroup>
-            <tbody>
-              <tr>
-                {/* De acordo */}
-                <td style={{ borderRight: b, padding: '8px 10px', verticalAlign: 'bottom', fontSize: '10px' }}>
-                  De acordo:__________________
                 </td>
-                {/* Continua */}
-                <td style={{ borderRight: b, padding: '8px 10px', verticalAlign: 'bottom', fontSize: '10px' }}>
-                  Continua:<br />{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
-                </td>
-                {/* Medição */}
-                <td style={{ borderRight: b, padding: '6px 10px', textAlign: 'center', verticalAlign: 'top' }}>
-                  <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
-                  <div style={{ textAlign: 'left', paddingLeft: '20%', fontSize: '10px' }}>
-                    <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
-                    <div>{chk(false)} Final</div>
-                  </div>
-                  <div style={{ marginTop: '10px', fontSize: '10px' }}>obras executadas até {obrasLabel}</div>
-                </td>
-                {/* Contrato */}
-                <td style={{ borderRight: b, padding: '8px 10px', fontSize: '8.5px', lineHeight: '1.4', verticalAlign: 'top' }}>
-                  <div>Contrato n.º: <strong>22.583-6</strong></div>
-                  <div style={{ marginTop: '2px' }}>Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.</div>
-                  <div style={{ marginTop: '3px' }}><strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.</div>
-                </td>
-                {/* Fls */}
-                <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'top', fontSize: '11px' }}>
-                  <div>Fls.</div>
-                  <div style={{ fontWeight: 'bold', marginTop: '10px' }}>01/01</div>
-                </td>
+                <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px' }}></td>
               </tr>
-              {/* Signature row */}
-              <tr>
-                <td style={{ borderTop: b, borderRight: b, padding: '6px 10px 8px', textAlign: 'center', fontSize: '10px', verticalAlign: 'bottom' }}>
-                  ________________________________<br />Contratante
-                </td>
-                <td colSpan={2} style={{ borderTop: b, borderRight: b, padding: '6px 10px 8px', textAlign: 'center', fontSize: '10px', verticalAlign: 'bottom' }}>
-                  ________________________________<br />Engenheiro Fiscal
-                </td>
-                <td style={{ borderTop: b, borderRight: b, padding: '8px', verticalAlign: 'top', fontSize: '9px' }}>
-                  Firma: Consórcio Peso Certo Móvel
-                </td>
-                <td style={{ borderTop: b, padding: '8px' }}></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div style={{ fontSize: '9px', marginTop: '3px', paddingLeft: '4px' }}>DER-621</div>
+            ))}
+
+            {/* ── SEPARATOR ── */}
+            <tr>
+              <td style={{ borderBottom: b, height: '6px' }}></td>
+              <td style={{ borderBottom: b, height: '6px' }}></td>
+            </tr>
+
+            {/* ── EQUIPAMENTO ROWS ── */}
+            {DR08_EQUIPS.map(r => {
+              const val = dr08Data.sums[r.cod] ?? 0;
+              return (
+                <tr key={r.cod}>
+                  <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {r.cod} {r.desc}
+                  </td>
+                  <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', textAlign: 'right', fontSize: '11px', whiteSpace: 'nowrap' }}>
+                    {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
+                  </td>
+                </tr>
+              );
+            })}
+
+            {/* ── EMPTY SPACE ROW (stretches to fill) ── */}
+            <tr>
+              <td style={{ borderBottom: b, verticalAlign: 'middle' }}></td>
+              <td style={{ borderBottom: b, verticalAlign: 'middle' }}></td>
+            </tr>
+
+            {/* ── FOOTER ROW 1 (main info) ── */}
+            <tr>
+              <td colSpan={2} style={{ padding: 0, height: '110px', verticalAlign: 'top' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', height: '100%' }}>
+                  <colgroup>
+                    <col style={{ width: '18%' }} />
+                    <col style={{ width: '14%' }} />
+                    <col style={{ width: '18%' }} />
+                    <col style={{ width: '42%' }} />
+                    <col style={{ width: '8%' }} />
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      {/* De acordo */}
+                      <td style={{ borderRight: b, padding: '6px 8px', verticalAlign: 'bottom', fontSize: '10px' }}>
+                        De acordo:<br />
+                        <div style={{ marginTop: '16px' }}>____________________</div>
+                      </td>
+                      {/* Continua */}
+                      <td style={{ borderRight: b, padding: '6px 8px', verticalAlign: 'top', fontSize: '10px' }}>
+                        <div>Continua:</div>
+                        <div style={{ marginTop: '6px' }}>{chk(false)} sim</div>
+                        <div style={{ marginTop: '3px' }}>{chk(true)} não</div>
+                      </td>
+                      {/* Medição */}
+                      <td style={{ borderRight: b, padding: '6px 8px', textAlign: 'center', verticalAlign: 'top' }}>
+                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
+                        <div style={{ textAlign: 'left', paddingLeft: '15%', fontSize: '10px' }}>
+                          <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
+                          <div>{chk(false)} Final</div>
+                        </div>
+                        <div style={{ marginTop: '8px', fontSize: '9px' }}>obras executadas até {obrasLabel}</div>
+                      </td>
+                      {/* Contrato */}
+                      <td style={{ borderRight: b, padding: '6px 8px', fontSize: '8px', lineHeight: '1.4', verticalAlign: 'top', overflow: 'hidden', wordWrap: 'break-word', whiteSpace: 'normal' }}>
+                        <div>Contrato n.º: <strong>22.583-6</strong></div>
+                        <div style={{ marginTop: '2px' }}>Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.</div>
+                        <div style={{ marginTop: '2px' }}><strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.</div>
+                      </td>
+                      {/* Fls */}
+                      <td style={{ padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', fontSize: '10px' }}>
+                        <div>Fls.</div>
+                        <div style={{ fontWeight: 'bold', marginTop: '8px', fontSize: '12px' }}>01/01</div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            {/* ── FOOTER ROW 2 (signatures) ── */}
+            <tr>
+              <td colSpan={2} style={{ padding: 0, height: '50px', verticalAlign: 'bottom' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                  <colgroup>
+                    <col style={{ width: '18%' }} />
+                    <col style={{ width: '32%' }} />
+                    <col style={{ width: '42%' }} />
+                    <col style={{ width: '8%' }} />
+                  </colgroup>
+                  <tbody>
+                    <tr>
+                      <td style={{ borderTop: b, borderRight: b, padding: '4px 8px 6px', textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom' }}>
+                        ________________________<br />Contratante
+                      </td>
+                      <td style={{ borderTop: b, borderRight: b, padding: '4px 8px 6px', textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom' }}>
+                        ________________________________<br />Engenheiro Fiscal
+                      </td>
+                      <td style={{ borderTop: b, borderRight: b, padding: '6px 8px', verticalAlign: 'top', fontSize: '9px' }}>
+                        Firma: Consórcio Peso Certo Móvel
+                      </td>
+                      <td style={{ borderTop: b, padding: '6px 4px' }}></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div style={{ fontSize: '8px', marginTop: '2px', paddingLeft: '4px' }}>DER-621</div>
       </div>
     </div>
   );
