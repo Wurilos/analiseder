@@ -96,6 +96,7 @@ export default function MedicaoPage() {
   const [activeLote, setActiveLote] = useState('DR-08');
   const printRef08 = useRef<HTMLDivElement>(null);
   const printRef14 = useRef<HTMLDivElement>(null);
+  const printHiddenRef08 = useRef<HTMLDivElement>(null);
 
   const records = useMemo(() => getActiveRecords(), [getActiveRecords]);
   const dr08Data = useEquipData('DR-08', records);
