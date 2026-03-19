@@ -107,8 +107,8 @@ export function calcIDF(NHo: number | null, NHt: number | null): number | null {
 export function calcICV(QVc: number | null, QVt: number | null): number | null {
   if (!QVt || QVc === null) return null;
   const r = QVc / QVt;
-  if (r >= 0.80) return 1.00;
-  if (r >= 0.70) return 0.75;
+  if (r >= 0.95) return 1.00;
+  if (r >= 0.85) return 0.75;
   if (r >= 0.60) return 0.25;
   return 0.00;
 }
