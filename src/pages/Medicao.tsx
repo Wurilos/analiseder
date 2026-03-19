@@ -8,149 +8,46 @@ import { useData } from '@/context/DataContext';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
 import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
-import html2pdf from 'html2pdf.js';
-
-// ════════════════════════════════════════════
-// DR-08 Data
-// ════════════════════════════════════════════
-const DR08_SINALIZACAO = [
-  { cod: '28.88.30.01', desc: 'Placa Alum. Composto, Esp.3mm. Mod. Aérea Pelic.Ret Tipo III + II-F.1' },
-  { cod: '28.88.30.02', desc: 'Semi-Portico Metalico com Vão de 8,3m, Vento 35 M/S' },
-  { cod: '28.88.30.03', desc: 'Suporte com 3,90m P/Placa Sinaliz em Madeira Tratada 10x10 Forn.Implant' },
-  { cod: '28.88.30.05', desc: 'Suporte Colapsivel com 6,90m para Placa de Sinalização > 5 Mô – Forn. Implant' },
-  { cod: '28.88.30.06', desc: 'Suporte Metalico C/Braço Projetado-Area de Expos. Até 4,50 Mô – Forn. Implant' },
-  { cod: '28.88.30.07', desc: 'Defensa Metalica (HIAW4) – Fornec. E Implantação' },
-  { cod: '28.88.30.08', desc: 'Term. ABS. Energia Especif. Conf. NCHRP 350 Nivel de Ensaio 70/80KM' },
-  { cod: '28.88.30.09', desc: 'Term. ABS. Energia Especif. Conf. NCHRP 350 Nivel de Ensaio 100KM/H F. I' },
-  { cod: '28.88.30.10', desc: 'Suporte Duplo Metal. CO Galvan.C/M 6,00M Cada P/ - 4,00X3,00 F. I' },
-];
-
-const DR08_EQUIPS = [
-  { cod: '34.88.78.01', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 02 FXS' },
-  { cod: '34.88.78.02', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
-  { cod: '34.88.78.03', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 04 FXS' },
-  { cod: '34.88.78.06', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 02 FXS' },
-  { cod: '34.88.78.07', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
-];
-
-// ════════════════════════════════════════════
-// DR-14 Data
-// ════════════════════════════════════════════
-const DR14_EQUIPS = [
-  { cod: '34.88.78.01', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 02 FXS' },
-  { cod: '34.88.78.02', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 03 FXS' },
-  { cod: '34.88.78.03', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 04 FXS' },
-  { cod: '34.88.78.06', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 02 FXS' },
-  { cod: '34.88.78.07', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 03 FXS' },
-  { cod: '34.88.78.08', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 04 FXS' },
-  { cod: '34.88.78.12', desc: 'DISP.E MANUT.EQUIP. REDUTOR VELOC. COM OCR REDUTOR-LOMBADA TIPO II' },
-];
-
-function formatDateBR(dateStr: string): string {
-  if (!dateStr) return '___/___/______';
-  const [y, m, d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
-}
-
-function formatDateShort(dateStr: string): string {
-  if (!dateStr) return '__/__/__';
-  const [y, m, d] = dateStr.split('-');
-  return `${d}/${m}/${y.slice(2)}`;
-}
-
-// ════════════════════════════════════════════
-// Helper: get equipment data grouped by codMedicao for a lote
-// ════════════════════════════════════════════
-function useEquipData(lote: string, records: any[]) {
-  return useMemo(() => {
-    const groups: Record<string, { codigo: string; endereco: string; id: number | null }[]> = {};
-    const sums: Record<string, number> = {};
-
-    Object.entries(EQUIP_CATALOG).forEach(([codigo, info]) => {
-      if (info.lote !== lote || !info.codMedicao) return;
-      if (!groups[info.codMedicao]) groups[info.codMedicao] = [];
-
-      const rec = records.find(r => r.equipamento === codigo);
-      const id = rec ? (rec.f_ID ?? rec.c_ID ?? null) : null;
-
-      groups[info.codMedicao].push({ codigo, endereco: info.endereco, id });
-
-      if (!sums[info.codMedicao]) sums[info.codMedicao] = 0;
-      if (id !== null) sums[info.codMedicao] += id;
-    });
-
-    return { groups, sums };
-  }, [lote, records]);
-}
-
-// ════════════════════════════════════════════
-// MAIN COMPONENT
-// ════════════════════════════════════════════
-export default function MedicaoPage() {
-  const { getActiveRecords } = useData();
-  const [numMedicao, setNumMedicao] = useState('');
-  const [obrasAte, setObrasAte] = useState('');
-  const [periodoInicio, setPeriodoInicio] = useState('');
-  const [periodoFim, setPeriodoFim] = useState('');
-  const [activeLote, setActiveLote] = useState('DR-08');
-  const printRef08 = useRef<HTMLDivElement>(null);
-  const printRef14 = useRef<HTMLDivElement>(null);
-
-  const records = useMemo(() => getActiveRecords(), [getActiveRecords]);
-  const dr08Data = useEquipData('DR-08', records);
-  const dr14Data = useEquipData('DR-14', records);
-
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
+...
   const handleExportPDF = async () => {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
 
-    // Import html2canvas dynamically to render entire content as single image
-    const html2canvas = (await import('html2pdf.js')).default;
-    
-    // Use html2pdf with fit-to-page approach: scale down content to fit single page
-    html2pdf().set({
-      margin: [2, 2, 2, 2],
-      filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowWidth: ref.scrollWidth },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['avoid-all'] },
-    }).from(ref).toPdf().get('pdf').then((pdf: any) => {
-      // If content spans multiple pages, re-render scaled to fit single page
-      const totalPages = pdf.internal.getNumberOfPages();
-      if (totalPages > 1) {
-        // Delete extra pages and re-render with smaller scale
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        
-        // Re-export with auto-fit
-        html2pdf().set({
-          margin: [2, 2, 2, 2],
-          filename: `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { 
-            scale: 2, 
-            useCORS: true, 
-            scrollY: 0,
-            windowWidth: ref.scrollWidth,
-            onclone: (doc: Document) => {
-              const el = doc.querySelector('[data-pdf-root]') as HTMLElement;
-              if (el) {
-                // Scale down to fit
-                const scaleFactor = 0.75;
-                el.style.transform = `scale(${scaleFactor})`;
-                el.style.transformOrigin = 'top left';
-                el.style.width = `${100 / scaleFactor}%`;
-              }
-            }
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-          pagebreak: { mode: ['avoid-all'] },
-        }).from(ref).save();
-      } else {
-        pdf.save(`Medicao_${numMedicao || 'X'}_${activeLote}.pdf`);
-      }
+    const pdfFileName = `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`;
+    const pageWidthMm = 297;
+    const pageHeightMm = 210;
+    const marginMm = 4;
+    const availableWidthMm = pageWidthMm - marginMm * 2;
+    const availableHeightMm = pageHeightMm - marginMm * 2;
+
+    const canvas = await html2canvas(ref, {
+      scale: 2.2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: ref.scrollWidth,
+      windowHeight: ref.scrollHeight,
     });
+
+    const imageData = canvas.toDataURL('image/jpeg', 0.98);
+    const fitScale = Math.min(availableWidthMm / canvas.width, availableHeightMm / canvas.height);
+    const renderWidthMm = canvas.width * fitScale;
+    const renderHeightMm = canvas.height * fitScale;
+    const offsetX = (pageWidthMm - renderWidthMm) / 2;
+    const offsetY = (pageHeightMm - renderHeightMm) / 2;
+
+    const pdf = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4',
+      compress: true,
+    });
+
+    pdf.addImage(imageData, 'JPEG', offsetX, offsetY, renderWidthMm, renderHeightMm, undefined, 'FAST');
+    pdf.save(pdfFileName);
   };
 
   const medicaoLabel = numMedicao ? `${numMedicao}ª MEDIÇÃO` : '___ª MEDIÇÃO';
