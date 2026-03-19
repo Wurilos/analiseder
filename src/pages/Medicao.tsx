@@ -164,14 +164,15 @@ export default function MedicaoPage() {
     : '__/__/__ a __/__/__';
 
   const b = '1px solid #000';
+  const b2 = '2px solid #000';
 
   const chk = (filled: boolean) => (
     <span style={{
-      display: 'inline-block', width: '12px', height: '12px',
-      border: '1.5px solid #000', verticalAlign: 'middle', marginRight: '3px',
-      background: filled ? '#000' : '#fff', lineHeight: '12px',
-      textAlign: 'center', fontSize: '9px', color: filled ? '#fff' : '#000',
-    }}>{filled ? '' : '\u00A0'}</span>
+      display: 'inline-block', width: '10px', height: '10px',
+      border: '1.5px solid #000', verticalAlign: 'middle', marginRight: '2px',
+      background: filled ? '#000' : '#fff',
+      position: 'relative', top: '-1px',
+    }}>{'\u00A0'}</span>
   );
 
   return (
