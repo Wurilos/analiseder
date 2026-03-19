@@ -96,6 +96,7 @@ export default function MedicaoPage() {
   const [activeLote, setActiveLote] = useState('DR-08');
   const printRef08 = useRef<HTMLDivElement>(null);
   const printRef14 = useRef<HTMLDivElement>(null);
+  const printHiddenRef08 = useRef<HTMLDivElement>(null);
 
   const records = useMemo(() => getActiveRecords(), [getActiveRecords]);
   const dr08Data = useEquipData('DR-08', records);
@@ -107,32 +108,42 @@ export default function MedicaoPage() {
   const PDF_CONTENT_WIDTH_MM = 268;
 
   const handleExportPDF = async () => {
-    const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
+    const isDR08 = activeLote === 'DR-08';
+    const ref = isDR08 ? printHiddenRef08.current : printRef14.current;
     if (!ref) return;
 
     const pdfFileName = `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`;
-    const availableHeightMm = PDF_PAGE_HEIGHT_MM - PDF_MARGIN_MM * 2;
-    const captureWidthPx = Math.ceil(ref.scrollWidth);
-    const captureHeightPx = Math.ceil(ref.scrollHeight);
+
+    // For DR-08, temporarily make hidden div visible for capture
+    if (isDR08) {
+      ref.style.visibility = 'visible';
+    }
 
     const canvas = await html2canvas(ref, {
-      scale: 2.2,
+      scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       scrollX: 0,
       scrollY: 0,
-      width: captureWidthPx,
-      height: captureHeightPx,
-      windowWidth: captureWidthPx,
-      windowHeight: captureHeightPx,
+      width: ref.offsetWidth,
+      height: ref.offsetHeight,
+      windowWidth: ref.offsetWidth,
+      windowHeight: ref.offsetHeight,
     });
 
+    if (isDR08) {
+      ref.style.visibility = 'hidden';
+    }
+
     const imageData = canvas.toDataURL('image/jpeg', 0.98);
-    const fitScale = Math.min(PDF_CONTENT_WIDTH_MM / canvas.width, availableHeightMm / canvas.height);
-    const renderWidthMm = canvas.width * fitScale;
-    const renderHeightMm = canvas.height * fitScale;
-    const offsetX = (PDF_PAGE_WIDTH_MM - renderWidthMm) / 2;
-    const offsetY = (PDF_PAGE_HEIGHT_MM - renderHeightMm) / 2;
+    const marginMm = 5;
+    const availW = PDF_PAGE_WIDTH_MM - marginMm * 2;
+    const availH = PDF_PAGE_HEIGHT_MM - marginMm * 2;
+    const fitScale = Math.min(availW / canvas.width, availH / canvas.height);
+    const renderW = canvas.width * fitScale;
+    const renderH = canvas.height * fitScale;
+    const offsetX = (PDF_PAGE_WIDTH_MM - renderW) / 2;
+    const offsetY = (PDF_PAGE_HEIGHT_MM - renderH) / 2;
 
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -141,7 +152,7 @@ export default function MedicaoPage() {
       compress: true,
     });
 
-    pdf.addImage(imageData, 'JPEG', offsetX, offsetY, renderWidthMm, renderHeightMm, undefined, 'FAST');
+    pdf.addImage(imageData, 'JPEG', offsetX, offsetY, renderW, renderH, undefined, 'FAST');
     pdf.save(pdfFileName);
   };
 
@@ -481,6 +492,167 @@ export default function MedicaoPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* ══════════════════════════════════════════ */}
+      {/* HIDDEN PRINT DIV — DR-08 (pixel-perfect) */}
+      {/* ══════════════════════════════════════════ */}
+      <div
+        ref={printHiddenRef08}
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          top: 0,
+          visibility: 'hidden',
+          width: '1122px',
+          height: '793px',
+          background: '#fff',
+          color: '#000',
+          fontFamily: 'Arial, Helvetica, sans-serif',
+          fontSize: '11px',
+          boxSizing: 'border-box',
+          display: 'flex',
+          flexDirection: 'column',
+          padding: '0',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Outer border */}
+        <div style={{
+          border: '2px solid #000',
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+        }}>
+          {/* ── HEADER ── */}
+          <div style={{
+            borderBottom: b,
+            display: 'flex',
+            alignItems: 'center',
+            padding: '8px 14px',
+          }}>
+            <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain', marginRight: '14px' }} />
+            <div style={{ flex: 1, textAlign: 'center' }}>
+              <div style={{ fontSize: '12px', letterSpacing: '0.5px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
+              <div style={{ fontSize: '15px', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.5px' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
+            </div>
+          </div>
+
+          {/* ── CONTINUAÇÃO ROW ── */}
+          <div style={{
+            borderBottom: b,
+            display: 'flex',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            padding: '3px 14px',
+            fontSize: '10px',
+          }}>
+            Continuação: &nbsp;{chk(false)} sim &nbsp;&nbsp;&nbsp;{chk(true)} não
+          </div>
+
+          {/* ── SINALIZAÇÃO ROWS ── */}
+          {DR08_SINALIZACAO.map(r => (
+            <div key={r.cod} style={{
+              borderBottom: b,
+              display: 'flex',
+              alignItems: 'center',
+              height: '22px',
+              lineHeight: '22px',
+              padding: '0 14px',
+              fontSize: '11px',
+            }}>
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {r.cod} {r.desc}
+              </span>
+            </div>
+          ))}
+
+          {/* ── SEPARATOR ── */}
+          <div style={{ borderBottom: b, height: '8px' }}></div>
+
+          {/* ── EQUIPAMENTO ROWS ── */}
+          {DR08_EQUIPS.map(r => {
+            const val = dr08Data.sums[r.cod] ?? 0;
+            return (
+              <div key={r.cod} style={{
+                borderBottom: b,
+                display: 'flex',
+                alignItems: 'center',
+                height: '22px',
+                lineHeight: '22px',
+                padding: '0 14px',
+                fontSize: '11px',
+              }}>
+                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {r.cod} {r.desc}
+                </span>
+                <span style={{ width: '80px', textAlign: 'right', fontFamily: 'Arial, sans-serif', flexShrink: 0 }}>
+                  {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
+                </span>
+              </div>
+            );
+          })}
+
+          {/* ── EMPTY SPACE (flex-grow fills the page) ── */}
+          <div style={{ flex: 1, borderBottom: b }}></div>
+
+          {/* ── FOOTER BLOCK ── */}
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+            <colgroup>
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '15%' }} />
+              <col style={{ width: '20%' }} />
+              <col style={{ width: '35%' }} />
+              <col style={{ width: '10%' }} />
+            </colgroup>
+            <tbody>
+              <tr>
+                {/* De acordo */}
+                <td style={{ borderRight: b, padding: '8px 10px', verticalAlign: 'bottom', fontSize: '10px' }}>
+                  De acordo:__________________
+                </td>
+                {/* Continua */}
+                <td style={{ borderRight: b, padding: '8px 10px', verticalAlign: 'bottom', fontSize: '10px' }}>
+                  Continua:<br />{chk(false)} sim &nbsp;&nbsp;{chk(true)} não
+                </td>
+                {/* Medição */}
+                <td style={{ borderRight: b, padding: '6px 10px', textAlign: 'center', verticalAlign: 'top' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
+                  <div style={{ textAlign: 'left', paddingLeft: '20%', fontSize: '10px' }}>
+                    <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
+                    <div>{chk(false)} Final</div>
+                  </div>
+                  <div style={{ marginTop: '10px', fontSize: '10px' }}>obras executadas até {obrasLabel}</div>
+                </td>
+                {/* Contrato */}
+                <td style={{ borderRight: b, padding: '8px 10px', fontSize: '8.5px', lineHeight: '1.4', verticalAlign: 'top' }}>
+                  <div>Contrato n.º: <strong>22.583-6</strong></div>
+                  <div style={{ marginTop: '2px' }}>Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.</div>
+                  <div style={{ marginTop: '3px' }}><strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.</div>
+                </td>
+                {/* Fls */}
+                <td style={{ padding: '8px 10px', textAlign: 'center', verticalAlign: 'top', fontSize: '11px' }}>
+                  <div>Fls.</div>
+                  <div style={{ fontWeight: 'bold', marginTop: '10px' }}>01/01</div>
+                </td>
+              </tr>
+              {/* Signature row */}
+              <tr>
+                <td style={{ borderTop: b, borderRight: b, padding: '6px 10px 8px', textAlign: 'center', fontSize: '10px', verticalAlign: 'bottom' }}>
+                  ________________________________<br />Contratante
+                </td>
+                <td colSpan={2} style={{ borderTop: b, borderRight: b, padding: '6px 10px 8px', textAlign: 'center', fontSize: '10px', verticalAlign: 'bottom' }}>
+                  ________________________________<br />Engenheiro Fiscal
+                </td>
+                <td style={{ borderTop: b, borderRight: b, padding: '8px', verticalAlign: 'top', fontSize: '9px' }}>
+                  Firma: Consórcio Peso Certo Móvel
+                </td>
+                <td style={{ borderTop: b, padding: '8px' }}></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div style={{ fontSize: '9px', marginTop: '3px', paddingLeft: '4px' }}>DER-621</div>
+      </div>
     </div>
   );
 }
