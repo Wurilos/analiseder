@@ -251,8 +251,8 @@ export default function MedicaoPage() {
                     {/* Sinalização */}
                     {DR08_SINALIZACAO.map(r => (
                       <tr key={r.cod}>
-                        <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
-                        <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}></td>
+                        <td style={{ borderBottom: b, padding: '0 10px', height: '18px', lineHeight: '18px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
+                        <td style={{ borderBottom: b, padding: '0 10px', height: '18px', lineHeight: '18px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}></td>
                       </tr>
                     ))}
                     <tr><td style={{ borderBottom: b, height: '4px' }}></td><td style={{ borderBottom: b, height: '4px' }}></td></tr>
@@ -261,8 +261,8 @@ export default function MedicaoPage() {
                       const val = dr08Data.sums[r.cod] ?? 0;
                       return (
                         <tr key={r.cod}>
-                          <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
-                          <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <td style={{ borderBottom: b, padding: '0 10px', height: '18px', lineHeight: '18px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
+                          <td style={{ borderBottom: b, padding: '0 10px', height: '18px', lineHeight: '18px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                             {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
                           </td>
                         </tr>
