@@ -226,7 +226,7 @@ export default function MedicaoPage() {
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
                 fontSize: '9px', width: '268mm', lineHeight: 1.2, boxSizing: 'border-box',
               }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000', tableLayout: 'fixed' }}>
                   <tbody>
                     {/* Header */}
                     <tr>
