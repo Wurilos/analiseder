@@ -108,32 +108,42 @@ export default function MedicaoPage() {
   const PDF_CONTENT_WIDTH_MM = 268;
 
   const handleExportPDF = async () => {
-    const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
+    const isDR08 = activeLote === 'DR-08';
+    const ref = isDR08 ? printHiddenRef08.current : printRef14.current;
     if (!ref) return;
 
     const pdfFileName = `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`;
-    const availableHeightMm = PDF_PAGE_HEIGHT_MM - PDF_MARGIN_MM * 2;
-    const captureWidthPx = Math.ceil(ref.scrollWidth);
-    const captureHeightPx = Math.ceil(ref.scrollHeight);
+
+    // For DR-08, temporarily make hidden div visible for capture
+    if (isDR08) {
+      ref.style.visibility = 'visible';
+    }
 
     const canvas = await html2canvas(ref, {
-      scale: 2.2,
+      scale: 2,
       useCORS: true,
       backgroundColor: '#ffffff',
       scrollX: 0,
       scrollY: 0,
-      width: captureWidthPx,
-      height: captureHeightPx,
-      windowWidth: captureWidthPx,
-      windowHeight: captureHeightPx,
+      width: ref.offsetWidth,
+      height: ref.offsetHeight,
+      windowWidth: ref.offsetWidth,
+      windowHeight: ref.offsetHeight,
     });
 
+    if (isDR08) {
+      ref.style.visibility = 'hidden';
+    }
+
     const imageData = canvas.toDataURL('image/jpeg', 0.98);
-    const fitScale = Math.min(PDF_CONTENT_WIDTH_MM / canvas.width, availableHeightMm / canvas.height);
-    const renderWidthMm = canvas.width * fitScale;
-    const renderHeightMm = canvas.height * fitScale;
-    const offsetX = (PDF_PAGE_WIDTH_MM - renderWidthMm) / 2;
-    const offsetY = (PDF_PAGE_HEIGHT_MM - renderHeightMm) / 2;
+    const marginMm = 5;
+    const availW = PDF_PAGE_WIDTH_MM - marginMm * 2;
+    const availH = PDF_PAGE_HEIGHT_MM - marginMm * 2;
+    const fitScale = Math.min(availW / canvas.width, availH / canvas.height);
+    const renderW = canvas.width * fitScale;
+    const renderH = canvas.height * fitScale;
+    const offsetX = (PDF_PAGE_WIDTH_MM - renderW) / 2;
+    const offsetY = (PDF_PAGE_HEIGHT_MM - renderH) / 2;
 
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -142,7 +152,7 @@ export default function MedicaoPage() {
       compress: true,
     });
 
-    pdf.addImage(imageData, 'JPEG', offsetX, offsetY, renderWidthMm, renderHeightMm, undefined, 'FAST');
+    pdf.addImage(imageData, 'JPEG', offsetX, offsetY, renderW, renderH, undefined, 'FAST');
     pdf.save(pdfFileName);
   };
 
