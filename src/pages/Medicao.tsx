@@ -10,7 +10,97 @@ import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
-...
+
+// ════════════════════════════════════════════
+// DR-08 Data
+// ════════════════════════════════════════════
+const DR08_SINALIZACAO = [
+  { cod: '28.88.30.01', desc: 'Placa Alum. Composto, Esp.3mm. Mod. Aérea Pelic.Ret Tipo III + II-F.1' },
+  { cod: '28.88.30.02', desc: 'Semi-Portico Metalico com Vão de 8,3m, Vento 35 M/S' },
+  { cod: '28.88.30.03', desc: 'Suporte com 3,90m P/Placa Sinaliz em Madeira Tratada 10x10 Forn.Implant' },
+  { cod: '28.88.30.05', desc: 'Suporte Colapsivel com 6,90m para Placa de Sinalização > 5 Mô – Forn. Implant' },
+  { cod: '28.88.30.06', desc: 'Suporte Metalico C/Braço Projetado-Area de Expos. Até 4,50 Mô – Forn. Implant' },
+  { cod: '28.88.30.07', desc: 'Defensa Metalica (HIAW4) – Fornec. E Implantação' },
+  { cod: '28.88.30.08', desc: 'Term. ABS. Energia Especif. Conf. NCHRP 350 Nivel de Ensaio 70/80KM' },
+  { cod: '28.88.30.09', desc: 'Term. ABS. Energia Especif. Conf. NCHRP 350 Nivel de Ensaio 100KM/H F. I' },
+  { cod: '28.88.30.10', desc: 'Suporte Duplo Metal. CO Galvan.C/M 6,00M Cada P/ - 4,00X3,00 F. I' },
+];
+
+const DR08_EQUIPS = [
+  { cod: '34.88.78.01', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 02 FXS' },
+  { cod: '34.88.78.02', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
+  { cod: '34.88.78.03', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 04 FXS' },
+  { cod: '34.88.78.06', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 02 FXS' },
+  { cod: '34.88.78.07', desc: 'Disp. e Manut. Equip Control. Elet. Velocidade (CEV), com OCR 03 FXS' },
+];
+
+// ════════════════════════════════════════════
+// DR-14 Data
+// ════════════════════════════════════════════
+const DR14_EQUIPS = [
+  { cod: '34.88.78.01', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 02 FXS' },
+  { cod: '34.88.78.02', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 03 FXS' },
+  { cod: '34.88.78.03', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. VELOCIDADE (CEV), COM OCR 04 FXS' },
+  { cod: '34.88.78.06', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 02 FXS' },
+  { cod: '34.88.78.07', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 03 FXS' },
+  { cod: '34.88.78.08', desc: 'DISP.E MANUT.EQUIP CONTROL. ELET. COMPOSTO VELOCIDADE (CEC), COM OCR 04 FXS' },
+  { cod: '34.88.78.12', desc: 'DISP.E MANUT.EQUIP. REDUTOR VELOC. COM OCR REDUTOR-LOMBADA TIPO II' },
+];
+
+function formatDateBR(dateStr: string): string {
+  if (!dateStr) return '___/___/______';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function formatDateShort(dateStr: string): string {
+  if (!dateStr) return '__/__/__';
+  const [y, m, d] = dateStr.split('-');
+  return `${d}/${m}/${y.slice(2)}`;
+}
+
+// ════════════════════════════════════════════
+// Helper: get equipment data grouped by codMedicao for a lote
+// ════════════════════════════════════════════
+function useEquipData(lote: string, records: any[]) {
+  return useMemo(() => {
+    const groups: Record<string, { codigo: string; endereco: string; id: number | null }[]> = {};
+    const sums: Record<string, number> = {};
+
+    Object.entries(EQUIP_CATALOG).forEach(([codigo, info]) => {
+      if (info.lote !== lote || !info.codMedicao) return;
+      if (!groups[info.codMedicao]) groups[info.codMedicao] = [];
+
+      const rec = records.find(r => r.equipamento === codigo);
+      const id = rec ? (rec.f_ID ?? rec.c_ID ?? null) : null;
+
+      groups[info.codMedicao].push({ codigo, endereco: info.endereco, id });
+
+      if (!sums[info.codMedicao]) sums[info.codMedicao] = 0;
+      if (id !== null) sums[info.codMedicao] += id;
+    });
+
+    return { groups, sums };
+  }, [lote, records]);
+}
+
+// ════════════════════════════════════════════
+// MAIN COMPONENT
+// ════════════════════════════════════════════
+export default function MedicaoPage() {
+  const { getActiveRecords } = useData();
+  const [numMedicao, setNumMedicao] = useState('');
+  const [obrasAte, setObrasAte] = useState('');
+  const [periodoInicio, setPeriodoInicio] = useState('');
+  const [periodoFim, setPeriodoFim] = useState('');
+  const [activeLote, setActiveLote] = useState('DR-08');
+  const printRef08 = useRef<HTMLDivElement>(null);
+  const printRef14 = useRef<HTMLDivElement>(null);
+
+  const records = useMemo(() => getActiveRecords(), [getActiveRecords]);
+  const dr08Data = useEquipData('DR-08', records);
+  const dr14Data = useEquipData('DR-14', records);
+
   const handleExportPDF = async () => {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
