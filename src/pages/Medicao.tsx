@@ -226,11 +226,11 @@ export default function MedicaoPage() {
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
                 fontSize: '9px', width: '268mm', lineHeight: 1.2, boxSizing: 'border-box',
               }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000', tableLayout: 'fixed' }}>
                   <tbody>
                     {/* Header */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '85%' }}>
+                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '82%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain' }} />
                           <div style={{ textAlign: 'center', flex: 1 }}>
@@ -239,7 +239,7 @@ export default function MedicaoPage() {
                           </div>
                         </div>
                       </td>
-                      <td style={{ borderBottom: b, padding: '6px 10px', textAlign: 'right', width: '15%' }}></td>
+                      <td style={{ borderBottom: b, padding: '6px 10px', textAlign: 'right', width: '18%' }}></td>
                     </tr>
                     {/* Continuação */}
                     <tr>
@@ -251,8 +251,8 @@ export default function MedicaoPage() {
                     {/* Sinalização */}
                     {DR08_SINALIZACAO.map(r => (
                       <tr key={r.cod}>
-                        <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle' }}>{r.cod} {r.desc}</td>
-                        <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', verticalAlign: 'middle' }}></td>
+                        <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
+                        <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}></td>
                       </tr>
                     ))}
                     <tr><td style={{ borderBottom: b, height: '4px' }}></td><td style={{ borderBottom: b, height: '4px' }}></td></tr>
@@ -261,8 +261,8 @@ export default function MedicaoPage() {
                       const val = dr08Data.sums[r.cod] ?? 0;
                       return (
                         <tr key={r.cod}>
-                          <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle' }}>{r.cod} {r.desc}</td>
-                          <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle' }}>
+                          <td style={{ borderBottom: b, padding: '4px 10px', fontSize: '9px', verticalAlign: 'middle', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.cod} {r.desc}</td>
+                          <td style={{ borderBottom: b, padding: '4px 10px', textAlign: 'right', fontSize: '9px', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                             {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
                           </td>
                         </tr>
