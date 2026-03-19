@@ -230,7 +230,7 @@ export default function MedicaoPage() {
                   <tbody>
                     {/* Header */}
                     <tr>
-                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '85%' }}>
+                      <td style={{ borderBottom: b, padding: '6px 10px', verticalAlign: 'middle', width: '82%' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <img src="/images/brasao-sp.png" alt="" style={{ width: '56px', height: '60px', objectFit: 'contain' }} />
                           <div style={{ textAlign: 'center', flex: 1 }}>
