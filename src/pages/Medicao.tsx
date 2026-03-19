@@ -96,7 +96,7 @@ export default function MedicaoPage() {
   const [activeLote, setActiveLote] = useState('DR-08');
   const printRef08 = useRef<HTMLDivElement>(null);
   const printRef14 = useRef<HTMLDivElement>(null);
-  const printHiddenRef08 = useRef<HTMLDivElement>(null);
+  
 
   const records = useMemo(() => getActiveRecords(), [getActiveRecords]);
   const dr08Data = useEquipData('DR-08', records);
@@ -107,17 +107,276 @@ export default function MedicaoPage() {
   const PDF_MARGIN_MM = 6;
   const PDF_CONTENT_WIDTH_MM = 268;
 
+  // ════════════════════════════════════════════
+  // DR-08: Direct jsPDF vector drawing
+  // ════════════════════════════════════════════
+  const exportDR08WithJsPDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W = 297, H = 210;
+    const M = 6; // margin
+    const L = M, R = W - M, T = M, B = H - M;
+    const CW = R - L; // content width
+    const valColW = CW * 0.10; // value column width
+    const descColW = CW - valColW; // description column width
+
+    // Helpers
+    const drawLine = (x1: number, y1: number, x2: number, y2: number, w = 0.3) => {
+      doc.setLineWidth(w);
+      doc.line(x1, y1, x2, y2);
+    };
+
+    const drawRect = (x: number, y: number, w: number, h: number, lineW = 0.5) => {
+      doc.setLineWidth(lineW);
+      doc.rect(x, y, w, h);
+    };
+
+    const drawCheckbox = (x: number, y: number, checked: boolean, size = 2.8) => {
+      doc.setLineWidth(0.4);
+      doc.rect(x, y - size / 2, size, size);
+      if (checked) {
+        doc.setFillColor(0, 0, 0);
+        doc.rect(x + 0.3, y - size / 2 + 0.3, size - 0.6, size - 0.6, 'F');
+      }
+    };
+
+    const drawCellText = (
+      text: string,
+      x: number,
+      y: number,
+      cellW: number,
+      cellH: number,
+      opts: { align?: 'left' | 'right' | 'center'; fontSize?: number; bold?: boolean; maxLines?: number } = {}
+    ) => {
+      const { align = 'left', fontSize = 8, bold = false, maxLines = 1 } = opts;
+      doc.setFontSize(fontSize);
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+
+      const textY = y + cellH / 2;
+      const padding = 2;
+
+      if (maxLines === 1) {
+        // Truncate to fit
+        let t = text;
+        const maxW = cellW - padding * 2;
+        while (doc.getTextWidth(t) > maxW && t.length > 0) {
+          t = t.slice(0, -1);
+        }
+        if (t.length < text.length && t.length > 3) t = t.slice(0, -3) + '...';
+
+        let tx = x + padding;
+        if (align === 'right') tx = x + cellW - padding;
+        else if (align === 'center') tx = x + cellW / 2;
+
+        doc.text(t, tx, textY, { baseline: 'middle', align });
+      } else {
+        // Multi-line wrap
+        const maxW = cellW - padding * 2;
+        doc.setFontSize(fontSize);
+        const lines = doc.splitTextToSize(text, maxW) as string[];
+        const lineH = fontSize * 0.4;
+        const totalH = lines.length * lineH;
+        let startY = y + (cellH - totalH) / 2 + lineH / 2;
+        lines.forEach((line: string) => {
+          let tx = x + padding;
+          if (align === 'right') tx = x + cellW - padding;
+          else if (align === 'center') tx = x + cellW / 2;
+          doc.text(line, tx, startY, { baseline: 'middle', align });
+          startY += lineH;
+        });
+      }
+    };
+
+    // ── Outer border ──
+    drawRect(L, T, CW, B - T, 0.7);
+
+    let curY = T;
+
+    // ── HEADER ──
+    const headerH = 14;
+    // Brasão
+    try {
+      doc.addImage('/images/brasao-sp.png', 'PNG', L + 3, curY + 1.5, 10, 11);
+    } catch {}
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text('SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA', L + CW / 2, curY + 5, { align: 'center', baseline: 'middle' });
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DEPARTAMENTO DE ESTRADAS DE RODAGEM', L + CW / 2, curY + 10, { align: 'center', baseline: 'middle' });
+    curY += headerH;
+    drawLine(L, curY, R, curY);
+
+    // ── CONTINUAÇÃO ──
+    const contH = 5;
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    const contTextX = R - 3;
+    const contTextY = curY + contH / 2;
+    drawCheckbox(contTextX - 32, contTextY, false, 2.5);
+    doc.text('sim', contTextX - 28.5, contTextY, { baseline: 'middle' });
+    drawCheckbox(contTextX - 18, contTextY, true, 2.5);
+    doc.text('não', contTextX - 14.5, contTextY, { baseline: 'middle' });
+    doc.text('Continuação:', contTextX - 40, contTextY, { baseline: 'middle', align: 'right' });
+    curY += contH;
+    drawLine(L, curY, R, curY);
+
+    // ── SINALIZAÇÃO ROWS ──
+    const rowH = 4.8;
+    DR08_SINALIZACAO.forEach(r => {
+      drawCellText(`${r.cod} ${r.desc}`, L, curY, descColW, rowH, { fontSize: 7.5 });
+      curY += rowH;
+      drawLine(L, curY, R, curY, 0.15);
+    });
+
+    // ── SEPARATOR ──
+    const sepH = 1.5;
+    curY += sepH;
+    drawLine(L, curY, R, curY, 0.15);
+
+    // ── EQUIPAMENTO ROWS ──
+    DR08_EQUIPS.forEach(r => {
+      const val = dr08Data.sums[r.cod] ?? 0;
+      drawCellText(`${r.cod} ${r.desc}`, L, curY, descColW, rowH, { fontSize: 7.5 });
+      if (val > 0) {
+        drawCellText(val.toFixed(2).replace('.', ','), L + descColW, curY, valColW, rowH, { align: 'right', fontSize: 7.5 });
+      }
+      curY += rowH;
+      drawLine(L, curY, R, curY, 0.15);
+    });
+
+    // ── EMPTY ROWS (fill space until footer) ──
+    // Footer heights
+    const footerRow1H = 22;
+    const footerRow2H = 12;
+    const derLabelH = 4;
+    const footerTotalH = footerRow1H + footerRow2H + derLabelH;
+    const footerStartY = B - footerRow1H - footerRow2H;
+
+    // Draw a line at the footer start
+    drawLine(L, footerStartY, R, footerStartY, 0.3);
+
+    // ── FOOTER ROW 1 ──
+    const f1Y = footerStartY;
+    // Column positions (percentages of CW)
+    const fCol1W = CW * 0.18;
+    const fCol2W = CW * 0.14;
+    const fCol3W = CW * 0.18;
+    const fCol4W = CW * 0.42;
+    const fCol5W = CW * 0.08;
+    const fX1 = L;
+    const fX2 = fX1 + fCol1W;
+    const fX3 = fX2 + fCol2W;
+    const fX4 = fX3 + fCol3W;
+    const fX5 = fX4 + fCol4W;
+
+    // Vertical dividers
+    drawLine(fX2, f1Y, fX2, f1Y + footerRow1H, 0.3);
+    drawLine(fX3, f1Y, fX3, f1Y + footerRow1H, 0.3);
+    drawLine(fX4, f1Y, fX4, f1Y + footerRow1H, 0.3);
+    drawLine(fX5, f1Y, fX5, f1Y + footerRow1H, 0.3);
+
+    // Col1: De acordo
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('De acordo:', fX1 + 2, f1Y + 4, { baseline: 'middle' });
+    doc.text('____________________', fX1 + 2, f1Y + footerRow1H - 4, { baseline: 'middle' });
+
+    // Col2: Continua
+    doc.text('Continua:', fX2 + 2, f1Y + 4, { baseline: 'middle' });
+    drawCheckbox(fX2 + 2, f1Y + 10, false, 2.5);
+    doc.text('sim', fX2 + 5.5, f1Y + 10, { baseline: 'middle' });
+    drawCheckbox(fX2 + 2, f1Y + 15, true, 2.5);
+    doc.text('não', fX2 + 5.5, f1Y + 15, { baseline: 'middle' });
+
+    // Col3: Medição
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'bold');
+    doc.text(medicaoLabel, fX3 + fCol3W / 2, f1Y + 4.5, { align: 'center', baseline: 'middle' });
+    doc.setFontSize(7.5);
+    doc.setFont('helvetica', 'normal');
+    drawCheckbox(fX3 + 5, f1Y + 9.5, true, 2.5);
+    doc.text('Provisória', fX3 + 8.5, f1Y + 9.5, { baseline: 'middle' });
+    drawCheckbox(fX3 + 5, f1Y + 13.5, false, 2.5);
+    doc.text('Final', fX3 + 8.5, f1Y + 13.5, { baseline: 'middle' });
+    doc.setFontSize(6.5);
+    doc.text(`obras executadas até ${obrasLabel}`, fX3 + fCol3W / 2, f1Y + 19, { align: 'center', baseline: 'middle' });
+
+    // Col4: Contrato
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Contrato n.º:', fX4 + 2, f1Y + 3.5, { baseline: 'middle' });
+    doc.setFont('helvetica', 'bold');
+    doc.text('22.583-6', fX4 + 20, f1Y + 3.5, { baseline: 'middle' });
+    doc.setFont('helvetica', 'normal');
+    const objetoText = 'Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.';
+    const objetoLines = doc.splitTextToSize(objetoText, fCol4W - 4) as string[];
+    let objY = f1Y + 6.5;
+    objetoLines.forEach((line: string) => {
+      doc.text(line, fX4 + 2, objY, { baseline: 'middle' });
+      objY += 2.5;
+    });
+    doc.setFont('helvetica', 'bold');
+    doc.text('Empresa', fX4 + 2, objY + 1, { baseline: 'middle' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(': Splice Industria Comércio e Serviços Ltda.', fX4 + 12, objY + 1, { baseline: 'middle' });
+
+    // Col5: Fls
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Fls.', fX5 + fCol5W / 2, f1Y + 5, { align: 'center', baseline: 'middle' });
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('01/01', fX5 + fCol5W / 2, f1Y + 13, { align: 'center', baseline: 'middle' });
+
+    // ── FOOTER ROW 2 (signatures) ──
+    const f2Y = f1Y + footerRow1H;
+    drawLine(L, f2Y, R, f2Y, 0.3);
+
+    const sCol1W = CW * 0.18;
+    const sCol2W = CW * 0.32;
+    const sCol3W = CW * 0.42;
+    const sCol4W = CW * 0.08;
+    const sX1 = L;
+    const sX2 = sX1 + sCol1W;
+    const sX3 = sX2 + sCol2W;
+    const sX4 = sX3 + sCol3W;
+
+    drawLine(sX2, f2Y, sX2, B, 0.3);
+    drawLine(sX3, f2Y, sX3, B, 0.3);
+    drawLine(sX4, f2Y, sX4, B, 0.3);
+
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('________________________', sX1 + sCol1W / 2, f2Y + 5, { align: 'center', baseline: 'middle' });
+    doc.text('Contratante', sX1 + sCol1W / 2, f2Y + 8.5, { align: 'center', baseline: 'middle' });
+
+    doc.text('________________________________', sX2 + sCol2W / 2, f2Y + 5, { align: 'center', baseline: 'middle' });
+    doc.text('Engenheiro Fiscal', sX2 + sCol2W / 2, f2Y + 8.5, { align: 'center', baseline: 'middle' });
+
+    doc.setFontSize(7);
+    doc.text('Firma: Consórcio Peso Certo Móvel', sX3 + 2, f2Y + 4, { baseline: 'middle' });
+
+    // ── DER-621 label ──
+    doc.setFontSize(6);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DER-621', L + 1, B + 3, { baseline: 'middle' });
+
+    // Save
+    const pdfFileName = `Medicao_${numMedicao || 'X'}_DR-08.pdf`;
+    doc.save(pdfFileName);
+  };
+
   const handleExportPDF = async () => {
-    const isDR08 = activeLote === 'DR-08';
-    const ref = isDR08 ? printHiddenRef08.current : printRef14.current;
+    if (activeLote === 'DR-08') {
+      exportDR08WithJsPDF();
+      return;
+    }
+
+    // DR-14: keep html2canvas flow
+    const ref = printRef14.current;
     if (!ref) return;
 
     const pdfFileName = `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`;
-
-    // For DR-08, temporarily make hidden div visible for capture
-    if (isDR08) {
-      ref.style.visibility = 'visible';
-    }
 
     const canvas = await html2canvas(ref, {
       scale: 2,
@@ -130,10 +389,6 @@ export default function MedicaoPage() {
       windowWidth: ref.offsetWidth,
       windowHeight: ref.offsetHeight,
     });
-
-    if (isDR08) {
-      ref.style.visibility = 'hidden';
-    }
 
     const imageData = canvas.toDataURL('image/jpeg', 0.98);
     const marginMm = 5;
@@ -493,185 +748,6 @@ export default function MedicaoPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      {/* ══════════════════════════════════════════ */}
-      {/* HIDDEN PRINT DIV — DR-08 (pixel-perfect) */}
-      {/* ══════════════════════════════════════════ */}
-      <div
-        ref={printHiddenRef08}
-        style={{
-          position: 'absolute',
-          left: '-9999px',
-          top: 0,
-          visibility: 'hidden',
-          width: '1122px',
-          height: '793px',
-          background: '#fff',
-          color: '#000',
-          fontFamily: 'Arial, Helvetica, sans-serif',
-          fontSize: '11px',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-          padding: '0',
-        }}
-      >
-        <table style={{
-          width: '100%',
-          height: '100%',
-          borderCollapse: 'collapse',
-          border: b2,
-          tableLayout: 'fixed',
-        }}>
-          <colgroup>
-            <col style={{ width: '90%' }} />
-            <col style={{ width: '10%' }} />
-          </colgroup>
-          <tbody>
-            {/* ── HEADER ROW ── */}
-            <tr>
-              <td colSpan={2} style={{ borderBottom: b, padding: '8px 14px', verticalAlign: 'middle', height: '70px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ width: '70px', verticalAlign: 'middle' }}>
-                        <img src="/images/brasao-sp.png" alt="" style={{ width: '52px', height: '56px', objectFit: 'contain' }} />
-                      </td>
-                      <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
-                        <div style={{ fontSize: '12px', letterSpacing: '0.3px' }}>SECRETARIA DO MEIO AMBIENTE INFRAESTRUTURA E LOGÍSTICA</div>
-                        <div style={{ fontSize: '15px', fontWeight: 'bold', marginTop: '2px', letterSpacing: '0.3px' }}>DEPARTAMENTO DE ESTRADAS DE RODAGEM</div>
-                      </td>
-                      <td style={{ width: '70px' }}></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-
-            {/* ── CONTINUAÇÃO ROW ── */}
-            <tr>
-              <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px' }}></td>
-              <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', textAlign: 'right', fontSize: '10px', whiteSpace: 'nowrap', overflow: 'visible' }}>
-                <span style={{ whiteSpace: 'nowrap' }}>Continuação: {chk(false)} sim &nbsp;{chk(true)} não</span>
-              </td>
-            </tr>
-
-            {/* ── SINALIZAÇÃO ROWS ── */}
-            {DR08_SINALIZACAO.map(r => (
-              <tr key={r.cod}>
-                <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {r.cod} {r.desc}
-                </td>
-                <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px' }}></td>
-              </tr>
-            ))}
-
-            {/* ── SEPARATOR ── */}
-            <tr>
-              <td style={{ borderBottom: b, height: '6px' }}></td>
-              <td style={{ borderBottom: b, height: '6px' }}></td>
-            </tr>
-
-            {/* ── EQUIPAMENTO ROWS ── */}
-            {DR08_EQUIPS.map(r => {
-              const val = dr08Data.sums[r.cod] ?? 0;
-              return (
-                <tr key={r.cod}>
-                  <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {r.cod} {r.desc}
-                  </td>
-                  <td style={{ borderBottom: b, height: '20px', verticalAlign: 'middle', padding: '0 14px', textAlign: 'right', fontSize: '11px', whiteSpace: 'nowrap' }}>
-                    {val > 0 ? val.toFixed(2).replace('.', ',') : ''}
-                  </td>
-                </tr>
-              );
-            })}
-
-            {/* ── EMPTY SPACE ROW (stretches to fill) ── */}
-            <tr>
-              <td style={{ borderBottom: b, verticalAlign: 'middle' }}></td>
-              <td style={{ borderBottom: b, verticalAlign: 'middle' }}></td>
-            </tr>
-
-            {/* ── FOOTER ROW 1 (main info) ── */}
-            <tr>
-              <td colSpan={2} style={{ padding: 0, height: '110px', verticalAlign: 'top' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', height: '100%' }}>
-                  <colgroup>
-                    <col style={{ width: '18%' }} />
-                    <col style={{ width: '14%' }} />
-                    <col style={{ width: '18%' }} />
-                    <col style={{ width: '42%' }} />
-                    <col style={{ width: '8%' }} />
-                  </colgroup>
-                  <tbody>
-                    <tr>
-                      {/* De acordo */}
-                      <td style={{ borderRight: b, padding: '6px 8px', verticalAlign: 'bottom', fontSize: '10px' }}>
-                        De acordo:<br />
-                        <div style={{ marginTop: '16px' }}>____________________</div>
-                      </td>
-                      {/* Continua */}
-                      <td style={{ borderRight: b, padding: '6px 8px', verticalAlign: 'top', fontSize: '10px' }}>
-                        <div>Continua:</div>
-                        <div style={{ marginTop: '6px' }}>{chk(false)} sim</div>
-                        <div style={{ marginTop: '3px' }}>{chk(true)} não</div>
-                      </td>
-                      {/* Medição */}
-                      <td style={{ borderRight: b, padding: '6px 8px', textAlign: 'center', verticalAlign: 'top' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>{medicaoLabel}</div>
-                        <div style={{ textAlign: 'left', paddingLeft: '15%', fontSize: '10px' }}>
-                          <div style={{ marginBottom: '3px' }}>{chk(true)} Provisória</div>
-                          <div>{chk(false)} Final</div>
-                        </div>
-                        <div style={{ marginTop: '8px', fontSize: '9px' }}>obras executadas até {obrasLabel}</div>
-                      </td>
-                      {/* Contrato */}
-                      <td style={{ borderRight: b, padding: '6px 8px', fontSize: '8px', lineHeight: '1.4', verticalAlign: 'top', overflow: 'hidden', wordWrap: 'break-word', whiteSpace: 'normal' }}>
-                        <div>Contrato n.º: <strong>22.583-6</strong></div>
-                        <div style={{ marginTop: '2px' }}>Objeto: Contratação de Serviços de Fiscalização do Controle de Velocidade e Contagem Classificatória, nas Rodovias Localizadas no Estado de São Paulo Sob Circunscrição do DER/SP, divididos em 14 lotes. Lote 8.</div>
-                        <div style={{ marginTop: '2px' }}><strong>Empresa</strong>: Splice Industria Comércio e Serviços Ltda.</div>
-                      </td>
-                      {/* Fls */}
-                      <td style={{ padding: '6px 4px', textAlign: 'center', verticalAlign: 'top', fontSize: '10px' }}>
-                        <div>Fls.</div>
-                        <div style={{ fontWeight: 'bold', marginTop: '8px', fontSize: '12px' }}>01/01</div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-
-            {/* ── FOOTER ROW 2 (signatures) ── */}
-            <tr>
-              <td colSpan={2} style={{ padding: 0, height: '50px', verticalAlign: 'bottom' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
-                  <colgroup>
-                    <col style={{ width: '18%' }} />
-                    <col style={{ width: '32%' }} />
-                    <col style={{ width: '42%' }} />
-                    <col style={{ width: '8%' }} />
-                  </colgroup>
-                  <tbody>
-                    <tr>
-                      <td style={{ borderTop: b, borderRight: b, padding: '4px 8px 6px', textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom' }}>
-                        ________________________<br />Contratante
-                      </td>
-                      <td style={{ borderTop: b, borderRight: b, padding: '4px 8px 6px', textAlign: 'center', fontSize: '9px', verticalAlign: 'bottom' }}>
-                        ________________________________<br />Engenheiro Fiscal
-                      </td>
-                      <td style={{ borderTop: b, borderRight: b, padding: '6px 8px', verticalAlign: 'top', fontSize: '9px' }}>
-                        Firma: Consórcio Peso Certo Móvel
-                      </td>
-                      <td style={{ borderTop: b, padding: '6px 4px' }}></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div style={{ fontSize: '8px', marginTop: '2px', paddingLeft: '4px' }}>DER-621</div>
-      </div>
     </div>
   );
 }
