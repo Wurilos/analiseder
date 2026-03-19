@@ -224,7 +224,7 @@ export default function MedicaoPage() {
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
               <div ref={printRef08} data-pdf-root style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '9px', width: '280mm', lineHeight: 1.2,
+                fontSize: '9px', width: '268mm', lineHeight: 1.2, boxSizing: 'border-box',
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
                   <tbody>
