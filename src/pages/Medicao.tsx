@@ -101,16 +101,19 @@ export default function MedicaoPage() {
   const dr08Data = useEquipData('DR-08', records);
   const dr14Data = useEquipData('DR-14', records);
 
+  const PDF_PAGE_WIDTH_MM = 297;
+  const PDF_PAGE_HEIGHT_MM = 210;
+  const PDF_MARGIN_MM = 6;
+  const PDF_CONTENT_WIDTH_MM = 268;
+
   const handleExportPDF = async () => {
     const ref = activeLote === 'DR-08' ? printRef08.current : printRef14.current;
     if (!ref) return;
 
     const pdfFileName = `Medicao_${numMedicao || 'X'}_${activeLote}.pdf`;
-    const pageWidthMm = 297;
-    const pageHeightMm = 210;
-    const marginMm = 4;
-    const availableWidthMm = pageWidthMm - marginMm * 2;
-    const availableHeightMm = pageHeightMm - marginMm * 2;
+    const availableHeightMm = PDF_PAGE_HEIGHT_MM - PDF_MARGIN_MM * 2;
+    const captureWidthPx = Math.ceil(ref.scrollWidth);
+    const captureHeightPx = Math.ceil(ref.scrollHeight);
 
     const canvas = await html2canvas(ref, {
       scale: 2.2,
@@ -118,16 +121,18 @@ export default function MedicaoPage() {
       backgroundColor: '#ffffff',
       scrollX: 0,
       scrollY: 0,
-      windowWidth: ref.scrollWidth,
-      windowHeight: ref.scrollHeight,
+      width: captureWidthPx,
+      height: captureHeightPx,
+      windowWidth: captureWidthPx,
+      windowHeight: captureHeightPx,
     });
 
     const imageData = canvas.toDataURL('image/jpeg', 0.98);
-    const fitScale = Math.min(availableWidthMm / canvas.width, availableHeightMm / canvas.height);
+    const fitScale = Math.min(PDF_CONTENT_WIDTH_MM / canvas.width, availableHeightMm / canvas.height);
     const renderWidthMm = canvas.width * fitScale;
     const renderHeightMm = canvas.height * fitScale;
-    const offsetX = (pageWidthMm - renderWidthMm) / 2;
-    const offsetY = (pageHeightMm - renderHeightMm) / 2;
+    const offsetX = (PDF_PAGE_WIDTH_MM - renderWidthMm) / 2;
+    const offsetY = (PDF_PAGE_HEIGHT_MM - renderHeightMm) / 2;
 
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -219,7 +224,7 @@ export default function MedicaoPage() {
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
               <div ref={printRef08} data-pdf-root style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '9px', width: '280mm', lineHeight: 1.2,
+                fontSize: '9px', width: '268mm', lineHeight: 1.2, boxSizing: 'border-box',
               }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', border: '2px solid #000' }}>
                   <tbody>
@@ -327,7 +332,7 @@ export default function MedicaoPage() {
             <CardContent className="p-3 overflow-x-auto" style={{ background: '#e5e5e5' }}>
               <div ref={printRef14} data-pdf-root style={{
                 background: '#fff', color: '#000', fontFamily: 'Arial, Helvetica, sans-serif',
-                fontSize: '9px', width: '280mm', lineHeight: 1.3, padding: '10px 14px',
+                fontSize: '9px', width: '268mm', lineHeight: 1.3, padding: '10px 14px', boxSizing: 'border-box',
               }}>
                 {/* ── Header ── */}
                 <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '6px' }}>
