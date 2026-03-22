@@ -32,13 +32,25 @@ export function useData() {
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<DataState>(() => {
-    // Restore from localStorage
     let periods: Record<string, IDRecord[]> = {};
     let classifications: Record<string, ClassRecord[]> = {};
-    try { periods = JSON.parse(localStorage.getItem('der_periods') || '{}'); } catch {}
-    try { classifications = JSON.parse(localStorage.getItem('der_classifications') || '{}'); } catch {}
+    try {
+      const raw = localStorage.getItem('der_periods');
+      if (raw) periods = JSON.parse(raw);
+    } catch (e) {
+      console.error('[DataProvider] Failed to parse der_periods:', e);
+      localStorage.removeItem('der_periods');
+    }
+    try {
+      const raw = localStorage.getItem('der_classifications');
+      if (raw) classifications = JSON.parse(raw);
+    } catch (e) {
+      console.error('[DataProvider] Failed to parse der_classifications:', e);
+      localStorage.removeItem('der_classifications');
+    }
     const activePeriod = Object.keys(periods)[0] || null;
     const activeClass = Object.keys(classifications)[0] || null;
+    console.log('[DataProvider] Init:', { periodsKeys: Object.keys(periods), activePeriod, recordCount: activePeriod ? periods[activePeriod]?.length : 0 });
     return { periods, activePeriod, classifications, activeClass };
   });
 
