@@ -89,14 +89,51 @@ export function parseIDFile(buffer: ArrayBuffer): { records: IDRecord[]; period:
   const ws = wb.Sheets[wb.SheetNames[0]];
   const raw = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: true }) as unknown[][];
 
+  console.log('[ID-Parser] Total rows:', raw.length);
+  console.log('[ID-Parser] First 3 rows:', raw.slice(0, 3).map(r => (r || []).slice(0, 10)));
+
   let dataStart = 3;
   for (let i = 0; i < Math.min(6, raw.length); i++) {
     const r = raw[i];
     if (r && r[0] && String(r[0]).includes('145')) { dataStart = i; break; }
   }
+  console.log('[ID-Parser] dataStart:', dataStart);
 
   const dataRows = raw.slice(dataStart).filter(r => r && r[0] && String(r[0]).trim());
+  console.log('[ID-Parser] dataRows count:', dataRows.length);
+
+  if (dataRows.length > 0) {
+    const sample = dataRows[0];
+    console.log('[ID-Parser] Sample row cols 0-10:', (sample as any[]).slice(0, 11));
+    console.log('[ID-Parser] Sample row cols 5-8 (equip,tipo,faixa,inicio):', (sample as any[]).slice(5, 9));
+    console.log('[ID-Parser] Sample row cols 19-26 (IVd..ICIn):', (sample as any[]).slice(19, 27));
+    console.log('[ID-Parser] Sample row cols 40-56 (LPd..mediaEquip):', (sample as any[]).slice(40, 57));
+    console.log('[ID-Parser] Total columns in row:', (sample as any[]).length);
+  }
+
   const records = dataRows.map(computeRecord).filter(r => r.equipamento);
+  console.log('[ID-Parser] Parsed records:', records.length);
+
+  if (records.length > 0) {
+    const r = records[0];
+    console.log('[ID-Parser] First record:', {
+      equip: r.equipamento, tipo: r.tipo, faixa: r.faixa, periodo: r.periodo,
+      IVd: r.IVd, TId: r.TId, IVn: r.IVn, TIn: r.TIn,
+      c_ICId: r.c_ICId, c_ICIn: r.c_ICIn, c_IEVri: r.c_IEVri, c_IEVdt: r.c_IEVdt,
+      c_ILPd: r.c_ILPd, c_ILPn: r.c_ILPn, c_IEF: r.c_IEF, c_IDF: r.c_IDF, c_ICV: r.c_ICV, c_ID: r.c_ID,
+    });
+    const nullIDs = records.filter(r => r.c_ID === null).length;
+    console.log('[ID-Parser] Records with c_ID=null:', nullIDs, 'of', records.length);
+    if (nullIDs > 0) {
+      const nullR = records.find(r => r.c_ID === null)!;
+      console.log('[ID-Parser] First null-ID record sub-indices:', {
+        c_IDF: nullR.c_IDF, c_IEF: nullR.c_IEF, c_ICV: nullR.c_ICV,
+        c_ICId: nullR.c_ICId, c_ICIn: nullR.c_ICIn,
+        c_IEVri: nullR.c_IEVri, c_IEVdt: nullR.c_IEVdt,
+        c_ILPd: nullR.c_ILPd, c_ILPn: nullR.c_ILPn,
+      });
+    }
+  }
 
   if (!records.length) return null;
   const period = records[0].periodo || 'Desconhecido';
