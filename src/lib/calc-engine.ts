@@ -63,7 +63,9 @@ export function calcICIn(IVn: number, INn: number, TIn: number | null): number |
 }
 
 export function calcILPd(LPd: number | null, IVd: number | null): number | null {
-  if (!IVd || LPd === null) return null;
+  if (IVd === null) return null;
+  if (IVd === 0) return 1.0; // Sem imagens para OCR = sem penalidade
+  if (LPd === null) return null;
   const r = LPd / IVd;
   if (r >= 0.80) return 1.00;
   if (r >= 0.70) return 0.75;
@@ -72,7 +74,9 @@ export function calcILPd(LPd: number | null, IVd: number | null): number | null 
 }
 
 export function calcILPn(LPn: number | null, IVn: number | null): number | null {
-  if (!IVn || LPn === null) return null;
+  if (IVn === null) return null;
+  if (IVn === 0) return 1.0; // Sem imagens para OCR = sem penalidade
+  if (LPn === null) return null;
   const r = LPn / IVn;
   if (r >= 0.70) return 1.00;
   if (r >= 0.50) return 0.75;
