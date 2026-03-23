@@ -50,7 +50,7 @@ export function calcICId(IVd: number, INd: number, TId: number | null): number |
 }
 
 export function calcICIn(IVn: number, INn: number, TIn: number | null): number | null {
-  if (!TIn) return null;
+  if (TIn === null || TIn === 0) return null;
   const r = (IVn + INn) / TIn;
   if (r >= 0.70) return 1.00;
   if (r >= 0.65) return 0.80;
