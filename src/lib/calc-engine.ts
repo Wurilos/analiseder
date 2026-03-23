@@ -91,7 +91,7 @@ export function calcIEVri(rfri1: number | null, rfri2: number | null, rfri3: num
 }
 
 export function calcIEVdt(rfdt1: number | null, rfdt2: number | null, rfdt3: number | null, rfdt4: number | null, rfdt5: number | null, rfdt6: number | null, total: number | null): number | null {
-  if (!total) return null;
+  if (total === null || total === 0) return 1.0;
   const n = (rfdt1 || 0) + 0.9 * (rfdt2 || 0) + 0.8 * (rfdt3 || 0) + 0.7 * (rfdt4 || 0) + 0.4 * (rfdt5 || 0) + 0.2 * (rfdt6 || 0);
   return clamp(n / total);
 }
