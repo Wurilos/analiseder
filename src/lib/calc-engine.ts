@@ -37,7 +37,7 @@ export function parseCurrency(v: unknown): number | null {
 function clamp(v: number, mn = 0, mx = 1) { return Math.max(mn, Math.min(mx, v)); }
 
 export function calcICId(IVd: number, INd: number, TId: number | null): number | null {
-  if (!TId) return null;
+  if (TId === null || TId === 0) return null;
   const r = (IVd + INd) / TId;
   if (r >= 0.85) return 1.00;
   if (r >= 0.75) return 0.80;
@@ -50,7 +50,7 @@ export function calcICId(IVd: number, INd: number, TId: number | null): number |
 }
 
 export function calcICIn(IVn: number, INn: number, TIn: number | null): number | null {
-  if (!TIn) return null;
+  if (TIn === null || TIn === 0) return null;
   const r = (IVn + INn) / TIn;
   if (r >= 0.70) return 1.00;
   if (r >= 0.65) return 0.80;
@@ -63,7 +63,9 @@ export function calcICIn(IVn: number, INn: number, TIn: number | null): number |
 }
 
 export function calcILPd(LPd: number | null, IVd: number | null): number | null {
-  if (!IVd || LPd === null) return null;
+  if (IVd === null) return null;
+  if (IVd === 0) return 1.0; // Sem imagens para OCR = sem penalidade
+  if (LPd === null) return null;
   const r = LPd / IVd;
   if (r >= 0.80) return 1.00;
   if (r >= 0.70) return 0.75;
@@ -72,7 +74,9 @@ export function calcILPd(LPd: number | null, IVd: number | null): number | null 
 }
 
 export function calcILPn(LPn: number | null, IVn: number | null): number | null {
-  if (!IVn || LPn === null) return null;
+  if (IVn === null) return null;
+  if (IVn === 0) return 1.0; // Sem imagens para OCR = sem penalidade
+  if (LPn === null) return null;
   const r = LPn / IVn;
   if (r >= 0.70) return 1.00;
   if (r >= 0.50) return 0.75;
@@ -81,13 +85,13 @@ export function calcILPn(LPn: number | null, IVn: number | null): number | null 
 }
 
 export function calcIEVri(rfri1: number | null, rfri2: number | null, rfri3: number | null, rfri4: number | null, rfri5: number | null, total: number | null): number | null {
-  if (!total) return null;
+  if (total === null || total === 0) return 1.0;
   const n = (rfri1 || 0) + 0.8 * (rfri2 || 0) + 0.6 * (rfri3 || 0) + 0.4 * (rfri4 || 0) + 0.2 * (rfri5 || 0);
   return clamp(n / total);
 }
 
 export function calcIEVdt(rfdt1: number | null, rfdt2: number | null, rfdt3: number | null, rfdt4: number | null, rfdt5: number | null, rfdt6: number | null, total: number | null): number | null {
-  if (!total) return null;
+  if (total === null || total === 0) return 1.0;
   const n = (rfdt1 || 0) + 0.9 * (rfdt2 || 0) + 0.8 * (rfdt3 || 0) + 0.7 * (rfdt4 || 0) + 0.4 * (rfdt5 || 0) + 0.2 * (rfdt6 || 0);
   return clamp(n / total);
 }
