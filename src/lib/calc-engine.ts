@@ -85,7 +85,7 @@ export function calcILPn(LPn: number | null, IVn: number | null): number | null 
 }
 
 export function calcIEVri(rfri1: number | null, rfri2: number | null, rfri3: number | null, rfri4: number | null, rfri5: number | null, total: number | null): number | null {
-  if (!total) return null;
+  if (total === null || total === 0) return 1.0;
   const n = (rfri1 || 0) + 0.8 * (rfri2 || 0) + 0.6 * (rfri3 || 0) + 0.4 * (rfri4 || 0) + 0.2 * (rfri5 || 0);
   return clamp(n / total);
 }
