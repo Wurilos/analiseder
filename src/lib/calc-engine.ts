@@ -37,7 +37,7 @@ export function parseCurrency(v: unknown): number | null {
 function clamp(v: number, mn = 0, mx = 1) { return Math.max(mn, Math.min(mx, v)); }
 
 export function calcICId(IVd: number, INd: number, TId: number | null): number | null {
-  if (!TId) return null;
+  if (TId === null || TId === 0) return null;
   const r = (IVd + INd) / TId;
   if (r >= 0.85) return 1.00;
   if (r >= 0.75) return 0.80;
