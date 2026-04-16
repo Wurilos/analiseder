@@ -4,7 +4,7 @@ import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers } from 'lucide-react';
+import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity } from 'lucide-react';
 import * as echarts from 'echarts';
 import { EquipGroup } from '@/types';
 
@@ -307,6 +307,8 @@ const DashboardPage: React.FC = () => {
   const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
+  const withIDOperante = useMemo(() => filtered.filter(r => r.c_ID !== null && r.c_ID! > 0), [filtered]);
+  const avgOperante = withIDOperante.length ? withIDOperante.reduce((s, r) => s + r.c_ID!, 0) / withIDOperante.length : 0;
   const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
   const below6 = useMemo(() => dashView === 'equip'
     ? groupsWithID.filter(g => g.c_ID! < 0.6).length
@@ -389,10 +391,12 @@ const DashboardPage: React.FC = () => {
           severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
-          label="Mediana"
-          value={(med * 100).toFixed(1) + '%'}
-          icon={<Target size={22} />}
-          iconColor="blue"
+          label="ID Médio (Operantes)"
+          value={(avgOperante * 100).toFixed(1) + '%'}
+          sub={`${withIDOperante.length} faixas (exclui zerados/nulos)`}
+          icon={<Activity size={22} />}
+          iconColor="teal"
+          severity={avgOperante < 0.6 ? 'danger' : avgOperante < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
           label="ID < 0.60"
