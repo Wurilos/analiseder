@@ -307,8 +307,9 @@ const DashboardPage: React.FC = () => {
   const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
-  const withIDOperante = useMemo(() => filtered.filter(r => r.c_ID !== null && r.c_ID! > 0), [filtered]);
-  const avgOperante = withIDOperante.length ? withIDOperante.reduce((s, r) => s + r.c_ID!, 0) / withIDOperante.length : 0;
+  const allIDs = useMemo(() => records.filter(r => r.c_ID !== null).map(r => r.c_ID!), [records]);
+  const sumAllIDs = allIDs.reduce((s, v) => s + v, 0);
+  const avgAllIDs = allIDs.length ? sumAllIDs / allIDs.length : 0;
   const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
   const below6 = useMemo(() => dashView === 'equip'
     ? groupsWithID.filter(g => g.c_ID! < 0.6).length
@@ -391,12 +392,12 @@ const DashboardPage: React.FC = () => {
           severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
-          label="ID Médio (Operantes)"
-          value={(avgOperante * 100).toFixed(1) + '%'}
-          sub={`${withIDOperante.length} faixas (exclui zerados/nulos)`}
+          label="ID Médio (Todos Importados)"
+          value={(avgAllIDs * 100).toFixed(1) + '%'}
+          sub={`soma ${sumAllIDs.toFixed(4)} ÷ ${allIDs.length} faixas`}
           icon={<Activity size={22} />}
           iconColor="teal"
-          severity={avgOperante < 0.6 ? 'danger' : avgOperante < 0.85 ? 'warn' : 'good'}
+          severity={avgAllIDs < 0.6 ? 'danger' : avgAllIDs < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
           label="ID < 0.60"
