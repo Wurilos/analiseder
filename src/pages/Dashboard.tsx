@@ -307,6 +307,8 @@ const DashboardPage: React.FC = () => {
   const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
+  const withIDOperante = useMemo(() => filtered.filter(r => r.c_ID !== null && r.c_ID! > 0), [filtered]);
+  const avgOperante = withIDOperante.length ? withIDOperante.reduce((s, r) => s + r.c_ID!, 0) / withIDOperante.length : 0;
   const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
   const below6 = useMemo(() => dashView === 'equip'
     ? groupsWithID.filter(g => g.c_ID! < 0.6).length
