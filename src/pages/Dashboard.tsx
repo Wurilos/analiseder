@@ -392,12 +392,12 @@ const DashboardPage: React.FC = () => {
           severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
-          label="ID Médio (Operantes)"
-          value={(avgOperante * 100).toFixed(1) + '%'}
-          sub={`${withIDOperante.length} faixas (exclui zerados/nulos)`}
+          label="ID Médio (Todos Importados)"
+          value={(avgAllIDs * 100).toFixed(1) + '%'}
+          sub={`soma ${sumAllIDs.toFixed(4)} ÷ ${allIDs.length} faixas`}
           icon={<Activity size={22} />}
           iconColor="teal"
-          severity={avgOperante < 0.6 ? 'danger' : avgOperante < 0.85 ? 'warn' : 'good'}
+          severity={avgAllIDs < 0.6 ? 'danger' : avgAllIDs < 0.85 ? 'warn' : 'good'}
         />
         <KPICard
           label="ID < 0.60"
