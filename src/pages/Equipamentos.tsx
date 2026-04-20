@@ -111,7 +111,8 @@ export default function EquipamentosPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="pl-6">Cód. Medição</TableHead>
+                <TableHead className="pl-6">Fabricante</TableHead>
+                <TableHead>Cód. Medição</TableHead>
                 <TableHead>Código</TableHead>
                 <TableHead>Nº Série</TableHead>
                 <TableHead>Lote</TableHead>
@@ -122,7 +123,13 @@ export default function EquipamentosPage() {
             <TableBody>
               {filtered.map((r, i) => (
                 <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
-                  <TableCell className="pl-6 font-mono text-xs">
+                  <TableCell className="pl-6">
+                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${r.fabricante === 'Splice' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}`}>
+                      <Factory className="w-3 h-3" />
+                      {r.fabricante}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-mono text-xs">
                     {r.codMedicao || <span className="text-muted-foreground italic">—</span>}
                   </TableCell>
                   <TableCell className="font-mono text-xs font-medium">{r.codigo}</TableCell>
