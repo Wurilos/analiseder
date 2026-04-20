@@ -8,6 +8,12 @@ export interface EquipInfo {
   lote: string;
   endereco: string;
   codMedicao?: string;
+  fabricante: 'Splice' | 'Focalle';
+}
+
+export function getFabricante(lote: string): 'Splice' | 'Focalle' {
+  // DR-14 é Splice; demais lotes são Focalle
+  return lote === 'DR-14' ? 'Splice' : 'Focalle';
 }
 
 export const EQUIP_CATALOG: Record<string, EquipInfo> = {
