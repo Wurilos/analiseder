@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { EQUIP_CATALOG, EquipInfo } from '@/lib/equip-catalog';
+import { EQUIP_CATALOG, EquipInfo, getFabricante } from '@/lib/equip-catalog';
 import { formatMoeda } from '@/lib/format';
-import { Search, Server, MapPin, DollarSign, Hash } from 'lucide-react';
+import { Search, Server, MapPin, DollarSign, Hash, Factory } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-type EquipRow = EquipInfo & { codigo: string; codMedicao?: string };
+type EquipRow = EquipInfo & { codigo: string; codMedicao?: string; fabricante: 'Splice' | 'Focalle' };
 
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
