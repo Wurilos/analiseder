@@ -42,6 +42,7 @@
         "echarts-for-react": "^3.0.6",
         "embla-carousel-react": "^8.6.0",
         "framer-motion": "^12.34.3",
+        "html2canvas": "^1.4.1",
         "html2pdf.js": "0.10.2",
         "input-otp": "^1.4.2",
         "jspdf": "^4.2.1",
