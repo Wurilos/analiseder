@@ -8,7 +8,7 @@ export interface EquipInfo {
   lote: string;
   endereco: string;
   codMedicao?: string;
-  fabricante: 'Splice' | 'Focalle';
+  fabricante?: 'Splice' | 'Focalle';
 }
 
 export function getFabricante(lote: string): 'Splice' | 'Focalle' {
