@@ -15,7 +15,11 @@ export default function EquipamentosPage() {
   const [loteFilter, setLoteFilter] = useState('todos');
 
   const rows: EquipRow[] = useMemo(() =>
-    Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({ codigo, ...info })),
+    Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({
+      codigo,
+      ...info,
+      fabricante: getFabricante(info.lote)
+    })),
     []
   );
 
