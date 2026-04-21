@@ -16,6 +16,7 @@ import EquipamentosPage from "./pages/Equipamentos";
 import ResumoPage from "./pages/Resumo";
 import MapaPage from "./pages/Mapa";
 import MedicaoPage from "./pages/Medicao";
+import SimuladorPage from "./pages/Simulador";
 import NotFound from "./pages/NotFound";
 import { DataProvider } from "./context/DataContext";
 import { ThemeProvider } from "./hooks/use-theme";
@@ -50,6 +51,7 @@ const App = () => (
                         <Route path="/equipamentos" element={<EquipamentosPage />} />
                         <Route path="/mapa" element={<MapaPage />} />
                         <Route path="/medicao" element={<MedicaoPage />} />
+                        <Route path="/simulador" element={<SimuladorPage />} />
                         <Route path="/resumo" element={<ResumoPage />} />
                         
                         <Route path="*" element={<NotFound />} />
