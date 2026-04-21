@@ -214,24 +214,77 @@ export default function ResumoPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  {/* Mini index bar */}
-                  <div className="flex flex-wrap gap-3 mb-3 text-[11px] text-muted-foreground">
-                    {[
-                      { k: 'IDF', v: g.c_IDF },
-                      { k: 'ICId', v: g.c_ICId },
-                      { k: 'ICIn', v: g.c_ICIn },
-                      { k: 'IEVri', v: g.c_IEVri },
-                      { k: 'IEVdt', v: g.c_IEVdt },
-                      { k: 'ILPd', v: g.c_ILPd },
-                      { k: 'ILPn', v: g.c_ILPn },
-                      { k: 'ICV', v: g.c_ICV },
-                      { k: 'IEF', v: g.c_IEF },
-                    ].map(idx => (
-                      <span key={idx.k} className={idx.v !== null && idx.v < 0.90 ? 'text-red-500 font-semibold' : ''}>
-                        {idx.k}: {idx.v !== null ? pct(idx.v) : '—'}
-                      </span>
-                    ))}
+                  {/* Índices principais (compostos) */}
+                  <div className="mb-3">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1.5">Índices Principais</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { k: 'ID', label: 'Desempenho', v: g.c_ID, threshold: 0.95 },
+                        { k: 'IDF', label: 'Disponibilidade', v: g.c_IDF, threshold: 0.95 },
+                        { k: 'IEF', label: 'Eficiência', v: g.c_IEF, threshold: 0.90 },
+                        { k: 'ICV', label: 'Classif. Veículos', v: g.c_ICV, threshold: 0.95 },
+                      ].map(idx => {
+                        const bad = idx.v !== null && idx.v < idx.threshold;
+                        return (
+                          <div key={idx.k} className={`rounded-md border px-2.5 py-1.5 ${bad ? 'border-red-300 bg-red-50 dark:bg-red-950/30 dark:border-red-900' : 'border-border bg-muted/40'}`}>
+                            <div className="flex items-baseline justify-between gap-1">
+                              <span className="text-[10px] font-semibold text-muted-foreground">{idx.k}</span>
+                              <span className={`text-sm font-bold font-mono ${bad ? 'text-red-600 dark:text-red-400' : 'text-foreground'}`}>
+                                {idx.v !== null ? pct(idx.v) : '—'}
+                              </span>
+                            </div>
+                            <p className="text-[10px] text-muted-foreground truncate">{idx.label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+
+                  {/* Subíndices */}
+                  <div className="mb-3">
+                    <p className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-1.5">Subíndices</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                      {[
+                        { k: 'ICId', label: 'Captura Diurna', v: g.c_ICId, threshold: 0.85 },
+                        { k: 'ICIn', label: 'Captura Noturna', v: g.c_ICIn, threshold: 0.85 },
+                        { k: 'IEVri', label: 'Envio Imagens', v: g.c_IEVri, threshold: 0.90 },
+                        { k: 'IEVdt', label: 'Envio Dados', v: g.c_IEVdt, threshold: 0.90 },
+                        { k: 'ILPd', label: 'Leitura Placa Diurna', v: g.c_ILPd, threshold: 0.75 },
+                        { k: 'ILPn', label: 'Leitura Placa Noturna', v: g.c_ILPn, threshold: 0.75 },
+                      ].map(idx => {
+                        const bad = idx.v !== null && idx.v < idx.threshold;
+                        return (
+                          <div key={idx.k} className={`rounded-md border px-2 py-1 ${bad ? 'border-red-300 bg-red-50 dark:bg-red-950/30 dark:border-red-900' : 'border-border bg-muted/30'}`}>
+                            <div className="flex items-baseline justify-between gap-1">
+                              <span className="text-[10px] font-semibold text-muted-foreground">{idx.k}</span>
+                              <span className={`text-xs font-bold font-mono ${bad ? 'text-red-600 dark:text-red-400' : 'text-foreground'}`}>
+                                {idx.v !== null ? pct(idx.v) : '—'}
+                              </span>
+                            </div>
+                            <p className="text-[9px] text-muted-foreground truncate leading-tight">{idx.label}</p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Maior causa do baixo aproveitamento */}
+                  {g.melhorAlavanca.perda > 0 && (
+                    <div className="mb-3 rounded-md border-2 border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 px-3 py-2">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-[10px] uppercase tracking-wide font-bold text-amber-700 dark:text-amber-300">
+                            Principal causa do baixo aproveitamento
+                          </p>
+                          <p className="text-xs text-foreground mt-0.5">
+                            <span className="font-bold font-mono">{g.melhorAlavanca.nome}</span> é o índice que mais impacta negativamente o desempenho deste equipamento.
+                            Corrigi-lo permitiria recuperar até <span className="font-bold text-amber-700 dark:text-amber-300">{formatMoeda(g.melhorAlavanca.perda)}</span> no valor recebido.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Recommendations text */}
                   <div className="space-y-1.5 border-t border-border pt-3">
