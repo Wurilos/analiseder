@@ -233,7 +233,7 @@ export default function ResumoPage() {
                                 {idx.v !== null ? pct(idx.v) : '—'}
                               </span>
                             </div>
-                            <p className="text-[10px] text-muted-foreground truncate">{idx.label}</p>
+                            <p className="text-[10px] text-muted-foreground leading-tight break-words">{idx.label}</p>
                           </div>
                         );
                       })}
@@ -261,7 +261,7 @@ export default function ResumoPage() {
                                 {idx.v !== null ? pct(idx.v) : '—'}
                               </span>
                             </div>
-                            <p className="text-[9px] text-muted-foreground truncate leading-tight">{idx.label}</p>
+                            <p className="text-[9px] text-muted-foreground leading-tight break-words">{idx.label}</p>
                           </div>
                         );
                       })}
