@@ -5,7 +5,8 @@ import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-e
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
-import { Layers, Server } from 'lucide-react';
+import { Layers, Server, FileDown } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
