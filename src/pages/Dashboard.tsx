@@ -12,6 +12,9 @@ function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
   return Number(v).toFixed(d);
 }
+function getDisplayID<T extends { f_ID?: number | null; c_ID?: number | null }>(item: T) {
+  return item.f_ID ?? item.c_ID ?? null;
+}
 function idBadge(v: number | null) {
   if (v === null || v === undefined) return 'badge-slate';
   return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green';
@@ -45,7 +48,7 @@ const ChartDist: React.FC<{ data: any[]; equipView: boolean; isDark: boolean }> 
     const labels = ['0-0.1', '0.1-0.2', '0.2-0.3', '0.3-0.4', '0.4-0.5', '0.5-0.6', '0.6-0.7', '0.7-0.8', '0.8-0.9', '0.9-1.0'];
     const counts = new Array(10).fill(0);
     data.forEach(r => {
-      const id = r.c_ID;
+      const id = getDisplayID(r);
       if (id === null || id === undefined) return;
       for (let i = 0; i < 10; i++) { if (id >= bins[i] && id < bins[i + 1]) { counts[i]++; break; } }
     });
@@ -96,7 +99,8 @@ const ChartEquipment: React.FC<{ records: any[]; isDark: boolean }> = ({ records
     records.forEach(r => {
       const k = r.equipamento;
       if (!byEquip[k]) byEquip[k] = { sum: 0, cnt: 0 };
-      if (r.c_ID !== null) { byEquip[k].sum += r.c_ID; byEquip[k].cnt++; }
+      const id = getDisplayID(r);
+      if (id !== null) { byEquip[k].sum += id; byEquip[k].cnt++; }
     });
     const sorted = Object.entries(byEquip)
       .map(([k, v]) => ({ name: k, label: equipLabel(k), labelFull: equipLabelFull(k), avg: v.cnt ? v.sum / v.cnt : 0 }))
@@ -307,21 +311,21 @@ const DashboardPage: React.FC = () => {
   const filteredFaixas = filtered.length;
   const groups = useMemo(() => groupByEquipamento(filtered), [filtered]);
   const filteredEquipamentos = groups.length;
-  const withID = useMemo(() => filtered.filter(r => r.c_ID !== null), [filtered]);
-  const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
+  const withID = useMemo(() => filtered.filter(r => getDisplayID(r) !== null), [filtered]);
+  const ids = useMemo(() => withID.map(r => getDisplayID(r)!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
-  const allIDs = useMemo(() => records.filter(r => r.c_ID !== null).map(r => r.c_ID!), [records]);
+  const allIDs = useMemo(() => records.map(r => getDisplayID(r)).filter((id): id is number => id !== null), [records]);
   const sumAllIDs = allIDs.reduce((s, v) => s + v, 0);
   const avgAllIDs = allIDs.length ? sumAllIDs / allIDs.length : 0;
   const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
   const below6 = useMemo(() => dashView === 'equip'
     ? groupsWithID.filter(g => g.c_ID! < 0.6).length
-    : withID.filter(r => r.c_ID! < 0.6).length
+    : withID.filter(r => getDisplayID(r)! < 0.6).length
   , [dashView, groupsWithID, withID]);
   const below85 = useMemo(() => dashView === 'equip'
     ? groupsWithID.filter(g => g.c_ID! < 0.85).length
-    : withID.filter(r => r.c_ID! < 0.85).length
+    : withID.filter(r => getDisplayID(r)! < 0.85).length
   , [dashView, groupsWithID, withID]);
 
   const chartData = useMemo(() =>

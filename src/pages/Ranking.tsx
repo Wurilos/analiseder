@@ -12,6 +12,10 @@ function fmt(v: number | null, d = 3) {
   return Number(v).toFixed(d);
 }
 
+function getDisplayID<T extends { f_ID?: number | null; c_ID?: number | null }>(item: T) {
+  return item.f_ID ?? item.c_ID ?? null;
+}
+
 function idBadge(v: number | null) {
   if (v === null) return 'badge-slate';
   return v < 0.6 ? 'badge-red' : v < 0.85 ? 'badge-amber' : 'badge-green';
@@ -74,9 +78,9 @@ const RankingPage: React.FC = () => {
   }, [records, search, fTipo, fRodovia, idxFilter]);
 
   const sorted = useMemo(() => {
-    const SORT_FIELDS: Record<string, string> = {
-      id_asc: 'c_ID',
-      id_desc: 'c_ID',
+      const SORT_FIELDS: Record<string, string> = {
+      id_asc: 'display_ID',
+      id_desc: 'display_ID',
       idf_asc: 'c_IDF',
       idf_desc: 'c_IDF',
       ief_asc: 'c_IEF',
@@ -95,9 +99,9 @@ const RankingPage: React.FC = () => {
       if (sortBy === 'gain_desc') {
         return calcGainPotential(a).total_gap - calcGainPotential(b).total_gap;
       }
-      const fld = SORT_FIELDS[sortBy] || 'c_ID';
-      const av = (a as any)[fld];
-      const bv = (b as any)[fld];
+      const fld = SORT_FIELDS[sortBy] || 'display_ID';
+      const av = fld === 'display_ID' ? getDisplayID(a) : (a as any)[fld];
+      const bv = fld === 'display_ID' ? getDisplayID(b) : (b as any)[fld];
       if (av === null || av === undefined) return 1;
       if (bv === null || bv === undefined) return -1;
       return sortBy.endsWith('desc') ? bv - av : av - bv;
@@ -198,9 +202,9 @@ const RankingPage: React.FC = () => {
           <select className="min-w-[140px]" value={idxFilter} onChange={e => setIdxFilter(e.target.value)}>
             <option value="">Filtrar por índice...</option>
             <optgroup label="ID">
-              <option value="c_ID|lt|0.60">ID &lt; 0.60</option>
-              <option value="c_ID|lt|0.85">ID &lt; 0.85</option>
-              <option value="c_ID|gte|0.85">ID ≥ 0.85</option>
+              <option value="f_ID|lt|0.60">ID &lt; 0.60</option>
+              <option value="f_ID|lt|0.85">ID &lt; 0.85</option>
+              <option value="f_ID|gte|0.85">ID ≥ 0.85</option>
             </optgroup>
             <optgroup label="IDF">
               <option value="c_IDF|lt|0.95">IDF &lt; 0.95</option>
