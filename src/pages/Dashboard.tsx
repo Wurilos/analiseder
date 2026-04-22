@@ -302,7 +302,11 @@ const DashboardPage: React.FC = () => {
     (!fEquip || r.equipamento === fEquip)
   ), [records, fRodovia, fTipo, fMunicipio, fEquip]);
 
+  const totalFaixas = records.length;
+  const totalEquipamentos = useMemo(() => groupByEquipamento(records).length, [records]);
+  const filteredFaixas = filtered.length;
   const groups = useMemo(() => groupByEquipamento(filtered), [filtered]);
+  const filteredEquipamentos = groups.length;
   const withID = useMemo(() => filtered.filter(r => r.c_ID !== null), [filtered]);
   const ids = useMemo(() => withID.map(r => r.c_ID!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
@@ -373,20 +377,24 @@ const DashboardPage: React.FC = () => {
       <div className="kpis">
         <KPICard
           label="Total Equipamentos"
-          value={String(groups.length)}
+          value={String(filteredEquipamentos)}
+          sub={filteredEquipamentos === totalEquipamentos ? undefined : `${filteredEquipamentos} de ${totalEquipamentos} equipamentos exibidos`}
           icon={<Monitor size={22} />}
           iconColor="blue"
         />
         <KPICard
           label="Total Faixas"
-          value={String(filtered.length)}
+          value={String(filteredFaixas)}
+          sub={filteredFaixas === totalFaixas ? undefined : `${filteredFaixas} de ${totalFaixas} faixas exibidas`}
           icon={<Layers size={22} />}
           iconColor="purple"
         />
         <KPICard
           label="ID Médio"
           value={(avg * 100).toFixed(1) + '%'}
-          sub={dashView === 'equip' ? groups.length + ' equipamentos' : withID.length + ' faixas'}
+          sub={dashView === 'equip'
+            ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
+            : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
           icon={<BarChart3 size={22} />}
           iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
           severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
@@ -394,7 +402,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID Médio (Todos Importados)"
           value={(avgAllIDs * 100).toFixed(1) + '%'}
-          sub={`soma ${sumAllIDs.toFixed(4)} ÷ ${allIDs.length} faixas`}
+          sub={`${allIDs.length} de ${totalFaixas} faixas com ID calculado`}
           icon={<Activity size={22} />}
           iconColor="teal"
           severity={avgAllIDs < 0.6 ? 'danger' : avgAllIDs < 0.85 ? 'warn' : 'good'}
