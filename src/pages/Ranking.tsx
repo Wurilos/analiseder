@@ -131,6 +131,132 @@ const RankingPage: React.FC = () => {
   const totalFaixas = records.length;
   const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter);
 
+  const handleExportPDF = async () => {
+    setExporting(true);
+    try {
+      const dateStr = new Date().toLocaleDateString('pt-BR');
+      const isEquip = viewMode === 'equipamento';
+      const title = isEquip ? 'Ranking de Equipamentos' : 'Ranking de Faixas';
+      const totalLabel = isEquip
+        ? `${equipamentoCount} de ${totalEquipamentos} Equipamentos`
+        : `${faixaCount} de ${totalFaixas} Faixas`;
+
+      let rowsHtml = '';
+      if (isEquip) {
+        rowsHtml = equipGroups.map((g, i) => {
+          const idAtuais = filteredRecords.filter(r => r.equipamento === g.equipamento).map(r => calcIDAtual(r)).filter((v): v is number => v !== null);
+          const avgAtual = idAtuais.length ? idAtuais.reduce((s, v) => s + v, 0) / idAtuais.length : null;
+          const idColor = g.c_ID === null ? '#666' : g.c_ID < 0.6 ? '#dc2626' : g.c_ID < 0.85 ? '#d97706' : '#16a34a';
+          const atColor = avgAtual === null ? '#666' : avgAtual < 0.6 ? '#dc2626' : avgAtual < 0.85 ? '#d97706' : '#16a34a';
+          return `<tr>
+            <td>${i + 1}</td>
+            <td style="font-weight:bold;color:#1e40af">${g.serie ?? '—'}</td>
+            <td>${g.equipamento}</td>
+            <td>${g.tipo}</td>
+            <td style="text-align:center">${g.numFaixas}</td>
+            <td>${g.rodovia}</td>
+            <td>${g.km ?? '—'}</td>
+            <td>${fmt(g.c_IDF)}</td>
+            <td>${fmt(g.c_IEF)}</td>
+            <td>${fmt(g.c_ICV)}</td>
+            <td>${fmt(g.c_ICId)}</td>
+            <td>${fmt(g.c_ICIn)}</td>
+            <td>${fmt(g.c_IEVri)}</td>
+            <td>${fmt(g.c_IEVdt)}</td>
+            <td>${fmt(g.c_ILPd)}</td>
+            <td>${fmt(g.c_ILPn)}</td>
+            <td style="color:${idColor};font-weight:bold">${fmt(g.c_ID)}</td>
+            <td style="color:${atColor};font-weight:bold">${fmt(avgAtual)}</td>
+            <td>${g.melhorAlavanca.perda > 0 ? g.melhorAlavanca.nome : '✓ Bom'}</td>
+            <td style="color:#dc2626;font-weight:bold">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
+          </tr>`;
+        }).join('');
+      } else {
+        rowsHtml = sorted.map((r, i) => {
+          const gain = calcGainPotential(r);
+          const recos = getRecommendations(r);
+          const main = recos[0];
+          const id = getDisplayID(r);
+          const idAt = calcIDAtual(r);
+          const idColor = id === null ? '#666' : id < 0.6 ? '#dc2626' : id < 0.85 ? '#d97706' : '#16a34a';
+          const atColor = idAt === null ? '#666' : idAt < 0.6 ? '#dc2626' : idAt < 0.85 ? '#d97706' : '#16a34a';
+          return `<tr>
+            <td>${i + 1}</td>
+            <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
+            <td>${r.equipamento}</td>
+            <td>${r.tipo}</td>
+            <td>${r.faixa}</td>
+            <td>${r.rodovia}</td>
+            <td>${r.km ?? '—'}</td>
+            <td>${fmt(r.c_IDF)}</td>
+            <td>${fmt(r.c_IEF)}</td>
+            <td>${fmt(r.c_ICV)}</td>
+            <td>${fmt(r.c_ICId)}</td>
+            <td>${fmt(r.c_ICIn)}</td>
+            <td>${fmt(r.c_IEVri)}</td>
+            <td>${fmt(r.c_IEVdt)}</td>
+            <td>${fmt(r.c_ILPd)}</td>
+            <td>${fmt(r.c_ILPn)}</td>
+            <td style="color:${idColor};font-weight:bold">${fmt(id)}</td>
+            <td style="color:${atColor};font-weight:bold">${fmt(idAt)}</td>
+            <td>${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
+            <td style="color:#16a34a;font-weight:bold">+${fmt(gain.total_gap)}</td>
+          </tr>`;
+        }).join('');
+      }
+
+      const headersHtml = isEquip
+        ? `<tr><th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th></tr>`
+        : `<tr><th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th></tr>`;
+
+      const filtersInfo = [
+        fTipo && `Tipo: ${fTipo}`,
+        fRodovia && `Rodovia: ${fRodovia}`,
+        search && `Busca: "${search}"`,
+        idxFilter && `Filtro índice ativo`,
+      ].filter(Boolean).join(' • ');
+
+      const container = document.createElement('div');
+      container.innerHTML = `
+        <div style="font-family: Arial, sans-serif; padding: 12px; color: #111; background: #fff;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:10px">
+            <div>
+              <h1 style="margin:0;font-size:18px;color:#1e40af">DER/SP — ${title}</h1>
+              <div style="font-size:10px;color:#555;margin-top:2px">Edital 145/2023 • ${totalLabel}${filtersInfo ? ' • ' + filtersInfo : ''}</div>
+            </div>
+            <div style="font-size:10px;color:#555;text-align:right">Gerado em ${dateStr}</div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;font-size:8px">
+            <thead style="background:#1e40af;color:#fff">${headersHtml}</thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+          <style>
+            table th, table td { border: 1px solid #ddd; padding: 3px 4px; text-align: left; }
+            table thead th { font-weight: bold; font-size: 8px; }
+            table tbody tr:nth-child(even) { background: #f8fafc; }
+          </style>
+        </div>
+      `;
+      document.body.appendChild(container);
+
+      await html2pdf()
+        .set({
+          margin: [8, 8, 8, 8],
+          filename: `Ranking_${isEquip ? 'Equipamentos' : 'Faixas'}_${new Date().toISOString().slice(0, 10)}.pdf`,
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+          pagebreak: { mode: ['css', 'legacy'] },
+        })
+        .from(container)
+        .save();
+
+      document.body.removeChild(container);
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!records.length) {
     return (
       <div className="empty-state">
