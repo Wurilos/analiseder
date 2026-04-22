@@ -216,23 +216,33 @@ const RankingPage: React.FC = () => {
         idxFilter && `Filtro índice ativo`,
       ].filter(Boolean).join(' • ');
 
+      // A4 landscape: 297mm x 210mm. Useful width @ ~96dpi with 8mm margins ≈ 1063px.
+      // Render the container at a fixed width matching the printable area so the
+      // table fits horizontally on a single page (rows still break across pages).
+      const PAGE_WIDTH_PX = 1075;
+
       const container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '-10000px';
+      container.style.top = '0';
+      container.style.width = PAGE_WIDTH_PX + 'px';
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; padding: 12px; color: #111; background: #fff;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:8px;margin-bottom:10px">
+        <div style="font-family: Arial, sans-serif; padding: 0; color: #111; background: #fff; width: ${PAGE_WIDTH_PX}px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:6px;margin-bottom:8px">
             <div>
-              <h1 style="margin:0;font-size:18px;color:#1e40af">DER/SP — ${title}</h1>
-              <div style="font-size:10px;color:#555;margin-top:2px">Edital 145/2023 • ${totalLabel}${filtersInfo ? ' • ' + filtersInfo : ''}</div>
+              <h1 style="margin:0;font-size:16px;color:#1e40af">DER/SP — ${title}</h1>
+              <div style="font-size:9px;color:#555;margin-top:2px">Edital 145/2023 • ${totalLabel}${filtersInfo ? ' • ' + filtersInfo : ''}</div>
             </div>
-            <div style="font-size:10px;color:#555;text-align:right">Gerado em ${dateStr}</div>
+            <div style="font-size:9px;color:#555;text-align:right">Gerado em ${dateStr}</div>
           </div>
-          <table style="width:100%;border-collapse:collapse;font-size:8px">
-            <thead style="background:#1e40af;color:#fff">${headersHtml}</thead>
+          <table style="width:100%;border-collapse:collapse;font-size:7.5px;table-layout:fixed;word-break:break-word">
+            <thead style="background:#1e40af;color:#fff;display:table-header-group">${headersHtml}</thead>
             <tbody>${rowsHtml}</tbody>
           </table>
           <style>
-            table th, table td { border: 1px solid #ddd; padding: 3px 4px; text-align: left; }
-            table thead th { font-weight: bold; font-size: 8px; }
+            table th, table td { border: 1px solid #ddd; padding: 2px 3px; text-align: left; vertical-align: middle; }
+            table thead th { font-weight: bold; font-size: 7.5px; text-align: center; }
+            table tbody tr { page-break-inside: avoid; }
             table tbody tr:nth-child(even) { background: #f8fafc; }
           </style>
         </div>
@@ -244,9 +254,9 @@ const RankingPage: React.FC = () => {
           margin: [8, 8, 8, 8],
           filename: `Ranking_${isEquip ? 'Equipamentos' : 'Faixas'}_${new Date().toISOString().slice(0, 10)}.pdf`,
           image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true },
+          html2canvas: { scale: 2, useCORS: true, windowWidth: PAGE_WIDTH_PX, width: PAGE_WIDTH_PX },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-          pagebreak: { mode: ['css', 'legacy'] },
+          pagebreak: { mode: ['css', 'legacy', 'avoid-all'] },
         })
         .from(container)
         .save();
