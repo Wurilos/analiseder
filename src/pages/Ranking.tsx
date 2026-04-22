@@ -47,6 +47,7 @@ const RankingPage: React.FC = () => {
   const [idxFilter, setIdxFilter] = useState('');
   const [detail, setDetail] = useState<IDRecord | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('faixa');
+  const [exporting, setExporting] = useState(false);
 
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
