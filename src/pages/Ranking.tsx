@@ -66,7 +66,7 @@ const RankingPage: React.FC = () => {
       const [field, op, valStr] = idxFilter.split('|');
       const val = parseFloat(valStr);
       recs = recs.filter(r => {
-        const v = (r as any)[field];
+        const v = field === 'f_ID' ? getDisplayID(r) : (r as any)[field];
         if (v === null || v === undefined) return false;
         if (op === 'lt') return v < val;
         if (op === 'gte') return v >= val;
@@ -289,7 +289,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
                 <td>{idxCell(r.c_IEVdt)}</td>
                 <td>{idxCell(r.c_ILPd)}</td>
                 <td>{idxCell(r.c_ILPn)}</td>
-                <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                 <td><span className={`badge ${idBadge(getDisplayID(r))}`}>{fmt(getDisplayID(r))}</span></td>
                 <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                 <td className="text-[11px] max-w-[180px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                   {main ? main.title.split(' — ')[0] : '✓ Bom'}
@@ -392,7 +392,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
                       <td>{idxCell(r.c_IEVdt)}</td>
                       <td>{idxCell(r.c_ILPd)}</td>
                       <td>{idxCell(r.c_ILPn)}</td>
-                      <td><span className={`badge ${idBadge(r.c_ID)}`}>{fmt(r.c_ID)}</span></td>
+                       <td><span className={`badge ${idBadge(getDisplayID(r))}`}>{fmt(getDisplayID(r))}</span></td>
                       <td><span className={`badge ${idBadge(calcIDAtual(r))}`}>{fmt(calcIDAtual(r))}</span></td>
                       <td className="text-[11px] max-w-[150px] truncate" style={{ color: main?.priority === 'high' ? '#dc2626' : main?.priority === 'medium' ? '#d97706' : undefined }}>
                         {main ? main.title.split(' — ')[0] : '✓ Bom'}

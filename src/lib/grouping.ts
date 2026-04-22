@@ -25,10 +25,10 @@ export function groupByEquipamento(records: IDRecord[]): EquipGroup[] {
     const c_IEVdt = avg(recs.map(r => r.c_IEVdt));
     const c_ILPd = avg(recs.map(r => r.c_ILPd));
     const c_ILPn = avg(recs.map(r => r.c_ILPn));
-    const c_IEF = avg(recs.map(r => r.c_IEF));
-    const c_IDF = avg(recs.map(r => r.c_IDF));
-    const c_ICV = avg(recs.map(r => r.c_ICV));
-    const c_ID = avg(recs.map(r => r.c_ID));
+    const c_IEF = avg(recs.map(r => r.f_IEF ?? r.c_IEF));
+    const c_IDF = avg(recs.map(r => r.f_IDF ?? r.c_IDF));
+    const c_ICV = avg(recs.map(r => r.f_ICV ?? r.c_ICV));
+    const c_ID = avg(recs.map(r => r.f_ID ?? r.c_ID));
 
     const cat = EQUIP_CATALOG[equip];
     const valorTotal = cat ? cat.valor : getValorEquip(equip, first.tipo) * n;
