@@ -41,7 +41,7 @@ const RankingPage: React.FC = () => {
 
   // Filter logic shared by both views
   const filteredRecords = useMemo(() => {
-    let recs = records.filter(r => r.c_ID !== null);
+    let recs = [...records];
     if (search) {
       const s = search.toLowerCase();
       recs = recs.filter(r => r.equipamento.toLowerCase().includes(s) || r.municipio.toLowerCase().includes(s) || String(r.serie ?? '').includes(s));
@@ -76,7 +76,10 @@ const RankingPage: React.FC = () => {
         return (calcGainPotential(a).total_gap) - (calcGainPotential(b).total_gap);
       }
       const fld = SORT_FIELDS[sortBy] || 'c_ID';
-      const av = (a as any)[fld] ?? -1, bv = (b as any)[fld] ?? -1;
+      // Records with null índice go to the end regardless of asc/desc
+      const av = (a as any)[fld], bv = (b as any)[fld];
+      if (av === null || av === undefined) return 1;
+      if (bv === null || bv === undefined) return -1;
       return sortBy.endsWith('desc') ? bv - av : av - bv;
     });
   }, [filteredRecords, sortBy]);
