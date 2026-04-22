@@ -343,6 +343,16 @@ const RankingPage: React.FC = () => {
               <option value="c_IEF|lt|0.50">IEF &lt; 0.50</option>
             </optgroup>
           </select>
+
+          <button
+            onClick={handleExportPDF}
+            disabled={exporting}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60 transition-colors"
+            title="Exportar ranking atual em PDF (paisagem)"
+          >
+            <FileDown className="w-4 h-4" />
+            {exporting ? 'Gerando...' : 'Exportar PDF'}
+          </button>
         </div>
       </div>
 
