@@ -336,6 +336,48 @@ const DashboardPage: React.FC = () => {
   const worst10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (a.c_ID ?? 0) - (b.c_ID ?? 0)).slice(0, 10), [groups]);
   const best10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (b.c_ID ?? 0) - (a.c_ID ?? 0)).slice(0, 10), [groups]);
 
+  // Perdas financeiras agregadas (principais + subíndices do IEF)
+  const perdas = useMemo(() => {
+    const main = { total: 0, IDF: 0, IEF: 0, ICV: 0 };
+    const sub = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
+
+    groups.forEach(g => {
+      main.total += g.descontoTotal || 0;
+      main.IDF += g.perdaIDF || 0;
+      main.IEF += g.perdaIEF || 0;
+      main.ICV += g.perdaICV || 0;
+
+      // Para subíndices do IEF: simular cada um = 1.0 mantendo os demais,
+      // recalcular IEF -> ID e usar o ganho (cap. ao perdaIEF para não estourar).
+      const icid = g.c_ICId, icin = g.c_ICIn, ievri = g.c_IEVri, ievdt = g.c_IEVdt, ilpd = g.c_ILPd, ilpn = g.c_ILPn;
+      const idf = g.c_IDF ?? 0, icv = g.c_ICV ?? 0, id = g.c_ID ?? 0;
+      if ([icid, icin, ievri, ievdt, ilpd, ilpn].some(v => v === null)) return;
+
+      const simulate = (k: 'ICId' | 'ICIn' | 'IEVri' | 'IEVdt' | 'ILPd' | 'ILPn') => {
+        const vals = {
+          ICId: icid!, ICIn: icin!, IEVri: ievri!, IEVdt: ievdt!, ILPd: ilpd!, ILPn: ilpn!,
+        };
+        vals[k] = 1.0;
+        const newIEF = calcIEF(vals.ICId, vals.ICIn, vals.IEVri, vals.IEVdt, vals.ILPd, vals.ILPn) ?? 0;
+        const newID = calcID(g.tipo, idf, newIEF, icv) ?? 0;
+        const ganho = Math.max(0, newID - id);
+        return ganho * (g.valorTotal || 0);
+      };
+
+      sub.ICId += simulate('ICId');
+      sub.ICIn += simulate('ICIn');
+      sub.IEVri += simulate('IEVri');
+      sub.IEVdt += simulate('IEVdt');
+      sub.ILPd += simulate('ILPd');
+      sub.ILPn += simulate('ILPn');
+    });
+
+    return { main, sub };
+  }, [groups]);
+
+  const fmtBRL = (v: number) =>
+    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   if (!records.length) {
     return (
       <div className="empty-state">
