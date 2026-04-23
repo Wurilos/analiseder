@@ -11,11 +11,6 @@ interface Props {
   periodo: string;
 }
 
-interface FabricanteBlockProps {
-  fabricante: 'Splice' | 'Focalle';
-  resumo: Resumo;
-  isMisto: boolean;
-}
 
 const SUBINDICES_LABELS: Record<string, string> = {
   IDF: 'IDF Crítico — Disponibilidade Reduzida',
@@ -257,8 +252,8 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
           {isMisto ? (
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
-              {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} />}
-              {focalle.length > 0 && <FabricanteBlock fabricante="Focalle" resumo={focalleResumo} />}
+              {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} isMisto={isMisto} />}
+              {focalle.length > 0 && <FabricanteBlock fabricante="Focalle" resumo={focalleResumo} isMisto={isMisto} />}
               {splice.length === 0 && focalle.length === 0 && (
                 <div className="col-span-2 text-center text-sm text-slate-500 py-6">
                   Sem equipamentos identificados neste lote.
