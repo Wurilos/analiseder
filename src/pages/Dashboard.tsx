@@ -531,20 +531,20 @@ const DashboardPage: React.FC = () => {
         />
         <button
           onClick={() => setShowLoteModal(true)}
-          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 md:col-span-2 bg-card"
+          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 bg-card"
           style={{ background: 'hsl(var(--card))' }}
         >
-          <div className="flex items-center gap-4 w-full px-1">
-            <div className="rounded-xl p-3 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
-              <FileBarChart2 className="w-7 h-7 text-primary" strokeWidth={2.2} />
+          <div className="flex items-center gap-3 w-full px-1">
+            <div className="rounded-lg p-2.5 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
+              <FileBarChart2 className="w-5 h-5 text-primary" strokeWidth={2.2} />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-              <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Análise por Lote</div>
-              <div className="text-xl font-extrabold text-foreground leading-tight">Resumo do Contrato</div>
-              <div className="text-xs text-muted-foreground font-medium">Splice · Focalle · Indicadores críticos</div>
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Análise por Lote</div>
+              <div className="text-sm font-extrabold text-foreground leading-tight">Resumo do Contrato</div>
+              <div className="text-[10px] text-muted-foreground font-medium truncate">Splice · Focalle</div>
             </div>
             <div className="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
             </div>
           </div>
         </button>
