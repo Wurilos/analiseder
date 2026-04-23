@@ -591,4 +591,37 @@ const DashboardPage: React.FC = () => {
   );
 };
 
+type PerdaTone = 'red' | 'amber' | 'orange' | 'purple' | 'indigo' | 'teal';
+const TONE_MAP: Record<PerdaTone, { border: string; bg: string; text: string }> = {
+  red: { border: 'border-l-red-500', bg: 'bg-red-50/40 dark:bg-red-950/10', text: 'text-red-600 dark:text-red-400' },
+  amber: { border: 'border-l-amber-500', bg: 'bg-amber-50/40 dark:bg-amber-950/10', text: 'text-amber-600 dark:text-amber-400' },
+  orange: { border: 'border-l-orange-500', bg: 'bg-orange-50/40 dark:bg-orange-950/10', text: 'text-orange-600 dark:text-orange-400' },
+  purple: { border: 'border-l-purple-500', bg: 'bg-purple-50/40 dark:bg-purple-950/10', text: 'text-purple-600 dark:text-purple-400' },
+  indigo: { border: 'border-l-indigo-500', bg: 'bg-indigo-50/40 dark:bg-indigo-950/10', text: 'text-indigo-600 dark:text-indigo-400' },
+  teal: { border: 'border-l-teal-500', bg: 'bg-teal-50/40 dark:bg-teal-950/10', text: 'text-teal-600 dark:text-teal-400' },
+};
+
+function PerdaCard({
+  label, value, sub, icon, tone, compact = false,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+  tone: PerdaTone;
+  compact?: boolean;
+}) {
+  const t = TONE_MAP[tone];
+  return (
+    <div className={`rounded-lg border border-border border-l-4 ${t.border} ${t.bg} ${compact ? 'p-2.5' : 'p-3'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide`}>{label}</span>
+        <span className={t.text}>{icon}</span>
+      </div>
+      <div className={`font-mono font-bold mt-1 text-foreground ${compact ? 'text-base' : 'text-xl'}`}>{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>
+    </div>
+  );
+}
+
 export default DashboardPage;
