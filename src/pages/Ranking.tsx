@@ -693,4 +693,31 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
   );
 }
 
+function PerdaCard({
+  label, value, sub, icon, tone,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+  tone: 'red' | 'amber' | 'orange' | 'purple';
+}) {
+  const toneMap = {
+    red: 'border-l-red-500 text-red-600 dark:text-red-400 bg-red-50/40 dark:bg-red-950/10',
+    amber: 'border-l-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/40 dark:bg-amber-950/10',
+    orange: 'border-l-orange-500 text-orange-600 dark:text-orange-400 bg-orange-50/40 dark:bg-orange-950/10',
+    purple: 'border-l-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50/40 dark:bg-purple-950/10',
+  } as const;
+  return (
+    <div className={`rounded-lg border border-border border-l-4 p-3 ${toneMap[tone]}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+        <span className={toneMap[tone].split(' ').find(c => c.startsWith('text-')) ?? ''}>{icon}</span>
+      </div>
+      <div className="font-mono text-xl font-bold mt-1 text-foreground">{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>
+    </div>
+  );
+}
+
 export default RankingPage;
