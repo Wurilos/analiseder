@@ -316,8 +316,13 @@ const DashboardPage: React.FC = () => {
     (!fFabricante || fabricanteOf(r.equipamento) === fFabricante)
   ), [records, fRodovia, fTipo, fMunicipio, fEquip, fFabricante]);
 
-  const totalFaixas = records.length;
-  const totalEquipamentos = useMemo(() => groupByEquipamento(records).length, [records]);
+  // Base afetada apenas pelo filtro de Fabricante (independente dos demais filtros)
+  const recordsByFab = useMemo(
+    () => records.filter(r => !fFabricante || fabricanteOf(r.equipamento) === fFabricante),
+    [records, fFabricante]
+  );
+  const totalFaixas = recordsByFab.length;
+  const totalEquipamentos = useMemo(() => groupByEquipamento(recordsByFab).length, [recordsByFab]);
   const filteredFaixas = filtered.length;
   const groups = useMemo(() => groupByEquipamento(filtered), [filtered]);
   const filteredEquipamentos = groups.length;
@@ -325,7 +330,7 @@ const DashboardPage: React.FC = () => {
   const ids = useMemo(() => withID.map(r => getDisplayID(r)!).sort((a, b) => a - b), [withID]);
   const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
-  const allIDs = useMemo(() => records.map(r => getDisplayID(r)).filter((id): id is number => id !== null), [records]);
+  const allIDs = useMemo(() => recordsByFab.map(r => getDisplayID(r)).filter((id): id is number => id !== null), [recordsByFab]);
   const sumAllIDs = allIDs.reduce((s, v) => s + v, 0);
   const avgAllIDs = allIDs.length ? sumAllIDs / allIDs.length : 0;
   const groupsWithID = useMemo(() => groups.filter(g => g.c_ID !== null), [groups]);
