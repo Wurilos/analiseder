@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { EquipGroup } from '@/types';
-import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
 import { DollarSign, Percent } from 'lucide-react';
 
 interface Props {
@@ -39,11 +39,10 @@ const fmtBRL = (v: number) =>
 
 const fmtPct = (v: number) => (v * 100).toFixed(1).replace('.', ',') + '%';
 
-// Regra oficial: DR-14 = Splice; demais lotes = Focalle.
-function fabricanteOf(equip: string, lote?: string): 'Focalle' | 'Splice' {
-  const loteFinal = EQUIP_CATALOG[equip]?.lote ?? lote ?? '';
-  return loteFinal === 'DR-14' ? 'Splice' : 'Focalle';
-}
+// Regra oficial: padrão Splice; Focalle só em equipamentos DR-05/DR-10
+// marcados na planilha (catálogo). Fonte canônica = EQUIP_CATALOG (lookup
+// pelo código do equipamento), não o lote do registro.
+const fabricanteOf = (equip: string): 'Focalle' | 'Splice' => getFabricanteByCodigo(equip);
 
 interface Resumo {
   count: number;
@@ -182,8 +181,8 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
 
   const isMisto = loteNum === 5 || loteNum === 10;
 
-  const splice = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento, g.lote) === 'Splice'), [groupsLote]);
-  const focalle = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento, g.lote) === 'Focalle'), [groupsLote]);
+  const splice = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Splice'), [groupsLote]);
+  const focalle = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Focalle'), [groupsLote]);
 
   const totalResumo = useMemo(() => calcResumo(groupsLote), [groupsLote]);
   const spliceResumo = useMemo(() => calcResumo(splice), [splice]);
