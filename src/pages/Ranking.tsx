@@ -29,6 +29,25 @@ function idxCell(v: number | null) {
   return <span className={`font-mono ${color}`}>{fmt(v)}</span>;
 }
 
+function pdfIdxColor(v: number | null): string {
+  if (v === null || v === undefined || isNaN(v as number)) return '#666';
+  if (v < 0.5) return '#dc2626';
+  if (v < 0.8) return '#d97706';
+  return '#16a34a';
+}
+
+function pdfIdColor(v: number | null): string {
+  if (v === null || v === undefined || isNaN(v as number)) return '#666';
+  if (v < 0.6) return '#dc2626';
+  if (v < 0.85) return '#d97706';
+  return '#16a34a';
+}
+
+function pdfIdxCell(v: number | null): string {
+  const color = pdfIdxColor(v);
+  return `<td style="text-align:center;color:${color};font-weight:600">${fmt(v)}</td>`;
+}
+
 function fmtCurrency(v: number) {
   return v.toLocaleString('pt-BR', {
     style: 'currency',
@@ -158,23 +177,23 @@ const RankingPage: React.FC = () => {
           return `<tr>
             <td>${i + 1}</td>
             <td style="font-weight:bold;color:#1e40af">${g.serie ?? '—'}</td>
-            <td>${g.equipamento}</td>
+            <td style="text-align:left">${g.equipamento}</td>
             <td>${g.tipo}</td>
-            <td style="text-align:center">${g.numFaixas}</td>
+            <td>${g.numFaixas}</td>
             <td>${g.rodovia}</td>
             <td>${g.km ?? '—'}</td>
-            <td>${fmt(g.c_IDF)}</td>
-            <td>${fmt(g.c_IEF)}</td>
-            <td>${fmt(g.c_ICV)}</td>
-            <td>${fmt(g.c_ICId)}</td>
-            <td>${fmt(g.c_ICIn)}</td>
-            <td>${fmt(g.c_IEVri)}</td>
-            <td>${fmt(g.c_IEVdt)}</td>
-            <td>${fmt(g.c_ILPd)}</td>
-            <td>${fmt(g.c_ILPn)}</td>
+            ${pdfIdxCell(g.c_IDF)}
+            ${pdfIdxCell(g.c_IEF)}
+            ${pdfIdxCell(g.c_ICV)}
+            ${pdfIdxCell(g.c_ICId)}
+            ${pdfIdxCell(g.c_ICIn)}
+            ${pdfIdxCell(g.c_IEVri)}
+            ${pdfIdxCell(g.c_IEVdt)}
+            ${pdfIdxCell(g.c_ILPd)}
+            ${pdfIdxCell(g.c_ILPn)}
             <td style="color:${idColor};font-weight:700">${fmt(g.c_ID)}</td>
             <td style="color:${atColor};font-weight:700">${fmt(avgAtual)}</td>
-            <td>${g.melhorAlavanca.perda > 0 ? g.melhorAlavanca.nome : '✓ Bom'}</td>
+            <td style="text-align:left">${g.melhorAlavanca.perda > 0 ? g.melhorAlavanca.nome : '✓ Bom'}</td>
             <td style="color:#dc2626;font-weight:700">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
           </tr>`;
         }).join('');
@@ -191,23 +210,23 @@ const RankingPage: React.FC = () => {
           return `<tr>
             <td>${i + 1}</td>
             <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
-            <td>${r.equipamento}</td>
+            <td style="text-align:left">${r.equipamento}</td>
             <td>${r.tipo}</td>
             <td>${r.faixa}</td>
             <td>${r.rodovia}</td>
             <td>${r.km ?? '—'}</td>
-            <td>${fmt(r.c_IDF)}</td>
-            <td>${fmt(r.c_IEF)}</td>
-            <td>${fmt(r.c_ICV)}</td>
-            <td>${fmt(r.c_ICId)}</td>
-            <td>${fmt(r.c_ICIn)}</td>
-            <td>${fmt(r.c_IEVri)}</td>
-            <td>${fmt(r.c_IEVdt)}</td>
-            <td>${fmt(r.c_ILPd)}</td>
-            <td>${fmt(r.c_ILPn)}</td>
+            ${pdfIdxCell(r.c_IDF)}
+            ${pdfIdxCell(r.c_IEF)}
+            ${pdfIdxCell(r.c_ICV)}
+            ${pdfIdxCell(r.c_ICId)}
+            ${pdfIdxCell(r.c_ICIn)}
+            ${pdfIdxCell(r.c_IEVri)}
+            ${pdfIdxCell(r.c_IEVdt)}
+            ${pdfIdxCell(r.c_ILPd)}
+            ${pdfIdxCell(r.c_ILPn)}
             <td style="color:${idColor};font-weight:700">${fmt(id)}</td>
             <td style="color:${atColor};font-weight:700">${fmt(idAt)}</td>
-            <td>${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
+            <td style="text-align:left">${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
             <td style="color:#16a34a;font-weight:700">+${fmt(gain.total_gap)}</td>
           </tr>`;
         }).join('');
@@ -254,7 +273,7 @@ const RankingPage: React.FC = () => {
             <tbody>${rowsHtml}</tbody>
           </table>
           <style>
-            table th, table td { border: 1px solid #d1d5db; padding: 2px 3px; text-align: left; vertical-align: middle; }
+            table th, table td { border: 1px solid #d1d5db; padding: 2px 3px; text-align: center; vertical-align: middle; }
             table thead th { font-weight: 700; font-size: 7.5px; text-align: center; }
             table tbody tr:nth-child(even) { background: #f8fafc; }
           </style>
