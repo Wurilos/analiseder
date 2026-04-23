@@ -531,7 +531,7 @@ const DashboardPage: React.FC = () => {
         />
         <button
           onClick={() => setShowLoteModal(true)}
-          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 bg-card"
+          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 bg-card md:col-span-2"
           style={{ background: 'hsl(var(--card))' }}
         >
           <div className="flex items-center gap-3 w-full px-1">
