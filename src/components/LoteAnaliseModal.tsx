@@ -233,10 +233,10 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
                 </div>
                 <div className="text-white">
                   <div className="text-xs font-semibold opacity-95">
-                    {isMisto ? 'Valor de Desconto Estimado' : 'Valor previsto para recebimento'}
+                    Valor previsto para recebimento:
                   </div>
                   <div className="text-2xl font-extrabold leading-tight">
-                    {fmtBRL(isMisto ? totalResumo.desconto : (totalResumo.valorTotal - totalResumo.desconto))}
+                    {fmtBRL(totalResumo.valorTotal - totalResumo.desconto)}
                   </div>
                 </div>
               </div>
@@ -251,7 +251,7 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
                 </div>
                 <div className="text-white">
                   <div className="text-xs font-semibold opacity-95">
-                    {isMisto ? 'ID Médio do Contrato' : 'ID Médio Total'}
+                    ID Geral do Contrato:
                   </div>
                   <div className="text-2xl font-extrabold leading-tight">{fmtPct(totalResumo.idMedio)}</div>
                 </div>
