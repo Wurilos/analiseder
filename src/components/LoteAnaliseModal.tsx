@@ -124,6 +124,9 @@ const FabricanteBlock: React.FC<{
         style={{ background: headerBg }}
       >
         Equipamentos {fabricante.toUpperCase()}
+        <span className="ml-2 inline-flex items-center justify-center min-w-[1.75rem] h-6 px-2 rounded-full bg-white/25 text-xs font-bold align-middle">
+          {resumo.count}
+        </span>
       </div>
       <div className="p-3 space-y-2">
         <div className="text-center text-white font-bold py-2 rounded text-base"
