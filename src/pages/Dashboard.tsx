@@ -494,18 +494,18 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.60"
           value={
-            <div className="flex items-stretch gap-3 mt-1">
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-foreground/5 border border-foreground/10 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-foreground/70 leading-none">Equip.</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-foreground">{equipBelow6}</span>
+            <div className="flex items-stretch gap-2 mt-1">
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-foreground/5 border border-foreground/10">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-foreground/70 leading-none">Equip.</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-foreground">{equipBelow6}</span>
               </div>
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-rose-500 leading-none">Faixas</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-rose-500">{faixasBelow6}</span>
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-rose-500 leading-none">Faixas</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-rose-500">{faixasBelow6}</span>
               </div>
             </div>
           }
-          sub={<span className="block mt-2">críticos</span>}
+          sub={<span className="block mt-1.5">críticos</span>}
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
@@ -513,18 +513,18 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="0.60 ≤ ID < 0.85"
           value={
-            <div className="flex items-stretch gap-3 mt-1">
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-foreground/5 border border-foreground/10 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-foreground/70 leading-none">Equip.</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-foreground">{equipBetween}</span>
+            <div className="flex items-stretch gap-2 mt-1">
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-foreground/5 border border-foreground/10">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-foreground/70 leading-none">Equip.</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-foreground">{equipBetween}</span>
               </div>
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400 leading-none">Faixas</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-amber-600 dark:text-amber-400">{faixasBetween}</span>
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-none">Faixas</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-amber-600 dark:text-amber-400">{faixasBetween}</span>
               </div>
             </div>
           }
-          sub={<span className="block mt-2">em alerta</span>}
+          sub={<span className="block mt-1.5">em alerta</span>}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={(below85 - below6) > 0 ? 'warn' : 'good'}
