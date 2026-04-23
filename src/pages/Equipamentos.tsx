@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EQUIP_CATALOG, EquipInfo, getFabricante } from '@/lib/equip-catalog';
 import { formatMoeda } from '@/lib/format';
-import { Search, Server, MapPin, DollarSign, Hash, Factory } from 'lucide-react';
+import { Search, Server, MapPin, DollarSign, Hash, Factory, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
 
 type EquipRow = EquipInfo & { codigo: string; codMedicao?: string; fabricante: 'Splice' | 'Focalle' };
@@ -127,6 +128,16 @@ export default function EquipamentosPage() {
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${r.fabricante === 'Splice' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}`}>
                       <Factory className="w-3 h-3" />
                       {r.fabricante}
+                      {r.obs && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-3 h-3 ml-0.5 opacity-70 hover:opacity-100 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">{r.obs}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </span>
                   </TableCell>
                   <TableCell className="font-mono text-xs">
