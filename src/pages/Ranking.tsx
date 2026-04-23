@@ -218,13 +218,13 @@ const RankingPage: React.FC = () => {
           const atColor = idAt === null ? '#666' : idAt < 0.6 ? '#dc2626' : idAt < 0.85 ? '#d97706' : '#16a34a';
 
           return `<tr>
-            <td>${i + 1}</td>
-            <td style="font-weight:bold;color:#1e40af">${displaySerie(r.equipamento, r.serie)}</td>
+            <td style="text-align:center">${i + 1}</td>
+            <td style="text-align:center;font-weight:bold;color:#1e40af">${displaySerie(r.equipamento, r.serie)}</td>
             <td style="text-align:left">${r.equipamento}</td>
-            <td>${r.tipo}</td>
-            <td>${r.faixa}</td>
-            <td>${r.rodovia}</td>
-            <td>${r.km ?? '—'}</td>
+            <td style="text-align:center">${r.tipo}</td>
+            <td style="text-align:center">${r.faixa}</td>
+            <td style="text-align:center">${r.rodovia}</td>
+            <td style="text-align:center">${r.km ?? '—'}</td>
             ${pdfIdxCell(r.c_IDF)}
             ${pdfIdxCell(r.c_IEF)}
             ${pdfIdxCell(r.c_ICV)}
@@ -234,10 +234,10 @@ const RankingPage: React.FC = () => {
             ${pdfIdxCell(r.c_IEVdt)}
             ${pdfIdxCell(r.c_ILPd)}
             ${pdfIdxCell(r.c_ILPn)}
-            <td style="color:${idColor};font-weight:700">${fmt(id)}</td>
-            <td style="color:${atColor};font-weight:700">${fmt(idAt)}</td>
+            <td style="text-align:center;color:${idColor};font-weight:700">${fmt(id)}</td>
+            <td style="text-align:center;color:${atColor};font-weight:700">${fmt(idAt)}</td>
             <td style="text-align:left">${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
-            <td style="color:#16a34a;font-weight:700">+${fmt(gain.total_gap)}</td>
+            <td style="text-align:center;color:#16a34a;font-weight:700">+${fmt(gain.total_gap)}</td>
           </tr>`;
         }).join('');
       }
