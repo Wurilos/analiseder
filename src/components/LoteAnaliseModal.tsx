@@ -80,7 +80,7 @@ function calcResumo(groups: EquipGroup[]): Resumo {
     descricao: SUB_LABEL_SHORT[g.key]?.descricao ?? '',
   }));
 
-  return { count: valid.length, desconto, valorTotal, idMedio, piores };
+  return { count: groups.length, desconto, valorTotal, idMedio, piores };
 }
 
 /* ─── Bloco "Piores Indicadores" ─── */
