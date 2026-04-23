@@ -8,6 +8,16 @@ import { DetailModal } from '@/components/RankingDetailModal';
 import { Layers, Server, FileDown } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+
+function displaySerie(equipamento: string, serie: number | null | undefined): string {
+  let s = serie ?? 0;
+  if (!s) {
+    const cat = EQUIP_CATALOG[equipamento];
+    if (cat && cat.serie) s = cat.serie;
+  }
+  return s > 0 ? String(s) : 'Pendente';
+}
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -176,7 +186,7 @@ const RankingPage: React.FC = () => {
 
           return `<tr>
             <td>${i + 1}</td>
-            <td style="font-weight:bold;color:#1e40af">${g.serie ?? '—'}</td>
+            <td style="font-weight:bold;color:#1e40af">${displaySerie(g.equipamento, g.serie)}</td>
             <td style="text-align:left">${g.equipamento}</td>
             <td>${g.tipo}</td>
             <td>${g.numFaixas}</td>
@@ -209,7 +219,7 @@ const RankingPage: React.FC = () => {
 
           return `<tr>
             <td>${i + 1}</td>
-            <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
+            <td style="font-weight:bold;color:#1e40af">${displaySerie(r.equipamento, r.serie)}</td>
             <td style="text-align:left">${r.equipamento}</td>
             <td>${r.tipo}</td>
             <td>${r.faixa}</td>
@@ -503,7 +513,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
             return (
               <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => onDetail(r)}>
                 <td className="text-muted-foreground">{i + 1}</td>
-                <td className="font-mono text-primary font-bold">{r.serie ?? '—'}</td>
+                <td className="font-mono text-primary font-bold">{displaySerie(r.equipamento, r.serie)}</td>
                 <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
                 <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
                 <td className="font-mono">{r.faixa}</td>
@@ -562,7 +572,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
               <React.Fragment key={g.equipamento}>
                 <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
                   <td className="text-muted-foreground">{i + 1}</td>
-                  <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
+                  <td className="font-mono text-primary font-bold">{displaySerie(g.equipamento, g.serie)}</td>
                   <td className="text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
