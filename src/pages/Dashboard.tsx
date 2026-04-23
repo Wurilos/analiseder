@@ -451,26 +451,16 @@ const DashboardPage: React.FC = () => {
           icon={<Layers size={22} />}
           iconColor="purple"
         />
-        <div className="relative">
-          <KPICard
-            label="ID Médio"
-            value={(avg * 100).toFixed(1) + '%'}
-            sub={dashView === 'equip'
-              ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
-              : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
-            icon={<BarChart3 size={22} />}
-            iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
-            severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
-          />
-          <button
-            onClick={() => setShowLoteModal(true)}
-            title="Resumo do contrato por lote"
-            className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border border-border bg-background/80 backdrop-blur px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/80 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors shadow-sm"
-          >
-            <FileBarChart2 className="w-3 h-3" />
-            Resumo
-          </button>
-        </div>
+        <KPICard
+          label="ID Médio"
+          value={(avg * 100).toFixed(1) + '%'}
+          sub={dashView === 'equip'
+            ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
+            : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
+          icon={<BarChart3 size={22} />}
+          iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
+          severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
+        />
         <KPICard
           label="ID Médio (Todos Importados)"
           value={(avgAllIDs * 100).toFixed(1) + '%'}
@@ -495,6 +485,32 @@ const DashboardPage: React.FC = () => {
           iconColor="amber"
           severity={below85 > 0 ? 'warn' : 'good'}
         />
+        <button
+          onClick={() => setShowLoteModal(true)}
+          className="kpi group relative overflow-hidden cursor-pointer text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+          style={{
+            background: 'linear-gradient(135deg,#1e4d8b 0%,#2d6db5 50%,#e8742a 100%)',
+            border: 'none',
+          }}
+        >
+          {/* brilho animado */}
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{ background: 'radial-gradient(circle at 80% 20%, rgba(255,255,255,.25), transparent 60%)' }}
+          />
+          <div className="relative flex items-center gap-3 w-full">
+            <div className="rounded-xl p-2.5 bg-white/20 backdrop-blur-sm ring-1 ring-white/30 shadow-lg group-hover:rotate-6 transition-transform duration-300">
+              <FileBarChart2 className="w-6 h-6 text-white" strokeWidth={2.4} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-[10px] font-bold uppercase tracking-widest text-white/85">Análise por Lote</div>
+              <div className="text-lg font-extrabold text-white leading-tight mt-0.5">Resumo do Contrato</div>
+              <div className="text-[10px] text-white/80 mt-0.5 font-medium">Splice · Focalle · Indicadores</div>
+            </div>
+            <div className="text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </div>
+        </button>
       </div>
 
       {/* Perdas Financeiras — Principais */}
