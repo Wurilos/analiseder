@@ -39,11 +39,10 @@ const fmtBRL = (v: number) =>
 
 const fmtPct = (v: number) => (v * 100).toFixed(1).replace('.', ',') + '%';
 
-// Regra oficial: DR-14 = Splice; demais lotes = Focalle.
-function fabricanteOf(equip: string, lote?: string): 'Focalle' | 'Splice' {
-  const loteFinal = EQUIP_CATALOG[equip]?.lote ?? lote ?? '';
-  return loteFinal === 'DR-14' ? 'Splice' : 'Focalle';
-}
+// Regra oficial: padrão Splice; Focalle só em equipamentos DR-05/DR-10
+// marcados na planilha (catálogo). Fonte canônica = EQUIP_CATALOG (lookup
+// pelo código do equipamento), não o lote do registro.
+const fabricanteOf = (equip: string): 'Focalle' | 'Splice' => getFabricanteByCodigo(equip);
 
 interface Resumo {
   count: number;
