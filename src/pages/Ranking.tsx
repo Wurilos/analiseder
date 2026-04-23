@@ -8,6 +8,16 @@ import { DetailModal } from '@/components/RankingDetailModal';
 import { Layers, Server, FileDown } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+
+function displaySerie(equipamento: string, serie: number | null | undefined): string {
+  let s = serie ?? 0;
+  if (!s) {
+    const cat = EQUIP_CATALOG[equipamento];
+    if (cat && cat.serie) s = cat.serie;
+  }
+  return s > 0 ? String(s) : 'Pendente';
+}
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
