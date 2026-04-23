@@ -511,7 +511,7 @@ const DashboardPage: React.FC = () => {
           severity={below6 > 0 ? 'danger' : 'good'}
         />
         <KPICard
-          label="0.60 ≤ ID < 0.85"
+          label="ID ≥ 0.60 e < 0.85"
           value={
             <div className="flex items-stretch gap-2 mt-1">
               <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-foreground/5 border border-foreground/10">
