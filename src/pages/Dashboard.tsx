@@ -4,9 +4,10 @@ import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity } from 'lucide-react';
+import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine } from 'lucide-react';
 import * as echarts from 'echarts';
 import { EquipGroup } from '@/types';
+import { calcID, calcIEF } from '@/lib/calc-engine';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -335,6 +336,48 @@ const DashboardPage: React.FC = () => {
   const worst10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (a.c_ID ?? 0) - (b.c_ID ?? 0)).slice(0, 10), [groups]);
   const best10 = useMemo(() => [...groups].filter(g => g.c_ID !== null).sort((a, b) => (b.c_ID ?? 0) - (a.c_ID ?? 0)).slice(0, 10), [groups]);
 
+  // Perdas financeiras agregadas (principais + subíndices do IEF)
+  const perdas = useMemo(() => {
+    const main = { total: 0, IDF: 0, IEF: 0, ICV: 0 };
+    const sub = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
+
+    groups.forEach(g => {
+      main.total += g.descontoTotal || 0;
+      main.IDF += g.perdaIDF || 0;
+      main.IEF += g.perdaIEF || 0;
+      main.ICV += g.perdaICV || 0;
+
+      // Para subíndices do IEF: simular cada um = 1.0 mantendo os demais,
+      // recalcular IEF -> ID e usar o ganho (cap. ao perdaIEF para não estourar).
+      const icid = g.c_ICId, icin = g.c_ICIn, ievri = g.c_IEVri, ievdt = g.c_IEVdt, ilpd = g.c_ILPd, ilpn = g.c_ILPn;
+      const idf = g.c_IDF ?? 0, icv = g.c_ICV ?? 0, id = g.c_ID ?? 0;
+      if ([icid, icin, ievri, ievdt, ilpd, ilpn].some(v => v === null)) return;
+
+      const simulate = (k: 'ICId' | 'ICIn' | 'IEVri' | 'IEVdt' | 'ILPd' | 'ILPn') => {
+        const vals = {
+          ICId: icid!, ICIn: icin!, IEVri: ievri!, IEVdt: ievdt!, ILPd: ilpd!, ILPn: ilpn!,
+        };
+        vals[k] = 1.0;
+        const newIEF = calcIEF(vals.ICId, vals.ICIn, vals.IEVri, vals.IEVdt, vals.ILPd, vals.ILPn) ?? 0;
+        const newID = calcID(g.tipo, idf, newIEF, icv) ?? 0;
+        const ganho = Math.max(0, newID - id);
+        return ganho * (g.valorTotal || 0);
+      };
+
+      sub.ICId += simulate('ICId');
+      sub.ICIn += simulate('ICIn');
+      sub.IEVri += simulate('IEVri');
+      sub.IEVdt += simulate('IEVdt');
+      sub.ILPd += simulate('ILPd');
+      sub.ILPn += simulate('ILPn');
+    });
+
+    return { main, sub };
+  }, [groups]);
+
+  const fmtBRL = (v: number) =>
+    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
   if (!records.length) {
     return (
       <div className="empty-state">
@@ -429,6 +472,36 @@ const DashboardPage: React.FC = () => {
         />
       </div>
 
+      {/* Perdas Financeiras — Principais */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Principais</h3>
+          <span className="text-[11px] text-muted-foreground">{filteredEquipamentos} equipamento(s) considerados</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <PerdaCard label="Perda Total" value={fmtBRL(perdas.main.total)} sub="Desconto contratual no período" icon={<DollarSign className="w-5 h-5" />} tone="red" />
+          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" />
+          <PerdaCard label="Perda por IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" icon={<Activity className="w-5 h-5" />} tone="orange" />
+          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
+        </div>
+      </div>
+
+      {/* Perdas Financeiras — Subíndices do IEF */}
+      <div className="mt-4 mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Subíndices do IEF</h3>
+          <span className="text-[11px] text-muted-foreground">Ganho potencial se cada subíndice atingir 1.00</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <PerdaCard label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-5 h-5" />} tone="amber" compact />
+          <PerdaCard label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-5 h-5" />} tone="indigo" compact />
+          <PerdaCard label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-5 h-5" />} tone="orange" compact />
+          <PerdaCard label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-5 h-5" />} tone="purple" compact />
+          <PerdaCard label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-5 h-5" />} tone="red" compact />
+          <PerdaCard label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-5 h-5" />} tone="teal" compact />
+        </div>
+      </div>
+
       {/* ECharts Grid */}
       <div className="charts-grid">
         <div className="chart-box">
@@ -517,5 +590,38 @@ const DashboardPage: React.FC = () => {
     </div>
   );
 };
+
+type PerdaTone = 'red' | 'amber' | 'orange' | 'purple' | 'indigo' | 'teal';
+const TONE_MAP: Record<PerdaTone, { border: string; bg: string; text: string }> = {
+  red: { border: 'border-l-red-500', bg: 'bg-red-50/40 dark:bg-red-950/10', text: 'text-red-600 dark:text-red-400' },
+  amber: { border: 'border-l-amber-500', bg: 'bg-amber-50/40 dark:bg-amber-950/10', text: 'text-amber-600 dark:text-amber-400' },
+  orange: { border: 'border-l-orange-500', bg: 'bg-orange-50/40 dark:bg-orange-950/10', text: 'text-orange-600 dark:text-orange-400' },
+  purple: { border: 'border-l-purple-500', bg: 'bg-purple-50/40 dark:bg-purple-950/10', text: 'text-purple-600 dark:text-purple-400' },
+  indigo: { border: 'border-l-indigo-500', bg: 'bg-indigo-50/40 dark:bg-indigo-950/10', text: 'text-indigo-600 dark:text-indigo-400' },
+  teal: { border: 'border-l-teal-500', bg: 'bg-teal-50/40 dark:bg-teal-950/10', text: 'text-teal-600 dark:text-teal-400' },
+};
+
+function PerdaCard({
+  label, value, sub, icon, tone, compact = false,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+  tone: PerdaTone;
+  compact?: boolean;
+}) {
+  const t = TONE_MAP[tone];
+  return (
+    <div className={`rounded-lg border border-border border-l-4 ${t.border} ${t.bg} ${compact ? 'p-2.5' : 'p-3'}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide`}>{label}</span>
+        <span className={t.text}>{icon}</span>
+      </div>
+      <div className={`font-mono font-bold mt-1 text-foreground ${compact ? 'text-base' : 'text-xl'}`}>{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>
+    </div>
+  );
+}
 
 export default DashboardPage;
