@@ -56,9 +56,9 @@ function calcResumo(groups: EquipGroup[]): Resumo {
   const valid = groups.filter(g => g.c_ID !== null);
   const valorTotal = groups.reduce((s, g) => s + (g.valorTotal || 0), 0);
   const desconto = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
-  // ID médio ponderado por valor contratual
-  const idMedio = valorTotal > 0
-    ? valid.reduce((s, g) => s + (g.c_ID! * (g.valorTotal || 0)), 0) / valorTotal
+  // ID médio aritmético simples (alinhado ao card do Dashboard)
+  const idMedio = valid.length > 0
+    ? valid.reduce((s, g) => s + g.c_ID!, 0) / valid.length
     : 0;
 
   // Calcular gaps médios para identificar piores indicadores
