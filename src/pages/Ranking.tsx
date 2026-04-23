@@ -185,13 +185,13 @@ const RankingPage: React.FC = () => {
           const atColor = avgAtual === null ? '#666' : avgAtual < 0.6 ? '#dc2626' : avgAtual < 0.85 ? '#d97706' : '#16a34a';
 
           return `<tr>
-            <td>${i + 1}</td>
-            <td style="font-weight:bold;color:#1e40af">${displaySerie(g.equipamento, g.serie)}</td>
+            <td style="text-align:center">${i + 1}</td>
+            <td style="text-align:center;font-weight:bold;color:#1e40af">${displaySerie(g.equipamento, g.serie)}</td>
             <td style="text-align:left">${g.equipamento}</td>
-            <td>${g.tipo}</td>
-            <td>${g.numFaixas}</td>
-            <td>${g.rodovia}</td>
-            <td>${g.km ?? '—'}</td>
+            <td style="text-align:center">${g.tipo}</td>
+            <td style="text-align:center">${g.numFaixas}</td>
+            <td style="text-align:center">${g.rodovia}</td>
+            <td style="text-align:center">${g.km ?? '—'}</td>
             ${pdfIdxCell(g.c_IDF)}
             ${pdfIdxCell(g.c_IEF)}
             ${pdfIdxCell(g.c_ICV)}
@@ -201,10 +201,10 @@ const RankingPage: React.FC = () => {
             ${pdfIdxCell(g.c_IEVdt)}
             ${pdfIdxCell(g.c_ILPd)}
             ${pdfIdxCell(g.c_ILPn)}
-            <td style="color:${idColor};font-weight:700">${fmt(g.c_ID)}</td>
-            <td style="color:${atColor};font-weight:700">${fmt(avgAtual)}</td>
+            <td style="text-align:center;color:${idColor};font-weight:700">${fmt(g.c_ID)}</td>
+            <td style="text-align:center;color:${atColor};font-weight:700">${fmt(avgAtual)}</td>
             <td style="text-align:left">${g.melhorAlavanca.perda > 0 ? g.melhorAlavanca.nome : '✓ Bom'}</td>
-            <td style="color:#dc2626;font-weight:700">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
+            <td style="text-align:center;color:#dc2626;font-weight:700">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
           </tr>`;
         }).join('');
       } else {
