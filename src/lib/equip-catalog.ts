@@ -9,7 +9,11 @@ export interface EquipInfo {
   endereco: string;
   codMedicao?: string;
   fabricante?: 'Splice' | 'Focalle';
+  obs?: string;
 }
+
+/** Observação padrão para equipamentos confirmados via planilha do fabricante Focalle (lotes 05 e 10). */
+export const OBS_FOCALLE_LOTES_05_10 = 'Fabricante Focalle — confirmado via planilha oficial (lotes 05 e 10).';
 
 export function getFabricante(lote: string): 'Splice' | 'Focalle' {
   // DR-14 é Splice; demais lotes são Focalle
