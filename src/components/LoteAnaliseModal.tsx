@@ -121,29 +121,39 @@ const FabricanteBlock: React.FC<{
   const recebimento = resumo.valorTotal - resumo.desconto;
 
   return (
-    <div className={`rounded-lg overflow-hidden border-2 ${accentBorder} bg-slate-100`}>
+    <div className={`rounded-lg overflow-hidden border-2 ${accentBorder} bg-white`}>
+      {/* Header com nome do fabricante + contagem */}
       <div
-        className="text-white text-center font-extrabold py-2 text-base tracking-wide"
+        className="text-white text-center font-extrabold py-2 px-3 text-base tracking-wide flex items-center justify-center gap-2"
         style={{ background: headerBg }}
       >
-        Equipamentos {fabricante.toUpperCase()}
-        <span className="ml-2 inline-flex items-center justify-center min-w-[1.75rem] h-6 px-2 rounded-full bg-white/25 text-xs font-bold align-middle">
-          {resumo.count}
-        </span>
+        <span>Equipamento {fabricante.toUpperCase()}:</span>
+        <span className="text-xs font-semibold opacity-95">({resumo.count} eqp homologado{resumo.count !== 1 ? 's' : ''})</span>
       </div>
-      <div className="p-3 space-y-2">
-        <div className="text-center text-white font-bold py-2 rounded text-base"
-          style={{ background: headerBg }}>
-          ID Médio <span className="text-xl ml-1">{fmtPct(resumo.idMedio)}</span>
+
+      <div className="p-3 space-y-2 bg-slate-50">
+        {/* ID de Equipamento */}
+        <div
+          className="text-white font-bold py-1.5 px-3 rounded flex items-center gap-2 text-sm"
+          style={{ background: headerBg }}
+        >
+          <Percent className="w-4 h-4" />
+          <span>ID de Equipamento</span>
+          <span className="ml-auto font-extrabold">(ID: {fmtPct(resumo.idMedio)})</span>
         </div>
+
+        {/* Valor de desconto previsto */}
+        <div className="text-center bg-white border border-slate-300 rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
+          Valor de desconto previsto: <span className="text-slate-900 font-extrabold">{fmtBRL(resumo.desconto)}</span>
+        </div>
+
+        {/* Recebimento previsto (somente nos lotes não mistos já fica no topo; aqui mantemos quando útil) */}
         {!isMisto && (
           <div className="text-center bg-white border border-[#1f8a4d] rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
-            Recebimento Previsto: <span className="text-[#1c8048] font-bold">{fmtBRL(recebimento)}</span>
+            Recebimento Previsto: <span className="text-[#1c8048] font-extrabold">{fmtBRL(recebimento)}</span>
           </div>
         )}
-        <div className="text-center bg-white border border-slate-300 rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
-          Desconto Previsto: <span className="text-slate-900 font-bold">{fmtBRL(resumo.desconto)}</span>
-        </div>
+
         <PioresList items={resumo.piores} numColor={numColor} />
       </div>
     </div>
