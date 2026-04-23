@@ -295,7 +295,13 @@ const DashboardPage: React.FC = () => {
   const [fTipo, setFTipo] = useState('');
   const [fMunicipio, setFMunicipio] = useState('');
   const [fEquip, setFEquip] = useState('');
+  const [fFabricante, setFFabricante] = useState<'' | 'Splice' | 'Focalle'>('');
   const [showLoteModal, setShowLoteModal] = useState(false);
+
+  const fabricanteOf = (equip: string): 'Splice' | 'Focalle' => {
+    const obs = EQUIP_CATALOG[equip]?.obs ?? '';
+    return obs.toLowerCase().includes('focalle') ? 'Focalle' : 'Splice';
+  };
 
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
@@ -306,8 +312,9 @@ const DashboardPage: React.FC = () => {
     (!fRodovia || r.rodovia === fRodovia) &&
     (!fTipo || r.tipo === fTipo) &&
     (!fMunicipio || r.municipio === fMunicipio) &&
-    (!fEquip || r.equipamento === fEquip)
-  ), [records, fRodovia, fTipo, fMunicipio, fEquip]);
+    (!fEquip || r.equipamento === fEquip) &&
+    (!fFabricante || fabricanteOf(r.equipamento) === fFabricante)
+  ), [records, fRodovia, fTipo, fMunicipio, fEquip, fFabricante]);
 
   const totalFaixas = records.length;
   const totalEquipamentos = useMemo(() => groupByEquipamento(records).length, [records]);
@@ -431,6 +438,11 @@ const DashboardPage: React.FC = () => {
           <select value={fEquip} onChange={e => setFEquip(e.target.value)}>
             <option value="">Todos equipamentos</option>
             {equips.map(e => <option key={e} value={e}>{equipLabel(e)}</option>)}
+          </select>
+          <select value={fFabricante} onChange={e => setFFabricante(e.target.value as '' | 'Splice' | 'Focalle')}>
+            <option value="">Todos fabricantes</option>
+            <option value="Splice">Splice</option>
+            <option value="Focalle">Focalle</option>
           </select>
         </div>
       </div>
