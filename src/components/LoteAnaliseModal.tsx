@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { EquipGroup } from '@/types';
+import { EquipGroup, IDRecord } from '@/types';
 import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
 import { DollarSign, Percent } from 'lucide-react';
 
@@ -8,6 +8,7 @@ interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   groups: EquipGroup[];
+  records: IDRecord[];
   periodo: string;
 }
 
@@ -39,6 +40,8 @@ const fmtBRL = (v: number) =>
 
 const fmtPct = (v: number) => (v * 100).toFixed(1).replace('.', ',') + '%';
 
+const getDisplayID = (item: { f_ID?: number | null; c_ID?: number | null }) => item.f_ID ?? item.c_ID ?? null;
+
 // Regra oficial: padrão Splice; Focalle só em equipamentos DR-05/DR-10
 // marcados na planilha (catálogo). Fonte canônica = EQUIP_CATALOG (lookup
 // pelo código do equipamento), não o lote do registro.
@@ -48,17 +51,17 @@ interface Resumo {
   count: number;
   desconto: number;
   valorTotal: number;
-  idMedio: number; // ponderado por valor
+  idMedio: number;
   piores: { key: string; titulo: string; descricao: string }[];
 }
 
-function calcResumo(groups: EquipGroup[]): Resumo {
-  const valid = groups.filter(g => g.c_ID !== null);
+function calcResumo(groups: EquipGroup[], records: IDRecord[]): Resumo {
+  const validGroups = groups.filter(g => g.c_ID !== null);
+  const validIDs = records.map(getDisplayID).filter((v): v is number => v !== null);
   const valorTotal = groups.reduce((s, g) => s + (g.valorTotal || 0), 0);
   const desconto = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
-  // ID médio aritmético simples (alinhado ao card do Dashboard)
-  const idMedio = valid.length > 0
-    ? valid.reduce((s, g) => s + g.c_ID!, 0) / valid.length
+  const idMedio = validIDs.length > 0
+    ? validIDs.reduce((s, v) => s + v, 0) / validIDs.length
     : 0;
 
   // Calcular gaps médios para identificar piores indicadores
@@ -68,7 +71,7 @@ function calcResumo(groups: EquipGroup[]): Resumo {
     c_IEVri: 'IEVri', c_IEVdt: 'IEVdt', c_ILPd: 'ILPd', c_ILPn: 'ILPn', c_ICV: 'ICV',
   };
   const gaps = fields.map(f => {
-    const vals = valid.map(g => g[f] as number | null).filter((v): v is number => v !== null);
+    const vals = validGroups.map(g => g[f] as number | null).filter((v): v is number => v !== null);
     const m = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 1;
     return { key: keyMap[f as string], gap: 1 - m, media: m };
   }).filter(x => x.gap > 0.01)
@@ -158,12 +161,12 @@ const FabricanteBlock: React.FC<{
   );
 };
 
-const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo }) => {
+const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records, periodo }) => {
   const lotes = useMemo(() => {
     const set = new Set<string>();
-    groups.forEach(g => { if (g.lote) set.add(g.lote); });
+    records.forEach(r => { if (r.lote) set.add(r.lote); });
     return [...set].sort();
-  }, [groups]);
+  }, [records]);
 
   const [loteSel, setLoteSel] = useState<string>('');
   const loteAtivo = loteSel || lotes[0] || '';
@@ -171,6 +174,10 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
   const groupsLote = useMemo(
     () => groups.filter(g => g.lote === loteAtivo),
     [groups, loteAtivo]
+  );
+  const recordsLote = useMemo(
+    () => records.filter(r => r.lote === loteAtivo),
+    [records, loteAtivo]
   );
 
   // Identifica número do lote (DR-05 -> 5)
@@ -183,10 +190,12 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
 
   const splice = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Splice'), [groupsLote]);
   const focalle = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Focalle'), [groupsLote]);
+  const spliceRecords = useMemo(() => recordsLote.filter(r => fabricanteOf(r.equipamento) === 'Splice'), [recordsLote]);
+  const focalleRecords = useMemo(() => recordsLote.filter(r => fabricanteOf(r.equipamento) === 'Focalle'), [recordsLote]);
 
-  const totalResumo = useMemo(() => calcResumo(groupsLote), [groupsLote]);
-  const spliceResumo = useMemo(() => calcResumo(splice), [splice]);
-  const focalleResumo = useMemo(() => calcResumo(focalle), [focalle]);
+  const totalResumo = useMemo(() => calcResumo(groupsLote, recordsLote), [groupsLote, recordsLote]);
+  const spliceResumo = useMemo(() => calcResumo(splice, spliceRecords), [splice, spliceRecords]);
+  const focalleResumo = useMemo(() => calcResumo(focalle, focalleRecords), [focalle, focalleRecords]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
