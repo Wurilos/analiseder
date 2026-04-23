@@ -451,16 +451,26 @@ const DashboardPage: React.FC = () => {
           icon={<Layers size={22} />}
           iconColor="purple"
         />
-        <KPICard
-          label="ID Médio"
-          value={(avg * 100).toFixed(1) + '%'}
-          sub={dashView === 'equip'
-            ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
-            : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
-          icon={<BarChart3 size={22} />}
-          iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
-          severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
-        />
+        <div className="relative">
+          <KPICard
+            label="ID Médio"
+            value={(avg * 100).toFixed(1) + '%'}
+            sub={dashView === 'equip'
+              ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
+              : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
+            icon={<BarChart3 size={22} />}
+            iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
+            severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
+          />
+          <button
+            onClick={() => setShowLoteModal(true)}
+            title="Resumo do contrato por lote"
+            className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border border-border bg-background/80 backdrop-blur px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/80 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors shadow-sm"
+          >
+            <FileBarChart2 className="w-3 h-3" />
+            Resumo
+          </button>
+        </div>
         <KPICard
           label="ID Médio (Todos Importados)"
           value={(avgAllIDs * 100).toFixed(1) + '%'}
