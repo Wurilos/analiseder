@@ -487,9 +487,10 @@ const DashboardPage: React.FC = () => {
         />
         <button
           onClick={() => setShowLoteModal(true)}
-          className="kpi group relative overflow-hidden cursor-pointer text-left transition-all duration-300 hover:shadow-lg hover:border-primary/60 md:col-span-2"
+          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 md:col-span-2 bg-card"
+          style={{ background: 'hsl(var(--card))' }}
         >
-          <div className="relative flex items-center gap-4 w-full px-1">
+          <div className="flex items-center gap-4 w-full px-1">
             <div className="rounded-xl p-3 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
               <FileBarChart2 className="w-7 h-7 text-primary" strokeWidth={2.2} />
             </div>
