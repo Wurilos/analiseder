@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
-import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
+import { EQUIP_CATALOG, equipLabel, equipLabelFull, getFabricanteByCodigo } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
 import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine, FileBarChart2 } from 'lucide-react';
