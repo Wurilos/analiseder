@@ -29,6 +29,25 @@ function idxCell(v: number | null) {
   return <span className={`font-mono ${color}`}>{fmt(v)}</span>;
 }
 
+function pdfIdxColor(v: number | null): string {
+  if (v === null || v === undefined || isNaN(v as number)) return '#666';
+  if (v < 0.5) return '#dc2626';
+  if (v < 0.8) return '#d97706';
+  return '#16a34a';
+}
+
+function pdfIdColor(v: number | null): string {
+  if (v === null || v === undefined || isNaN(v as number)) return '#666';
+  if (v < 0.6) return '#dc2626';
+  if (v < 0.85) return '#d97706';
+  return '#16a34a';
+}
+
+function pdfIdxCell(v: number | null): string {
+  const color = pdfIdxColor(v);
+  return `<td style="text-align:center;color:${color};font-weight:600">${fmt(v)}</td>`;
+}
+
 function fmtCurrency(v: number) {
   return v.toLocaleString('pt-BR', {
     style: 'currency',
