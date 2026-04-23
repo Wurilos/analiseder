@@ -257,6 +257,52 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
             </div>
           </div>
 
+          {/* Relação entre valor previsto e descontos */}
+          <div className="rounded-lg border border-slate-300 bg-white overflow-hidden">
+            <div className="grid grid-cols-3 divide-x divide-slate-200">
+              <div className="px-3 py-2 text-center">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Valor Contratado</div>
+                <div className="text-base font-extrabold text-slate-800 mt-0.5">{fmtBRL(totalResumo.valorTotal)}</div>
+              </div>
+              <div className="px-3 py-2 text-center">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Desconto Previsto</div>
+                <div className="text-base font-extrabold text-[#c95a18] mt-0.5">− {fmtBRL(totalResumo.desconto)}</div>
+              </div>
+              <div className="px-3 py-2 text-center">
+                <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">% Desconto / Contrato</div>
+                <div className="text-base font-extrabold text-[#c95a18] mt-0.5">
+                  {totalResumo.valorTotal > 0 ? fmtPct(totalResumo.desconto / totalResumo.valorTotal) : '—'}
+                </div>
+              </div>
+            </div>
+            {totalResumo.valorTotal > 0 && (
+              <div className="px-3 pb-2">
+                <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex">
+                  <div
+                    className="h-full bg-[#1c8048]"
+                    style={{ width: `${Math.max(0, Math.min(100, ((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal) * 100))}%` }}
+                    title={`Recebimento: ${fmtPct((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal)}`}
+                  />
+                  <div
+                    className="h-full bg-[#c95a18]"
+                    style={{ width: `${Math.max(0, Math.min(100, (totalResumo.desconto / totalResumo.valorTotal) * 100))}%` }}
+                    title={`Desconto: ${fmtPct(totalResumo.desconto / totalResumo.valorTotal)}`}
+                  />
+                </div>
+                <div className="flex justify-between text-[10px] font-semibold text-slate-500 mt-1">
+                  <span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-[#1c8048] mr-1 align-middle" />
+                    Recebimento {fmtPct((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal)}
+                  </span>
+                  <span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-[#c95a18] mr-1 align-middle" />
+                    Desconto {fmtPct(totalResumo.desconto / totalResumo.valorTotal)}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
           {isMisto ? (
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
