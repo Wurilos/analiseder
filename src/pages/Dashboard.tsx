@@ -372,6 +372,19 @@ const DashboardPage: React.FC = () => {
       sub.ILPn += simulate('ILPn');
     });
 
+    // Normaliza os subíndices proporcionalmente para que a soma bata
+    // exatamente com a Perda por IEF do card superior.
+    const sumSub = sub.ICId + sub.ICIn + sub.IEVri + sub.IEVdt + sub.ILPd + sub.ILPn;
+    if (sumSub > 0 && main.IEF > 0) {
+      const k = main.IEF / sumSub;
+      sub.ICId *= k;
+      sub.ICIn *= k;
+      sub.IEVri *= k;
+      sub.IEVdt *= k;
+      sub.ILPd *= k;
+      sub.ILPn *= k;
+    }
+
     return { main, sub };
   }, [groups]);
 
