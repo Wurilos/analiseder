@@ -494,18 +494,18 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.60"
           value={
-            <div className="flex items-stretch gap-3 mt-1">
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-foreground/5 border border-foreground/10 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-foreground/70 leading-none">Equip.</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-foreground">{equipBelow6}</span>
+            <div className="flex items-stretch gap-2 mt-1">
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-foreground/5 border border-foreground/10">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-foreground/70 leading-none">Equip.</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-foreground">{equipBelow6}</span>
               </div>
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-rose-500/10 border border-rose-500/30 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-rose-500 leading-none">Faixas</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-rose-500">{faixasBelow6}</span>
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-rose-500/10 border border-rose-500/30">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-rose-500 leading-none">Faixas</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-rose-500">{faixasBelow6}</span>
               </div>
             </div>
           }
-          sub={<span className="block mt-2">críticos</span>}
+          sub={<span className="block mt-1.5">críticos</span>}
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
@@ -513,38 +513,38 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="0.60 ≤ ID < 0.85"
           value={
-            <div className="flex items-stretch gap-3 mt-1">
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-foreground/5 border border-foreground/10 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-foreground/70 leading-none">Equip.</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-foreground">{equipBetween}</span>
+            <div className="flex items-stretch gap-2 mt-1">
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-foreground/5 border border-foreground/10">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-foreground/70 leading-none">Equip.</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-foreground">{equipBetween}</span>
               </div>
-              <div className="flex flex-col items-center px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 min-w-[68px]">
-                <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-amber-600 dark:text-amber-400 leading-none">Faixas</span>
-                <span className="text-2xl font-extrabold leading-none mt-1.5 text-amber-600 dark:text-amber-400">{faixasBetween}</span>
+              <div className="flex flex-col items-center px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/30">
+                <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 leading-none">Faixas</span>
+                <span className="text-xl font-extrabold leading-none mt-1 text-amber-600 dark:text-amber-400">{faixasBetween}</span>
               </div>
             </div>
           }
-          sub={<span className="block mt-2">em alerta</span>}
+          sub={<span className="block mt-1.5">em alerta</span>}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={(below85 - below6) > 0 ? 'warn' : 'good'}
         />
         <button
           onClick={() => setShowLoteModal(true)}
-          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 md:col-span-2 bg-card"
+          className="kpi group cursor-pointer text-left transition-all duration-200 hover:border-primary/60 bg-card"
           style={{ background: 'hsl(var(--card))' }}
         >
-          <div className="flex items-center gap-4 w-full px-1">
-            <div className="rounded-xl p-3 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
-              <FileBarChart2 className="w-7 h-7 text-primary" strokeWidth={2.2} />
+          <div className="flex items-center gap-3 w-full px-1">
+            <div className="rounded-lg p-2.5 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
+              <FileBarChart2 className="w-5 h-5 text-primary" strokeWidth={2.2} />
             </div>
-            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
-              <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Análise por Lote</div>
-              <div className="text-xl font-extrabold text-foreground leading-tight">Resumo do Contrato</div>
-              <div className="text-xs text-muted-foreground font-medium">Splice · Focalle · Indicadores críticos</div>
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+              <div className="text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Análise por Lote</div>
+              <div className="text-sm font-extrabold text-foreground leading-tight">Resumo do Contrato</div>
+              <div className="text-[10px] text-muted-foreground font-medium truncate">Splice · Focalle</div>
             </div>
             <div className="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
             </div>
           </div>
         </button>
