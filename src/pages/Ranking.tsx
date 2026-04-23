@@ -219,7 +219,7 @@ const RankingPage: React.FC = () => {
 
           return `<tr>
             <td>${i + 1}</td>
-            <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
+            <td style="font-weight:bold;color:#1e40af">${displaySerie(r.equipamento, r.serie)}</td>
             <td style="text-align:left">${r.equipamento}</td>
             <td>${r.tipo}</td>
             <td>${r.faixa}</td>
