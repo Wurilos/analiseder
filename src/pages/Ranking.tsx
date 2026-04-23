@@ -223,12 +223,10 @@ const RankingPage: React.FC = () => {
 
       const container = document.createElement('div');
       container.style.position = 'absolute';
-      container.style.left = '0';
+      container.style.left = '-99999px';
       container.style.top = '0';
       container.style.width = PAGE_WIDTH_PX + 'px';
       container.style.background = '#ffffff';
-      container.style.zIndex = '-1';
-      container.style.opacity = '0';
       container.style.pointerEvents = 'none';
       container.innerHTML = `
         <div style="font-family: Arial, sans-serif; padding: 0; color: #111; background: #fff; width: ${PAGE_WIDTH_PX}px;">
