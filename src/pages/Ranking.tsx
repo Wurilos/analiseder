@@ -5,7 +5,7 @@ import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-e
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
-import { Layers, Server, FileDown } from 'lucide-react';
+import { Layers, Server, FileDown, TrendingDown, Activity, ShieldCheck, Tags } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
@@ -160,6 +160,19 @@ const RankingPage: React.FC = () => {
   const equipamentoCount = equipGroups.length;
   const totalFaixas = records.length;
   const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter);
+
+  const perdasPorIndice = useMemo(() => {
+    return equipGroups.reduce(
+      (acc, g) => {
+        acc.IDF += g.perdaIDF || 0;
+        acc.IEF += g.perdaIEF || 0;
+        acc.ICV += g.perdaICV || 0;
+        acc.total += g.descontoTotal || 0;
+        return acc;
+      },
+      { IDF: 0, IEF: 0, ICV: 0, total: 0 }
+    );
+  }, [equipGroups]);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -457,6 +470,37 @@ const RankingPage: React.FC = () => {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <PerdaCard
+          label="Perda Total"
+          value={fmtCurrency(perdasPorIndice.total)}
+          sub={`${equipamentoCount} equipamento(s)`}
+          icon={<TrendingDown className="w-5 h-5" />}
+          tone="red"
+        />
+        <PerdaCard
+          label="Perda por IDF"
+          value={fmtCurrency(perdasPorIndice.IDF)}
+          sub="Disponibilidade"
+          icon={<ShieldCheck className="w-5 h-5" />}
+          tone="amber"
+        />
+        <PerdaCard
+          label="Perda por IEF"
+          value={fmtCurrency(perdasPorIndice.IEF)}
+          sub="Eficiência funcional"
+          icon={<Activity className="w-5 h-5" />}
+          tone="orange"
+        />
+        <PerdaCard
+          label="Perda por ICV"
+          value={fmtCurrency(perdasPorIndice.ICV)}
+          sub="Classificação veicular"
+          icon={<Tags className="w-5 h-5" />}
+          tone="purple"
+        />
+      </div>
+
       <div className="card">
         <div className="card-header">
           <div>
@@ -645,6 +689,33 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function PerdaCard({
+  label, value, sub, icon, tone,
+}: {
+  label: string;
+  value: string;
+  sub: string;
+  icon: React.ReactNode;
+  tone: 'red' | 'amber' | 'orange' | 'purple';
+}) {
+  const toneMap = {
+    red: 'border-l-red-500 text-red-600 dark:text-red-400 bg-red-50/40 dark:bg-red-950/10',
+    amber: 'border-l-amber-500 text-amber-600 dark:text-amber-400 bg-amber-50/40 dark:bg-amber-950/10',
+    orange: 'border-l-orange-500 text-orange-600 dark:text-orange-400 bg-orange-50/40 dark:bg-orange-950/10',
+    purple: 'border-l-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50/40 dark:bg-purple-950/10',
+  } as const;
+  return (
+    <div className={`rounded-lg border border-border border-l-4 p-3 ${toneMap[tone]}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</span>
+        <span className={toneMap[tone].split(' ').find(c => c.startsWith('text-')) ?? ''}>{icon}</span>
+      </div>
+      <div className="font-mono text-xl font-bold mt-1 text-foreground">{value}</div>
+      <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>
     </div>
   );
 }
