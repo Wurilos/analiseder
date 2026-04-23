@@ -124,11 +124,11 @@ const FabricanteBlock: React.FC<{
     <div className={`rounded-lg overflow-hidden border-2 ${accentBorder} bg-white`}>
       {/* Header com nome do fabricante + contagem */}
       <div
-        className="text-white text-center font-extrabold py-2 px-3 text-base tracking-wide flex items-center justify-center gap-2"
+        className="text-white text-center font-extrabold py-2 px-3 text-base tracking-wide flex flex-col items-center justify-center min-h-[3.5rem] leading-tight"
         style={{ background: headerBg }}
       >
         <span>Equipamento {fabricante.toUpperCase()}:</span>
-        <span className="text-xs font-semibold opacity-95">({resumo.count} eqp homologado{resumo.count !== 1 ? 's' : ''})</span>
+        <span className="text-xs font-semibold opacity-95 mt-0.5">({resumo.count} eqp homologado{resumo.count !== 1 ? 's' : ''})</span>
       </div>
 
       <div className="p-3 space-y-2 bg-slate-50">
