@@ -487,27 +487,19 @@ const DashboardPage: React.FC = () => {
         />
         <button
           onClick={() => setShowLoteModal(true)}
-          className="kpi group relative overflow-hidden cursor-pointer text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-          style={{
-            background: 'linear-gradient(135deg,#1e4d8b 0%,#2d6db5 50%,#e8742a 100%)',
-            border: 'none',
-          }}
+          className="kpi group relative overflow-hidden cursor-pointer text-left transition-all duration-300 hover:shadow-lg hover:border-primary/60 md:col-span-2"
         >
-          {/* brilho animado */}
-          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-            style={{ background: 'radial-gradient(circle at 80% 20%, rgba(255,255,255,.25), transparent 60%)' }}
-          />
-          <div className="relative flex items-center gap-3 w-full">
-            <div className="rounded-xl p-2.5 bg-white/20 backdrop-blur-sm ring-1 ring-white/30 shadow-lg group-hover:rotate-6 transition-transform duration-300">
-              <FileBarChart2 className="w-6 h-6 text-white" strokeWidth={2.4} />
+          <div className="relative flex items-center gap-4 w-full px-1">
+            <div className="rounded-xl p-3 bg-primary/10 ring-1 ring-primary/20 group-hover:bg-primary/15 transition-colors shrink-0">
+              <FileBarChart2 className="w-7 h-7 text-primary" strokeWidth={2.2} />
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-[10px] font-bold uppercase tracking-widest text-white/85">Análise por Lote</div>
-              <div className="text-lg font-extrabold text-white leading-tight mt-0.5">Resumo do Contrato</div>
-              <div className="text-[10px] text-white/80 mt-0.5 font-medium">Splice · Focalle · Indicadores</div>
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+              <div className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">Análise por Lote</div>
+              <div className="text-xl font-extrabold text-foreground leading-tight">Resumo do Contrato</div>
+              <div className="text-xs text-muted-foreground font-medium">Splice · Focalle · Indicadores críticos</div>
             </div>
-            <div className="text-white/80 group-hover:text-white group-hover:translate-x-1 transition-all">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            <div className="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all shrink-0">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
             </div>
           </div>
         </button>
