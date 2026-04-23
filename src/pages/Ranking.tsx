@@ -6,7 +6,8 @@ import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
 import { Layers, Server, FileDown } from 'lucide-react';
-import html2pdf from 'html2pdf.js';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
@@ -133,6 +134,8 @@ const RankingPage: React.FC = () => {
 
   const handleExportPDF = async () => {
     setExporting(true);
+    let container: HTMLDivElement | null = null;
+
     try {
       const dateStr = new Date().toLocaleDateString('pt-BR');
       const isEquip = viewMode === 'equipamento';
@@ -144,10 +147,14 @@ const RankingPage: React.FC = () => {
       let rowsHtml = '';
       if (isEquip) {
         rowsHtml = equipGroups.map((g, i) => {
-          const idAtuais = filteredRecords.filter(r => r.equipamento === g.equipamento).map(r => calcIDAtual(r)).filter((v): v is number => v !== null);
+          const idAtuais = filteredRecords
+            .filter(r => r.equipamento === g.equipamento)
+            .map(r => calcIDAtual(r))
+            .filter((v): v is number => v !== null);
           const avgAtual = idAtuais.length ? idAtuais.reduce((s, v) => s + v, 0) / idAtuais.length : null;
           const idColor = g.c_ID === null ? '#666' : g.c_ID < 0.6 ? '#dc2626' : g.c_ID < 0.85 ? '#d97706' : '#16a34a';
           const atColor = avgAtual === null ? '#666' : avgAtual < 0.6 ? '#dc2626' : avgAtual < 0.85 ? '#d97706' : '#16a34a';
+
           return `<tr>
             <td>${i + 1}</td>
             <td style="font-weight:bold;color:#1e40af">${g.serie ?? '—'}</td>
@@ -165,10 +172,10 @@ const RankingPage: React.FC = () => {
             <td>${fmt(g.c_IEVdt)}</td>
             <td>${fmt(g.c_ILPd)}</td>
             <td>${fmt(g.c_ILPn)}</td>
-            <td style="color:${idColor};font-weight:bold">${fmt(g.c_ID)}</td>
-            <td style="color:${atColor};font-weight:bold">${fmt(avgAtual)}</td>
+            <td style="color:${idColor};font-weight:700">${fmt(g.c_ID)}</td>
+            <td style="color:${atColor};font-weight:700">${fmt(avgAtual)}</td>
             <td>${g.melhorAlavanca.perda > 0 ? g.melhorAlavanca.nome : '✓ Bom'}</td>
-            <td style="color:#dc2626;font-weight:bold">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
+            <td style="color:#dc2626;font-weight:700">${g.descontoTotal > 0 ? fmtCurrency(g.descontoTotal) : '—'}</td>
           </tr>`;
         }).join('');
       } else {
@@ -180,6 +187,7 @@ const RankingPage: React.FC = () => {
           const idAt = calcIDAtual(r);
           const idColor = id === null ? '#666' : id < 0.6 ? '#dc2626' : id < 0.85 ? '#d97706' : '#16a34a';
           const atColor = idAt === null ? '#666' : idAt < 0.6 ? '#dc2626' : idAt < 0.85 ? '#d97706' : '#16a34a';
+
           return `<tr>
             <td>${i + 1}</td>
             <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
@@ -197,10 +205,10 @@ const RankingPage: React.FC = () => {
             <td>${fmt(r.c_IEVdt)}</td>
             <td>${fmt(r.c_ILPd)}</td>
             <td>${fmt(r.c_ILPn)}</td>
-            <td style="color:${idColor};font-weight:bold">${fmt(id)}</td>
-            <td style="color:${atColor};font-weight:bold">${fmt(idAt)}</td>
+            <td style="color:${idColor};font-weight:700">${fmt(id)}</td>
+            <td style="color:${atColor};font-weight:700">${fmt(idAt)}</td>
             <td>${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
-            <td style="color:#16a34a;font-weight:bold">+${fmt(gain.total_gap)}</td>
+            <td style="color:#16a34a;font-weight:700">+${fmt(gain.total_gap)}</td>
           </tr>`;
         }).join('');
       }
@@ -213,58 +221,110 @@ const RankingPage: React.FC = () => {
         fTipo && `Tipo: ${fTipo}`,
         fRodovia && `Rodovia: ${fRodovia}`,
         search && `Busca: "${search}"`,
-        idxFilter && `Filtro índice ativo`,
+        idxFilter && 'Filtro índice ativo',
       ].filter(Boolean).join(' • ');
 
-      // A4 landscape: 297mm x 210mm. Useful width @ ~96dpi with 8mm margins ≈ 1063px.
-      // Render the container at a fixed width matching the printable area so the
-      // table fits horizontally on a single page (rows still break across pages).
       const PAGE_WIDTH_PX = 1075;
+      const PDF_PAGE_WIDTH_MM = 297;
+      const PDF_PAGE_HEIGHT_MM = 210;
+      const PDF_MARGIN_MM = 8;
+      const PDF_CONTENT_WIDTH_MM = PDF_PAGE_WIDTH_MM - PDF_MARGIN_MM * 2;
+      const PDF_CONTENT_HEIGHT_MM = PDF_PAGE_HEIGHT_MM - PDF_MARGIN_MM * 2;
 
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.left = '-99999px';
+      container = document.createElement('div');
+      container.style.position = 'fixed';
+      container.style.left = '0';
       container.style.top = '0';
-      container.style.width = PAGE_WIDTH_PX + 'px';
+      container.style.width = `${PAGE_WIDTH_PX}px`;
       container.style.background = '#ffffff';
+      container.style.zIndex = '-1';
       container.style.pointerEvents = 'none';
+      container.style.boxSizing = 'border-box';
       container.innerHTML = `
-        <div style="font-family: Arial, sans-serif; padding: 0; color: #111; background: #fff; width: ${PAGE_WIDTH_PX}px;">
-          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:6px;margin-bottom:8px">
+        <div style="font-family: Arial, sans-serif; padding: 0; color: #111; background: #fff; width: ${PAGE_WIDTH_PX}px; box-sizing: border-box;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:6px;margin-bottom:8px;gap:12px;">
             <div>
               <h1 style="margin:0;font-size:16px;color:#1e40af">DER/SP — ${title}</h1>
               <div style="font-size:9px;color:#555;margin-top:2px">Edital 145/2023 • ${totalLabel}${filtersInfo ? ' • ' + filtersInfo : ''}</div>
             </div>
-            <div style="font-size:9px;color:#555;text-align:right">Gerado em ${dateStr}</div>
+            <div style="font-size:9px;color:#555;text-align:right;white-space:nowrap">Gerado em ${dateStr}</div>
           </div>
-          <table style="width:100%;border-collapse:collapse;font-size:7.5px;table-layout:fixed;word-break:break-word">
+          <table style="width:100%;border-collapse:collapse;font-size:7.5px;table-layout:fixed;word-break:break-word;overflow-wrap:anywhere;">
             <thead style="background:#1e40af;color:#fff;display:table-header-group">${headersHtml}</thead>
             <tbody>${rowsHtml}</tbody>
           </table>
           <style>
-            table th, table td { border: 1px solid #ddd; padding: 2px 3px; text-align: left; vertical-align: middle; }
-            table thead th { font-weight: bold; font-size: 7.5px; text-align: center; }
-            table tbody tr { page-break-inside: avoid; }
+            table th, table td { border: 1px solid #d1d5db; padding: 2px 3px; text-align: left; vertical-align: middle; }
+            table thead th { font-weight: 700; font-size: 7.5px; text-align: center; }
             table tbody tr:nth-child(even) { background: #f8fafc; }
           </style>
         </div>
       `;
       document.body.appendChild(container);
 
-      await html2pdf()
-        .set({
-          margin: [8, 8, 8, 8],
-          filename: `Ranking_${isEquip ? 'Equipamentos' : 'Faixas'}_${new Date().toISOString().slice(0, 10)}.pdf`,
-          image: { type: 'jpeg', quality: 0.95 },
-          html2canvas: { scale: 2, useCORS: true, windowWidth: PAGE_WIDTH_PX, width: PAGE_WIDTH_PX },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-          pagebreak: { mode: ['css', 'legacy'] },
-        })
-        .from(container)
-        .save();
+      if (document.fonts?.ready) {
+        await document.fonts.ready;
+      }
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-      document.body.removeChild(container);
+      const fullCanvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        windowWidth: PAGE_WIDTH_PX,
+        width: PAGE_WIDTH_PX,
+        scrollX: 0,
+        scrollY: 0,
+      });
+
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageHeightPx = Math.floor((fullCanvas.width * PDF_CONTENT_HEIGHT_MM) / PDF_CONTENT_WIDTH_MM);
+      let offsetY = 0;
+      let isFirstPage = true;
+
+      while (offsetY < fullCanvas.height) {
+        const sliceHeightPx = Math.min(pageHeightPx, fullCanvas.height - offsetY);
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = fullCanvas.width;
+        pageCanvas.height = sliceHeightPx;
+
+        const ctx = pageCanvas.getContext('2d');
+        if (!ctx) throw new Error('Falha ao preparar a página do PDF.');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+        ctx.drawImage(
+          fullCanvas,
+          0,
+          offsetY,
+          fullCanvas.width,
+          sliceHeightPx,
+          0,
+          0,
+          fullCanvas.width,
+          sliceHeightPx,
+        );
+
+        const sliceHeightMm = (sliceHeightPx * PDF_CONTENT_WIDTH_MM) / fullCanvas.width;
+        if (!isFirstPage) pdf.addPage();
+        pdf.addImage(
+          pageCanvas.toDataURL('image/jpeg', 0.98),
+          'JPEG',
+          PDF_MARGIN_MM,
+          PDF_MARGIN_MM,
+          PDF_CONTENT_WIDTH_MM,
+          sliceHeightMm,
+        );
+
+        offsetY += sliceHeightPx;
+        isFirstPage = false;
+      }
+
+      pdf.save(`Ranking_${isEquip ? 'Equipamentos' : 'Faixas'}_${new Date().toISOString().slice(0, 10)}.pdf`);
     } finally {
+      if (container?.parentNode) {
+        container.parentNode.removeChild(container);
+      }
       setExporting(false);
     }
   };
