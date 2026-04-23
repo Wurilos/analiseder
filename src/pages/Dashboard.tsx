@@ -298,12 +298,10 @@ const DashboardPage: React.FC = () => {
   const [fFabricante, setFFabricante] = useState<'' | 'Splice' | 'Focalle'>('');
   const [showLoteModal, setShowLoteModal] = useState(false);
 
-  // Regra oficial: DR-14 = Splice; demais lotes = Focalle.
-  // Usa o lote do catálogo (fonte canônica), com fallback para o lote do registro.
-  const fabricanteOf = (equip: string, lote?: string): 'Splice' | 'Focalle' => {
-    const loteFinal = EQUIP_CATALOG[equip]?.lote ?? lote ?? '';
-    return loteFinal === 'DR-14' ? 'Splice' : 'Focalle';
-  };
+  // Regra oficial: padrão Splice; Focalle só em equipamentos DR-05/DR-10
+  // marcados na planilha (obs = OBS_FOCALLE_LOTES_05_10). Fonte canônica
+  // é sempre o EQUIP_CATALOG (lookup pelo código), não o lote do registro.
+  const fabricanteOf = (equip: string): 'Splice' | 'Focalle' => getFabricanteByCodigo(equip);
 
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
