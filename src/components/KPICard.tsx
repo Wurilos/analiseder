@@ -3,7 +3,7 @@ import React from 'react';
 interface KPICardProps {
   label: string;
   value: React.ReactNode;
-  sub?: string;
+  sub?: React.ReactNode;
   icon: React.ReactNode;
   iconColor?: 'blue' | 'amber' | 'red' | 'green' | 'teal' | 'purple' | 'indigo' | 'orange' | 'slate';
   severity?: 'danger' | 'warn' | 'good' | 'info' | '';
