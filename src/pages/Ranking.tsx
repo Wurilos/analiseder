@@ -258,7 +258,7 @@ const RankingPage: React.FC = () => {
           image: { type: 'jpeg', quality: 0.95 },
           html2canvas: { scale: 2, useCORS: true, windowWidth: PAGE_WIDTH_PX, width: PAGE_WIDTH_PX },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-          pagebreak: { mode: ['css', 'legacy', 'avoid-all'] },
+          pagebreak: { mode: ['css', 'legacy'] },
         })
         .from(container)
         .save();
