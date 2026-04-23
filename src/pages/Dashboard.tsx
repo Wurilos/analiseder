@@ -313,12 +313,12 @@ const DashboardPage: React.FC = () => {
     (!fTipo || r.tipo === fTipo) &&
     (!fMunicipio || r.municipio === fMunicipio) &&
     (!fEquip || r.equipamento === fEquip) &&
-    (!fFabricante || fabricanteOf(r.equipamento, r.lote) === fFabricante)
+    (!fFabricante || fabricanteOf(r.equipamento) === fFabricante)
   ), [records, fRodovia, fTipo, fMunicipio, fEquip, fFabricante]);
 
   // Base afetada apenas pelo filtro de Fabricante (independente dos demais filtros)
   const recordsByFab = useMemo(
-    () => records.filter(r => !fFabricante || fabricanteOf(r.equipamento, r.lote) === fFabricante),
+    () => records.filter(r => !fFabricante || fabricanteOf(r.equipamento) === fFabricante),
     [records, fFabricante]
   );
   const totalFaixas = recordsByFab.length;
