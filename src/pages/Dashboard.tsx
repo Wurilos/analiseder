@@ -295,6 +295,7 @@ const DashboardPage: React.FC = () => {
   const [fTipo, setFTipo] = useState('');
   const [fMunicipio, setFMunicipio] = useState('');
   const [fEquip, setFEquip] = useState('');
+  const [showLoteModal, setShowLoteModal] = useState(false);
 
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
