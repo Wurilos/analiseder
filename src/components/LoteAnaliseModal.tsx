@@ -39,9 +39,10 @@ const fmtBRL = (v: number) =>
 
 const fmtPct = (v: number) => (v * 100).toFixed(1).replace('.', ',') + '%';
 
-function fabricanteOf(equip: string): 'Focalle' | 'Splice' {
-  const obs = EQUIP_CATALOG[equip]?.obs ?? '';
-  return obs.toLowerCase().includes('focalle') ? 'Focalle' : 'Splice';
+// Regra oficial: DR-14 = Splice; demais lotes = Focalle.
+function fabricanteOf(equip: string, lote?: string): 'Focalle' | 'Splice' {
+  const loteFinal = EQUIP_CATALOG[equip]?.lote ?? lote ?? '';
+  return loteFinal === 'DR-14' ? 'Splice' : 'Focalle';
 }
 
 interface Resumo {
