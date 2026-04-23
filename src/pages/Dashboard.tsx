@@ -376,7 +376,7 @@ const DashboardPage: React.FC = () => {
   }, [groups]);
 
   const fmtBRL = (v: number) =>
-    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   if (!records.length) {
     return (
