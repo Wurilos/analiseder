@@ -4,7 +4,8 @@ import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine } from 'lucide-react';
+import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine, FileBarChart2 } from 'lucide-react';
+import LoteAnaliseModal from '@/components/LoteAnaliseModal';
 import * as echarts from 'echarts';
 import { EquipGroup } from '@/types';
 import { calcID, calcIEF } from '@/lib/calc-engine';
@@ -294,6 +295,7 @@ const DashboardPage: React.FC = () => {
   const [fTipo, setFTipo] = useState('');
   const [fMunicipio, setFMunicipio] = useState('');
   const [fEquip, setFEquip] = useState('');
+  const [showLoteModal, setShowLoteModal] = useState(false);
 
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
@@ -449,16 +451,26 @@ const DashboardPage: React.FC = () => {
           icon={<Layers size={22} />}
           iconColor="purple"
         />
-        <KPICard
-          label="ID Médio"
-          value={(avg * 100).toFixed(1) + '%'}
-          sub={dashView === 'equip'
-            ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
-            : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
-          icon={<BarChart3 size={22} />}
-          iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
-          severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
-        />
+        <div className="relative">
+          <KPICard
+            label="ID Médio"
+            value={(avg * 100).toFixed(1) + '%'}
+            sub={dashView === 'equip'
+              ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
+              : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
+            icon={<BarChart3 size={22} />}
+            iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
+            severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
+          />
+          <button
+            onClick={() => setShowLoteModal(true)}
+            title="Resumo do contrato por lote"
+            className="absolute top-2 right-2 inline-flex items-center gap-1 rounded-md border border-border bg-background/80 backdrop-blur px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/80 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-colors shadow-sm"
+          >
+            <FileBarChart2 className="w-3 h-3" />
+            Resumo
+          </button>
+        </div>
         <KPICard
           label="ID Médio (Todos Importados)"
           value={(avgAllIDs * 100).toFixed(1) + '%'}
@@ -600,6 +612,13 @@ const DashboardPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <LoteAnaliseModal
+        open={showLoteModal}
+        onOpenChange={setShowLoteModal}
+        groups={groups}
+        periodo={activePeriod || ''}
+      />
     </div>
   );
 };
