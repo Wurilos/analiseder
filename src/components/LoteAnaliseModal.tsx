@@ -147,12 +147,10 @@ const FabricanteBlock: React.FC<{
           Valor de desconto previsto: <span className="text-slate-900 font-extrabold">{fmtBRL(resumo.desconto)}</span>
         </div>
 
-        {/* Recebimento previsto (somente nos lotes não mistos já fica no topo; aqui mantemos quando útil) */}
-        {!isMisto && (
-          <div className="text-center bg-white border border-[#1f8a4d] rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
-            Recebimento Previsto: <span className="text-[#1c8048] font-extrabold">{fmtBRL(recebimento)}</span>
-          </div>
-        )}
+        {/* Recebimento previsto por fabricante */}
+        <div className="text-center bg-white border border-[#1f8a4d] rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
+          Recebimento Previsto: <span className="text-[#1c8048] font-extrabold">{fmtBRL(recebimento)}</span>
+        </div>
 
         <PioresList items={resumo.piores} numColor={numColor} />
       </div>
