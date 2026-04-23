@@ -670,6 +670,7 @@ const DashboardPage: React.FC = () => {
         open={showLoteModal}
         onOpenChange={setShowLoteModal}
         groups={groups}
+        records={filtered}
         periodo={activePeriod || ''}
       />
     </div>
