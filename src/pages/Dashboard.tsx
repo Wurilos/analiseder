@@ -298,9 +298,11 @@ const DashboardPage: React.FC = () => {
   const [fFabricante, setFFabricante] = useState<'' | 'Splice' | 'Focalle'>('');
   const [showLoteModal, setShowLoteModal] = useState(false);
 
-  const fabricanteOf = (equip: string): 'Splice' | 'Focalle' => {
-    const obs = EQUIP_CATALOG[equip]?.obs ?? '';
-    return obs.toLowerCase().includes('focalle') ? 'Focalle' : 'Splice';
+  // Regra oficial: DR-14 = Splice; demais lotes = Focalle.
+  // Usa o lote do catálogo (fonte canônica), com fallback para o lote do registro.
+  const fabricanteOf = (equip: string, lote?: string): 'Splice' | 'Focalle' => {
+    const loteFinal = EQUIP_CATALOG[equip]?.lote ?? lote ?? '';
+    return loteFinal === 'DR-14' ? 'Splice' : 'Focalle';
   };
 
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
