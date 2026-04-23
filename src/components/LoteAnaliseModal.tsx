@@ -11,6 +11,7 @@ interface Props {
   periodo: string;
 }
 
+
 const SUBINDICES_LABELS: Record<string, string> = {
   IDF: 'IDF Crítico — Disponibilidade Reduzida',
   ICId: 'ICId Baixo — Captura Diurna',
@@ -109,13 +110,15 @@ const PioresList: React.FC<{ items: Resumo['piores']; numColor: string }> = ({ i
 const FabricanteBlock: React.FC<{
   fabricante: 'Splice' | 'Focalle';
   resumo: Resumo;
-}> = ({ fabricante, resumo }) => {
+  isMisto: boolean;
+}> = ({ fabricante, resumo, isMisto }) => {
   const isSplice = fabricante === 'Splice';
   const headerBg = isSplice
     ? 'linear-gradient(180deg,#1e4d8b,#163a6b)'
     : 'linear-gradient(180deg,#e8742a,#c95a18)';
   const accentBorder = isSplice ? 'border-[#1e4d8b]' : 'border-[#e8742a]';
   const numColor = isSplice ? '#1e4d8b' : '#e8742a';
+  const recebimento = resumo.valorTotal - resumo.desconto;
 
   return (
     <div className={`rounded-lg overflow-hidden border-2 ${accentBorder} bg-slate-100`}>
@@ -133,6 +136,11 @@ const FabricanteBlock: React.FC<{
           style={{ background: headerBg }}>
           ID Médio <span className="text-xl ml-1">{fmtPct(resumo.idMedio)}</span>
         </div>
+        {!isMisto && (
+          <div className="text-center bg-white border border-[#1f8a4d] rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
+            Recebimento Previsto: <span className="text-[#1c8048] font-bold">{fmtBRL(recebimento)}</span>
+          </div>
+        )}
         <div className="text-center bg-white border border-slate-300 rounded py-1.5 px-2 text-sm font-semibold text-slate-700">
           Desconto Previsto: <span className="text-slate-900 font-bold">{fmtBRL(resumo.desconto)}</span>
         </div>
@@ -244,8 +252,8 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
           {isMisto ? (
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
-              {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} />}
-              {focalle.length > 0 && <FabricanteBlock fabricante="Focalle" resumo={focalleResumo} />}
+              {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} isMisto={isMisto} />}
+              {focalle.length > 0 && <FabricanteBlock fabricante="Focalle" resumo={focalleResumo} isMisto={isMisto} />}
               {splice.length === 0 && focalle.length === 0 && (
                 <div className="col-span-2 text-center text-sm text-slate-500 py-6">
                   Sem equipamentos identificados neste lote.
