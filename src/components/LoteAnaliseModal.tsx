@@ -182,8 +182,8 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, periodo
 
   const isMisto = loteNum === 5 || loteNum === 10;
 
-  const splice = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Splice'), [groupsLote]);
-  const focalle = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento) === 'Focalle'), [groupsLote]);
+  const splice = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento, g.lote) === 'Splice'), [groupsLote]);
+  const focalle = useMemo(() => groupsLote.filter(g => fabricanteOf(g.equipamento, g.lote) === 'Focalle'), [groupsLote]);
 
   const totalResumo = useMemo(() => calcResumo(groupsLote), [groupsLote]);
   const spliceResumo = useMemo(() => calcResumo(splice), [splice]);
