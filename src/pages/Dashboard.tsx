@@ -342,6 +342,11 @@ const DashboardPage: React.FC = () => {
     ? groupsWithID.filter(g => g.c_ID! < 0.85).length
     : withID.filter(r => getDisplayID(r)! < 0.85).length
   , [dashView, groupsWithID, withID]);
+  // Contagens auxiliares para sub-rótulos (sempre disponíveis nos dois recortes)
+  const equipBelow6 = useMemo(() => groupsWithID.filter(g => g.c_ID! < 0.6).length, [groupsWithID]);
+  const equipBetween = useMemo(() => groupsWithID.filter(g => g.c_ID! >= 0.6 && g.c_ID! < 0.85).length, [groupsWithID]);
+  const faixasBelow6 = useMemo(() => withID.filter(r => getDisplayID(r)! < 0.6).length, [withID]);
+  const faixasBetween = useMemo(() => withID.filter(r => { const v = getDisplayID(r)!; return v >= 0.6 && v < 0.85; }).length, [withID]);
 
   const chartData = useMemo(() =>
     dashView === 'equip' ? groups.filter(g => g.c_ID !== null) : withID
@@ -489,7 +494,9 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID < 0.60"
           value={String(below6)}
-          sub={dashView === 'equip' ? 'equipamentos críticos' : 'faixas críticas'}
+          sub={dashView === 'equip'
+            ? `equipamentos críticos · ${faixasBelow6} faixa(s)`
+            : `faixas críticas · ${equipBelow6} equip.`}
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
@@ -497,7 +504,9 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="0.60 ≤ ID < 0.85"
           value={String(below85 - below6)}
-          sub={dashView === 'equip' ? 'equipamentos em alerta' : 'faixas em alerta'}
+          sub={dashView === 'equip'
+            ? `equipamentos em alerta · ${faixasBetween} faixa(s)`
+            : `faixas em alerta · ${equipBetween} equip.`}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={(below85 - below6) > 0 ? 'warn' : 'good'}
