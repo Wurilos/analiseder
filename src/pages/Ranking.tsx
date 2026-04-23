@@ -470,37 +470,6 @@ const RankingPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-        <PerdaCard
-          label="Perda Total"
-          value={fmtCurrency(perdasPorIndice.total)}
-          sub={`${equipamentoCount} equipamento(s)`}
-          icon={<TrendingDown className="w-5 h-5" />}
-          tone="red"
-        />
-        <PerdaCard
-          label="Perda por IDF"
-          value={fmtCurrency(perdasPorIndice.IDF)}
-          sub="Disponibilidade"
-          icon={<ShieldCheck className="w-5 h-5" />}
-          tone="amber"
-        />
-        <PerdaCard
-          label="Perda por IEF"
-          value={fmtCurrency(perdasPorIndice.IEF)}
-          sub="Eficiência funcional"
-          icon={<Activity className="w-5 h-5" />}
-          tone="orange"
-        />
-        <PerdaCard
-          label="Perda por ICV"
-          value={fmtCurrency(perdasPorIndice.ICV)}
-          sub="Classificação veicular"
-          icon={<Tags className="w-5 h-5" />}
-          tone="purple"
-        />
-      </div>
-
       <div className="card">
         <div className="card-header">
           <div>
