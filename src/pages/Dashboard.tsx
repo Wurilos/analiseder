@@ -490,12 +490,12 @@ const DashboardPage: React.FC = () => {
           severity={below6 > 0 ? 'danger' : 'good'}
         />
         <KPICard
-          label="ID < 0.85"
-          value={String(below85)}
-          sub={dashView === 'equip' ? 'equipamentos abaixo' : 'faixas abaixo'}
+          label="0.60 ≤ ID < 0.85"
+          value={String(below85 - below6)}
+          sub={dashView === 'equip' ? 'equipamentos em alerta' : 'faixas em alerta'}
           icon={<TrendingDown size={22} />}
           iconColor="amber"
-          severity={below85 > 0 ? 'warn' : 'good'}
+          severity={(below85 - below6) > 0 ? 'warn' : 'good'}
         />
         <button
           onClick={() => setShowLoteModal(true)}
