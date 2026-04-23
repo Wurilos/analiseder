@@ -85,16 +85,23 @@ const ValoresPage: React.FC = () => {
   const isDark = theme === 'dark';
   const records = getActiveRecords();
   const [viewMode, setViewMode] = useState<'faixa' | 'equip'>('equip');
+  const [fLote, setFLote] = useState('');
   const [fRodovia, setFRodovia] = useState('');
   const [fTipo, setFTipo] = useState('');
   const [detailEquip, setDetailEquip] = useState<string | null>(null);
 
+  const lotes = useMemo(() => [...new Set(records.map(r => r.lote).filter(Boolean))].sort(), [records]);
   const rodovias = useMemo(() => [...new Set(records.map(r => r.rodovia))].sort(), [records]);
   const tipos = useMemo(() => [...new Set(records.map(r => r.tipo))].sort(), [records]);
 
+  // Default: primeiro lote (mesma lógica do modal de Resumo, que mostra 1 lote por vez)
+  const loteAtivo = fLote || lotes[0] || '';
+
   const filtered = useMemo(() => records.filter(r =>
-    (!fRodovia || r.rodovia === fRodovia) && (!fTipo || r.tipo === fTipo)
-  ), [records, fRodovia, fTipo]);
+    (!loteAtivo || r.lote === loteAtivo) &&
+    (!fRodovia || r.rodovia === fRodovia) &&
+    (!fTipo || r.tipo === fTipo)
+  ), [records, loteAtivo, fRodovia, fTipo]);
 
   const groups = useMemo(() => groupByEquipamento(filtered), [filtered]);
 
@@ -132,6 +139,9 @@ const ValoresPage: React.FC = () => {
             <button className={`toggle-btn ${viewMode === 'faixa' ? 'active' : ''}`} onClick={() => setViewMode('faixa')}>Por Faixa</button>
             <button className={`toggle-btn ${viewMode === 'equip' ? 'active' : ''}`} onClick={() => setViewMode('equip')}>Por Equipamento</button>
           </div>
+          <select value={loteAtivo} onChange={e => setFLote(e.target.value)}>
+            {lotes.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
           <select value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
             <option value="">Todas rodovias</option>
             {rodovias.map(r => <option key={r}>{r}</option>)}
