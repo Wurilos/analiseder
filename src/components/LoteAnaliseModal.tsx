@@ -54,8 +54,8 @@ interface Resumo {
 
 function calcResumo(groups: EquipGroup[]): Resumo {
   const valid = groups.filter(g => g.c_ID !== null);
-  const valorTotal = valid.reduce((s, g) => s + (g.valorTotal || 0), 0);
-  const desconto = valid.reduce((s, g) => s + (g.descontoTotal || 0), 0);
+  const valorTotal = groups.reduce((s, g) => s + (g.valorTotal || 0), 0);
+  const desconto = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
   // ID médio ponderado por valor contratual
   const idMedio = valorTotal > 0
     ? valid.reduce((s, g) => s + (g.c_ID! * (g.valorTotal || 0)), 0) / valorTotal
