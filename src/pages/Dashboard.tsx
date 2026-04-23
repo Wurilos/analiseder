@@ -472,6 +472,36 @@ const DashboardPage: React.FC = () => {
         />
       </div>
 
+      {/* Perdas Financeiras — Principais */}
+      <div className="mt-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Principais</h3>
+          <span className="text-[11px] text-muted-foreground">{filteredEquipamentos} equipamento(s) considerados</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <PerdaCard label="Perda Total" value={fmtBRL(perdas.main.total)} sub="Desconto contratual no período" icon={<DollarSign className="w-5 h-5" />} tone="red" />
+          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" />
+          <PerdaCard label="Perda por IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" icon={<Activity className="w-5 h-5" />} tone="orange" />
+          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
+        </div>
+      </div>
+
+      {/* Perdas Financeiras — Subíndices do IEF */}
+      <div className="mt-4 mb-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Subíndices do IEF</h3>
+          <span className="text-[11px] text-muted-foreground">Ganho potencial se cada subíndice atingir 1.00</span>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <PerdaCard label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-5 h-5" />} tone="amber" compact />
+          <PerdaCard label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-5 h-5" />} tone="indigo" compact />
+          <PerdaCard label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-5 h-5" />} tone="orange" compact />
+          <PerdaCard label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-5 h-5" />} tone="purple" compact />
+          <PerdaCard label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-5 h-5" />} tone="red" compact />
+          <PerdaCard label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-5 h-5" />} tone="teal" compact />
+        </div>
+      </div>
+
       {/* ECharts Grid */}
       <div className="charts-grid">
         <div className="chart-box">
