@@ -210,23 +210,23 @@ const RankingPage: React.FC = () => {
           return `<tr>
             <td>${i + 1}</td>
             <td style="font-weight:bold;color:#1e40af">${r.serie ?? '—'}</td>
-            <td>${r.equipamento}</td>
+            <td style="text-align:left">${r.equipamento}</td>
             <td>${r.tipo}</td>
             <td>${r.faixa}</td>
             <td>${r.rodovia}</td>
             <td>${r.km ?? '—'}</td>
-            <td>${fmt(r.c_IDF)}</td>
-            <td>${fmt(r.c_IEF)}</td>
-            <td>${fmt(r.c_ICV)}</td>
-            <td>${fmt(r.c_ICId)}</td>
-            <td>${fmt(r.c_ICIn)}</td>
-            <td>${fmt(r.c_IEVri)}</td>
-            <td>${fmt(r.c_IEVdt)}</td>
-            <td>${fmt(r.c_ILPd)}</td>
-            <td>${fmt(r.c_ILPn)}</td>
+            ${pdfIdxCell(r.c_IDF)}
+            ${pdfIdxCell(r.c_IEF)}
+            ${pdfIdxCell(r.c_ICV)}
+            ${pdfIdxCell(r.c_ICId)}
+            ${pdfIdxCell(r.c_ICIn)}
+            ${pdfIdxCell(r.c_IEVri)}
+            ${pdfIdxCell(r.c_IEVdt)}
+            ${pdfIdxCell(r.c_ILPd)}
+            ${pdfIdxCell(r.c_ILPn)}
             <td style="color:${idColor};font-weight:700">${fmt(id)}</td>
             <td style="color:${atColor};font-weight:700">${fmt(idAt)}</td>
-            <td>${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
+            <td style="text-align:left">${main ? main.title.split(' — ')[0] : '✓ Bom'}</td>
             <td style="color:#16a34a;font-weight:700">+${fmt(gain.total_gap)}</td>
           </tr>`;
         }).join('');
