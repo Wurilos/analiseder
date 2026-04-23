@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { EquipGroup } from '@/types';
-import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
 import { DollarSign, Percent } from 'lucide-react';
 
 interface Props {
