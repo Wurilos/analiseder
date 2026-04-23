@@ -273,7 +273,7 @@ const RankingPage: React.FC = () => {
             <tbody>${rowsHtml}</tbody>
           </table>
           <style>
-            table th, table td { border: 1px solid #d1d5db; padding: 2px 3px; text-align: left; vertical-align: middle; }
+            table th, table td { border: 1px solid #d1d5db; padding: 2px 3px; text-align: center; vertical-align: middle; }
             table thead th { font-weight: 700; font-size: 7.5px; text-align: center; }
             table tbody tr:nth-child(even) { background: #f8fafc; }
           </style>
