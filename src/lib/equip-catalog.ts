@@ -15,9 +15,27 @@ export interface EquipInfo {
 /** Observação padrão para equipamentos confirmados via planilha do fabricante Focalle (lotes 05 e 10). */
 export const OBS_FOCALLE_LOTES_05_10 = 'Fabricante Focalle — confirmado via planilha oficial (lotes 05 e 10).';
 
-export function getFabricante(lote: string): 'Splice' | 'Focalle' {
-  // DR-14 é Splice; demais lotes são Focalle
-  return lote === 'DR-14' ? 'Splice' : 'Focalle';
+/**
+ * Regra oficial de fabricante:
+ *  - Padrão = Splice
+ *  - Focalle apenas em equipamentos dos lotes DR-05 e DR-10 explicitamente
+ *    marcados como Focalle na planilha oficial (obs = OBS_FOCALLE_LOTES_05_10).
+ *
+ * Use sempre o código do equipamento (consulta o EQUIP_CATALOG) — não infira
+ * fabricante apenas pelo lote.
+ */
+export function getFabricante(lote: string, obs?: string): 'Splice' | 'Focalle' {
+  if ((lote === 'DR-05' || lote === 'DR-10') && obs === OBS_FOCALLE_LOTES_05_10) {
+    return 'Focalle';
+  }
+  return 'Splice';
+}
+
+/** Resolve o fabricante a partir do código do equipamento (fonte canônica). */
+export function getFabricanteByCodigo(codigo: string): 'Splice' | 'Focalle' {
+  const info = EQUIP_CATALOG[codigo];
+  if (!info) return 'Splice';
+  return getFabricante(info.lote, info.obs);
 }
 
 export const EQUIP_CATALOG: Record<string, EquipInfo> = {
