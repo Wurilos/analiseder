@@ -493,20 +493,38 @@ const DashboardPage: React.FC = () => {
         />
         <KPICard
           label="ID < 0.60"
-          value={String(below6)}
-          sub={dashView === 'equip'
-            ? `equipamentos críticos · ${faixasBelow6} faixa(s)`
-            : `faixas críticas · ${equipBelow6} equip.`}
+          value={
+            <div className="flex items-end gap-6">
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Equip.</span>
+                <span className="leading-none">{equipBelow6}</span>
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Faixas</span>
+                <span className="leading-none">{faixasBelow6}</span>
+              </div>
+            </div>
+          }
+          sub="críticos"
           icon={<AlertTriangle size={22} />}
           iconColor="red"
           severity={below6 > 0 ? 'danger' : 'good'}
         />
         <KPICard
           label="0.60 ≤ ID < 0.85"
-          value={String(below85 - below6)}
-          sub={dashView === 'equip'
-            ? `equipamentos em alerta · ${faixasBetween} faixa(s)`
-            : `faixas em alerta · ${equipBetween} equip.`}
+          value={
+            <div className="flex items-end gap-6">
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Equip.</span>
+                <span className="leading-none">{equipBetween}</span>
+              </div>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground leading-none mb-1">Faixas</span>
+                <span className="leading-none">{faixasBetween}</span>
+              </div>
+            </div>
+          }
+          sub="em alerta"
           icon={<TrendingDown size={22} />}
           iconColor="amber"
           severity={(below85 - below6) > 0 ? 'warn' : 'good'}
