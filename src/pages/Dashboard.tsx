@@ -612,6 +612,13 @@ const DashboardPage: React.FC = () => {
           </table>
         </div>
       </div>
+
+      <LoteAnaliseModal
+        open={showLoteModal}
+        onOpenChange={setShowLoteModal}
+        groups={groups}
+        periodo={activePeriod || ''}
+      />
     </div>
   );
 };
