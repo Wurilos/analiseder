@@ -11,6 +11,12 @@ interface Props {
   periodo: string;
 }
 
+interface FabricanteBlockProps {
+  fabricante: 'Splice' | 'Focalle';
+  resumo: Resumo;
+  isMisto: boolean;
+}
+
 const SUBINDICES_LABELS: Record<string, string> = {
   IDF: 'IDF Crítico — Disponibilidade Reduzida',
   ICId: 'ICId Baixo — Captura Diurna',
