@@ -5,7 +5,7 @@ import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-e
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
-import { Layers, Server, FileDown } from 'lucide-react';
+import { Layers, Server, FileDown, TrendingDown, Activity, ShieldCheck, Tags } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
@@ -160,6 +160,19 @@ const RankingPage: React.FC = () => {
   const equipamentoCount = equipGroups.length;
   const totalFaixas = records.length;
   const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter);
+
+  const perdasPorIndice = useMemo(() => {
+    return equipGroups.reduce(
+      (acc, g) => {
+        acc.IDF += g.perdaIDF || 0;
+        acc.IEF += g.perdaIEF || 0;
+        acc.ICV += g.perdaICV || 0;
+        acc.total += g.descontoTotal || 0;
+        return acc;
+      },
+      { IDF: 0, IEF: 0, ICV: 0, total: 0 }
+    );
+  }, [equipGroups]);
 
   const handleExportPDF = async () => {
     setExporting(true);
