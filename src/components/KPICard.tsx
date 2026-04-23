@@ -11,12 +11,13 @@ interface KPICardProps {
 
 const KPICard: React.FC<KPICardProps> = ({ label, value, sub, icon, iconColor = 'blue', severity = '' }) => {
   return (
-    <div className={`kpi ${severity}`} style={{ alignItems: 'flex-start' }}>
+    <div className={`kpi ${severity} relative`}>
       <div className={`kpi-icon ${iconColor}`}>
         {icon}
       </div>
-      <div className="kpi-content self-stretch">
-        <div className="kpi-label" style={{ fontWeight: 700 }}>{label}</div>
+      <div className="kpi-content">
+        {/* Label fixo no topo do card */}
+        <div className="kpi-label absolute top-3 left-4 right-4" style={{ fontWeight: 700 }}>{label}</div>
         <div className="kpi-val">{value}</div>
         {sub && <div className="kpi-sub">{sub}</div>}
       </div>
