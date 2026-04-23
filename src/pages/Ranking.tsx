@@ -572,7 +572,7 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
               <React.Fragment key={g.equipamento}>
                 <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
                   <td className="text-muted-foreground">{i + 1}</td>
-                  <td className="font-mono text-primary font-bold">{g.serie ?? '—'}</td>
+                  <td className="font-mono text-primary font-bold">{displaySerie(g.equipamento, g.serie)}</td>
                   <td className="text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
