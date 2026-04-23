@@ -19,7 +19,7 @@ export default function EquipamentosPage() {
     Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({
       codigo,
       ...info,
-      fabricante: getFabricante(info.lote)
+      fabricante: getFabricante(info.lote, info.obs)
     })),
     []
   );
