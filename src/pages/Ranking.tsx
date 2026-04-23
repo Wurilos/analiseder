@@ -222,10 +222,12 @@ const RankingPage: React.FC = () => {
       const PAGE_WIDTH_PX = 1075;
 
       const container = document.createElement('div');
-      container.style.position = 'fixed';
-      container.style.left = '-10000px';
+      container.style.position = 'absolute';
+      container.style.left = '-99999px';
       container.style.top = '0';
       container.style.width = PAGE_WIDTH_PX + 'px';
+      container.style.background = '#ffffff';
+      container.style.pointerEvents = 'none';
       container.innerHTML = `
         <div style="font-family: Arial, sans-serif; padding: 0; color: #111; background: #fff; width: ${PAGE_WIDTH_PX}px;">
           <div style="display:flex;justify-content:space-between;align-items:flex-end;border-bottom:2px solid #1e40af;padding-bottom:6px;margin-bottom:8px">
@@ -256,7 +258,7 @@ const RankingPage: React.FC = () => {
           image: { type: 'jpeg', quality: 0.95 },
           html2canvas: { scale: 2, useCORS: true, windowWidth: PAGE_WIDTH_PX, width: PAGE_WIDTH_PX },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-          pagebreak: { mode: ['css', 'legacy', 'avoid-all'] },
+          pagebreak: { mode: ['css', 'legacy'] },
         })
         .from(container)
         .save();
