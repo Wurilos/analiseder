@@ -193,6 +193,7 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   const spliceRecords = useMemo(() => recordsLote.filter(r => fabricanteOf(r.equipamento) === 'Splice'), [recordsLote]);
   const focalleRecords = useMemo(() => recordsLote.filter(r => fabricanteOf(r.equipamento) === 'Focalle'), [recordsLote]);
 
+  const contratoResumo = useMemo(() => calcResumo(groups, records), [groups, records]);
   const totalResumo = useMemo(() => calcResumo(groupsLote, recordsLote), [groupsLote, recordsLote]);
   const spliceResumo = useMemo(() => calcResumo(splice, spliceRecords), [splice, spliceRecords]);
   const focalleResumo = useMemo(() => calcResumo(focalle, focalleRecords), [focalle, focalleRecords]);
@@ -243,7 +244,7 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
                     Valor previsto para recebimento:
                   </div>
                   <div className="text-2xl font-extrabold leading-tight">
-                    {fmtBRL(totalResumo.valorTotal - totalResumo.desconto)}
+                    {fmtBRL(contratoResumo.valorTotal - contratoResumo.desconto)}
                   </div>
                 </div>
               </div>
@@ -260,7 +261,7 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
                   <div className="text-xs font-semibold opacity-95">
                     ID Geral do Contrato:
                   </div>
-                  <div className="text-2xl font-extrabold leading-tight">{fmtPct(totalResumo.idMedio)}</div>
+                  <div className="text-2xl font-extrabold leading-tight">{fmtPct(contratoResumo.idMedio)}</div>
                 </div>
               </div>
             </div>
@@ -271,41 +272,41 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
             <div className="grid grid-cols-3 divide-x divide-slate-200">
               <div className="px-3 py-2 text-center">
                 <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Valor Contratado</div>
-                <div className="text-base font-extrabold text-slate-800 mt-0.5">{fmtBRL(totalResumo.valorTotal)}</div>
+                <div className="text-base font-extrabold text-slate-800 mt-0.5">{fmtBRL(contratoResumo.valorTotal)}</div>
               </div>
               <div className="px-3 py-2 text-center">
                 <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Desconto Previsto</div>
-                <div className="text-base font-extrabold text-[#c95a18] mt-0.5">− {fmtBRL(totalResumo.desconto)}</div>
+                <div className="text-base font-extrabold text-[#c95a18] mt-0.5">− {fmtBRL(contratoResumo.desconto)}</div>
               </div>
               <div className="px-3 py-2 text-center">
                 <div className="text-[10px] uppercase tracking-wider font-bold text-slate-500">% Desconto / Contrato</div>
                 <div className="text-base font-extrabold text-[#c95a18] mt-0.5">
-                  {totalResumo.valorTotal > 0 ? fmtPct(totalResumo.desconto / totalResumo.valorTotal) : '—'}
+                  {contratoResumo.valorTotal > 0 ? fmtPct(contratoResumo.desconto / contratoResumo.valorTotal) : '—'}
                 </div>
               </div>
             </div>
-            {totalResumo.valorTotal > 0 && (
+            {contratoResumo.valorTotal > 0 && (
               <div className="px-3 pb-2">
                 <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden flex">
                   <div
                     className="h-full bg-[#1c8048]"
-                    style={{ width: `${Math.max(0, Math.min(100, ((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal) * 100))}%` }}
-                    title={`Recebimento: ${fmtPct((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal)}`}
+                    style={{ width: `${Math.max(0, Math.min(100, ((contratoResumo.valorTotal - contratoResumo.desconto) / contratoResumo.valorTotal) * 100))}%` }}
+                    title={`Recebimento: ${fmtPct((contratoResumo.valorTotal - contratoResumo.desconto) / contratoResumo.valorTotal)}`}
                   />
                   <div
                     className="h-full bg-[#c95a18]"
-                    style={{ width: `${Math.max(0, Math.min(100, (totalResumo.desconto / totalResumo.valorTotal) * 100))}%` }}
-                    title={`Desconto: ${fmtPct(totalResumo.desconto / totalResumo.valorTotal)}`}
+                    style={{ width: `${Math.max(0, Math.min(100, (contratoResumo.desconto / contratoResumo.valorTotal) * 100))}%` }}
+                    title={`Desconto: ${fmtPct(contratoResumo.desconto / contratoResumo.valorTotal)}`}
                   />
                 </div>
                 <div className="flex justify-between text-[10px] font-semibold text-slate-500 mt-1">
                   <span>
                     <span className="inline-block w-2 h-2 rounded-full bg-[#1c8048] mr-1 align-middle" />
-                    Recebimento {fmtPct((totalResumo.valorTotal - totalResumo.desconto) / totalResumo.valorTotal)}
+                    Recebimento {fmtPct((contratoResumo.valorTotal - contratoResumo.desconto) / contratoResumo.valorTotal)}
                   </span>
                   <span>
                     <span className="inline-block w-2 h-2 rounded-full bg-[#c95a18] mr-1 align-middle" />
-                    Desconto {fmtPct(totalResumo.desconto / totalResumo.valorTotal)}
+                    Desconto {fmtPct(contratoResumo.desconto / contratoResumo.valorTotal)}
                   </span>
                 </div>
               </div>
