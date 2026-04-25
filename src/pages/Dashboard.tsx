@@ -565,27 +565,33 @@ const DashboardPage: React.FC = () => {
             icon={<DollarSign className="w-5 h-5" />}
             tone="red"
             expandable
+            formula={{
+              title: 'Perda Total (desconto contratual)',
+              expr: 'Perda = Faturamento × (1 − ID)\nID = IDF × (0,9·IEF + 0,1·ICV)',
+              desc: 'Soma dos descontos aplicados a cada equipamento no período. Não é a soma linear das perdas por índice (há sobreposição multiplicativa).',
+            }}
             expandedContent={
               <div className="grid grid-cols-3 gap-2">
-                <SubMini label="IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-3 h-3" />} tone="amber" />
+                <SubMini label="IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-3 h-3" />} tone="amber" formula={{ title: 'IDF — Disponibilidade', expr: 'IDF = NHo / NHt\n(≥0,95 ⇒ IDF = 1,00)', desc: 'Perda isolada simulando IDF=1 mantendo IEF e ICV reais.' }} />
                 <SubMini
                   label="IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" icon={<Activity className="w-3 h-3" />} tone="orange"
+                  formula={{ title: 'IEF — Eficiência Funcional', expr: 'IEF = 0,8·((ICId+ICIn)/2)·((IEVri+IEVdt)/2)\n     + 0,2·((ILPd+ILPn)/2)', desc: 'Perda isolada simulando IEF=1 mantendo IDF e ICV reais.' }}
                   expandedContent={
                     <div className="grid grid-cols-2 gap-1.5">
-                      <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" />
-                      <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" />
-                      <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" />
-                      <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" />
-                      <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" />
-                      <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" />
+                      <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" formula={{ title: 'ICId — Captura Diurna', expr: 'ratio = (IVd + INd) / TId\nfaixas: ≥0,85→1,00 · ≥0,75→0,80 · ≥0,65→0,70\n        ≥0,55→0,60 · ≥0,50→0,50 · ≥0,35→0,40\n        ≥0,20→0,25 · senão→0,00' }} />
+                      <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" formula={{ title: 'ICIn — Captura Noturna', expr: 'ratio = (IVn + INn) / TIn\nfaixas: ≥0,70→1,00 · ≥0,65→0,80 · ≥0,60→0,70\n        ≥0,50→0,60 · ≥0,40→0,50 · ≥0,35→0,40\n        ≥0,20→0,25 · senão→0,00' }} />
+                      <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" formula={{ title: 'IEVri — Envio de Imagens', expr: 'IEVri = (rfri₁ + 0,8·rfri₂ + 0,6·rfri₃\n         + 0,4·rfri₄ + 0,2·rfri₅) / Total' }} />
+                      <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" formula={{ title: 'IEVdt — Envio de Dados', expr: 'IEVdt = (rfdt₁ + 0,9·rfdt₂ + 0,8·rfdt₃\n         + 0,7·rfdt₄ + 0,4·rfdt₅ + 0,2·rfdt₆) / Total' }} />
+                      <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" formula={{ title: 'ILPd — OCR Diurno', expr: 'ratio = LPd / IVd\nfaixas: ≥0,80→1,00 · ≥0,70→0,75\n        ≥0,60→0,25 · senão→0,00' }} />
+                      <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" formula={{ title: 'ILPn — OCR Noturno', expr: 'ratio = LPn / IVn\nfaixas: ≥0,70→1,00 · ≥0,50→0,75\n        ≥0,40→0,25 · senão→0,00' }} />
                     </div>
                   }
                 />
-                <SubMini label="ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-3 h-3" />} tone="purple" />
+                <SubMini label="ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-3 h-3" />} tone="purple" formula={{ title: 'ICV — Classificação Veicular', expr: 'ratio = QVc / QVt\nfaixas: ≥0,95→1,00 · ≥0,85→0,75\n        ≥0,60→0,25 · senão→0,00' }} />
               </div>
             }
           />
-          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" />
+          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" formula={{ title: 'Perda por IDF — Disponibilidade', expr: 'IDF = NHo / NHt   (≥0,95 ⇒ 1,00)\nPerda_IDF = Faturamento × (ID_máx − ID|IDF=1)', desc: 'Quanto deixou de ser faturado por horas operacionais abaixo do previsto.' }} />
           <PerdaCard
             label="Perda por IEF"
             value={fmtBRL(perdas.main.IEF)}
@@ -593,18 +599,19 @@ const DashboardPage: React.FC = () => {
             icon={<Activity className="w-5 h-5" />}
             tone="orange"
             expandable
+            formula={{ title: 'Perda por IEF — Eficiência Funcional', expr: 'IEF = 0,8·((ICId+ICIn)/2)·((IEVri+IEVdt)/2)\n     + 0,2·((ILPd+ILPn)/2)', desc: 'Composto por captura (ICId/ICIn), envio (IEVri/IEVdt) e OCR (ILPd/ILPn).' }}
             expandedContent={
               <div className="grid grid-cols-2 gap-2">
-                <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" />
-                <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" />
-                <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" />
-                <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" />
-                <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" />
-                <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" />
+                <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" formula={{ title: 'ICId — Captura Diurna', expr: 'ratio = (IVd + INd) / TId\nfaixas: ≥0,85→1,00 · ≥0,75→0,80 · ≥0,65→0,70\n        ≥0,55→0,60 · ≥0,50→0,50 · ≥0,35→0,40\n        ≥0,20→0,25 · senão→0,00' }} />
+                <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" formula={{ title: 'ICIn — Captura Noturna', expr: 'ratio = (IVn + INn) / TIn\nfaixas: ≥0,70→1,00 · ≥0,65→0,80 · ≥0,60→0,70\n        ≥0,50→0,60 · ≥0,40→0,50 · ≥0,35→0,40\n        ≥0,20→0,25 · senão→0,00' }} />
+                <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" formula={{ title: 'IEVri — Envio de Imagens', expr: 'IEVri = (rfri₁ + 0,8·rfri₂ + 0,6·rfri₃\n         + 0,4·rfri₄ + 0,2·rfri₅) / Total' }} />
+                <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" formula={{ title: 'IEVdt — Envio de Dados', expr: 'IEVdt = (rfdt₁ + 0,9·rfdt₂ + 0,8·rfdt₃\n         + 0,7·rfdt₄ + 0,4·rfdt₅ + 0,2·rfdt₆) / Total' }} />
+                <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" formula={{ title: 'ILPd — OCR Diurno', expr: 'ratio = LPd / IVd\nfaixas: ≥0,80→1,00 · ≥0,70→0,75\n        ≥0,60→0,25 · senão→0,00' }} />
+                <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" formula={{ title: 'ILPn — OCR Noturno', expr: 'ratio = LPn / IVn\nfaixas: ≥0,70→1,00 · ≥0,50→0,75\n        ≥0,40→0,25 · senão→0,00' }} />
               </div>
             }
           />
-          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
+          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" formula={{ title: 'Perda por ICV — Classificação Veicular', expr: 'ICV = QVc / QVt\nfaixas: ≥0,95→1,00 · ≥0,85→0,75\n       ≥0,60→0,25 · senão→0,00', desc: 'Penalidade por divergência na classificação de veículos por laços indutivos.' }} />
         </div>
 
         {/* Auditoria matemática */}
@@ -766,7 +773,7 @@ const TONE_MAP: Record<PerdaTone, { border: string; bg: string; text: string }> 
 };
 
 function PerdaCard({
-  label, value, sub, icon, tone, compact = false, expandable = false, expandedContent,
+  label, value, sub, icon, tone, compact = false, expandable = false, expandedContent, formula,
 }: {
   label: string;
   value: string;
@@ -776,13 +783,28 @@ function PerdaCard({
   compact?: boolean;
   expandable?: boolean;
   expandedContent?: React.ReactNode;
+  formula?: { title: string; expr: string; desc?: string };
 }) {
   const t = TONE_MAP[tone];
   const [open, setOpen] = useState(false);
+  const labelEl = (
+    <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide ${formula ? 'cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2' : ''}`}>{label}</span>
+  );
   return (
     <div className={`rounded-lg border border-border border-l-4 ${t.border} ${t.bg} ${compact ? 'p-2.5' : 'p-3'}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide`}>{label}</span>
+        {formula ? (
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>{labelEl}</TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <div className="font-semibold mb-1">{formula.title}</div>
+                <div className="font-mono text-[11px] bg-muted/50 rounded px-2 py-1 mb-1 whitespace-pre-wrap break-words">{formula.expr}</div>
+                {formula.desc && <div className="text-[10px] text-muted-foreground">{formula.desc}</div>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : labelEl}
         <div className="flex items-center gap-1.5">
           <span className={t.text}>{icon}</span>
           {expandable && (
@@ -809,14 +831,28 @@ function PerdaCard({
   );
 }
 
-function SubMini({ label, value, sub, icon, tone, expandedContent }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone; expandedContent?: React.ReactNode }) {
+function SubMini({ label, value, sub, icon, tone, expandedContent, formula }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone; expandedContent?: React.ReactNode; formula?: { title: string; expr: string; desc?: string } }) {
   const t = TONE_MAP[tone];
   const [open, setOpen] = useState(false);
   const expandable = !!expandedContent;
+  const labelEl = (
+    <span className={`text-[9px] font-bold uppercase tracking-wide text-muted-foreground ${formula ? 'cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2' : ''}`}>{label}</span>
+  );
   return (
     <div className={`rounded-md border border-border/70 border-l-2 ${t.border} bg-background/60 px-2 py-1.5`}>
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        {formula ? (
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>{labelEl}</TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <div className="font-semibold mb-1">{formula.title}</div>
+                <div className="font-mono text-[11px] bg-muted/50 rounded px-2 py-1 mb-1 whitespace-pre-wrap break-words">{formula.expr}</div>
+                {formula.desc && <div className="text-[10px] text-muted-foreground">{formula.desc}</div>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : labelEl}
         <div className="flex items-center gap-1">
           {icon && <span className={t.text}>{icon}</span>}
           {expandable && (
