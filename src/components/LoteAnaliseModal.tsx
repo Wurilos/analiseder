@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { EquipGroup, IDRecord } from '@/types';
 import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
-import { DollarSign, Percent } from 'lucide-react';
+import { DollarSign, Percent, ShieldCheck, Activity, Tags, Sun, Moon, Camera, Send, ScanLine, FileText, Plus, Minus } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -198,6 +198,31 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   const spliceResumo = useMemo(() => calcResumo(splice, spliceRecords), [splice, spliceRecords]);
   const focalleResumo = useMemo(() => calcResumo(focalle, focalleRecords), [focalle, focalleRecords]);
 
+  // Perdas por índice/subíndice (contrato inteiro — bate com o Dashboard)
+  const perdas = useMemo(() => {
+    const perdaIDF = groups.reduce((s, g) => s + (g.perdaIDF || 0), 0);
+    const perdaIEF = groups.reduce((s, g) => s + (g.perdaIEF || 0), 0);
+    const perdaICV = groups.reduce((s, g) => s + (g.perdaICV || 0), 0);
+    const total = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
+
+    // Subíndices do IEF: gap × valorTotal por equipamento, somado
+    const subKeys: Array<keyof EquipGroup> = ['c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt', 'c_ILPd', 'c_ILPn'];
+    const subOut: Record<string, number> = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
+    const map: Record<string, string> = {
+      c_ICId: 'ICId', c_ICIn: 'ICIn', c_IEVri: 'IEVri',
+      c_IEVdt: 'IEVdt', c_ILPd: 'ILPd', c_ILPn: 'ILPn',
+    };
+    groups.forEach(g => {
+      subKeys.forEach(k => {
+        const v = g[k] as number | null;
+        if (v !== null && v !== undefined) {
+          subOut[map[k as string]] += Math.max(0, 1 - v) * (g.valorTotal || 0);
+        }
+      });
+    });
+    return { main: { total, IDF: perdaIDF, IEF: perdaIEF, ICV: perdaICV }, sub: subOut };
+  }, [groups]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl bg-slate-50 border-slate-300 p-0 overflow-hidden max-h-[92vh] overflow-y-auto">
@@ -313,6 +338,43 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
             )}
           </div>
 
+          {/* Perdas Financeiras (cards expansíveis) */}
+          <div className="rounded-lg border border-slate-300 bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Perdas Financeiras</h4>
+              <span className="text-[10px] text-slate-500">Clique no <Plus className="inline w-3 h-3" /> para detalhar</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <PerdaMiniCard
+                label="Perda Total" value={fmtBRL(perdas.main.total)} sub="Desconto contratual" tone="red"
+                icon={<DollarSign className="w-4 h-4" />}
+                expandedContent={
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <SubMiniCard label="IDF" value={fmtBRL(perdas.main.IDF)} tone="amber" />
+                    <SubMiniCard label="IEF" value={fmtBRL(perdas.main.IEF)} tone="orange" />
+                    <SubMiniCard label="ICV" value={fmtBRL(perdas.main.ICV)} tone="purple" />
+                  </div>
+                }
+              />
+              <PerdaMiniCard label="Perda IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" tone="amber" icon={<ShieldCheck className="w-4 h-4" />} />
+              <PerdaMiniCard
+                label="Perda IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" tone="orange"
+                icon={<Activity className="w-4 h-4" />}
+                expandedContent={
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <SubMiniCard label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" tone="amber" icon={<Sun className="w-3 h-3" />} />
+                    <SubMiniCard label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" tone="indigo" icon={<Moon className="w-3 h-3" />} />
+                    <SubMiniCard label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio imagens" tone="orange" icon={<Camera className="w-3 h-3" />} />
+                    <SubMiniCard label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio dados" tone="purple" icon={<Send className="w-3 h-3" />} />
+                    <SubMiniCard label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" tone="red" icon={<ScanLine className="w-3 h-3" />} />
+                    <SubMiniCard label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" tone="teal" icon={<FileText className="w-3 h-3" />} />
+                  </div>
+                }
+              />
+              <PerdaMiniCard label="Perda ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" tone="purple" icon={<Tags className="w-4 h-4" />} />
+            </div>
+          </div>
+
           {isMisto ? (
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
@@ -377,4 +439,62 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   );
 };
 
+type Tone = 'red' | 'amber' | 'orange' | 'purple' | 'indigo' | 'teal';
+const TONE_BORDER: Record<Tone, string> = {
+  red: 'border-l-red-500', amber: 'border-l-amber-500', orange: 'border-l-orange-500',
+  purple: 'border-l-purple-500', indigo: 'border-l-indigo-500', teal: 'border-l-teal-500',
+};
+const TONE_TEXT: Record<Tone, string> = {
+  red: 'text-red-600', amber: 'text-amber-600', orange: 'text-orange-600',
+  purple: 'text-purple-600', indigo: 'text-indigo-600', teal: 'text-teal-600',
+};
+
+const PerdaMiniCard: React.FC<{
+  label: string; value: string; sub: string; tone: Tone;
+  icon: React.ReactNode; expandedContent?: React.ReactNode;
+}> = ({ label, value, sub, tone, icon, expandedContent }) => {
+  const [open, setOpen] = useState(false);
+  const expandable = !!expandedContent;
+  return (
+    <div className={`rounded-md border border-slate-200 border-l-4 ${TONE_BORDER[tone]} bg-slate-50 p-2`}>
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
+        <div className="flex items-center gap-1">
+          <span className={TONE_TEXT[tone]}>{icon}</span>
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              className={`p-0.5 rounded hover:bg-slate-200 transition-colors ${TONE_TEXT[tone]}`}
+              aria-label={open ? 'Recolher' : 'Expandir'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              {open ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="font-mono text-sm font-extrabold text-slate-800 leading-tight mt-0.5">{value}</div>
+      <div className="text-[9px] text-slate-500 leading-tight">{sub}</div>
+      {expandable && open && (
+        <div className="mt-2 pt-2 border-t border-dashed border-slate-300">{expandedContent}</div>
+      )}
+    </div>
+  );
+};
+
+const SubMiniCard: React.FC<{ label: string; value: string; sub?: string; tone: Tone; icon?: React.ReactNode }> = ({
+  label, value, sub, tone, icon,
+}) => (
+  <div className={`rounded border border-slate-200 border-l-2 ${TONE_BORDER[tone]} bg-white px-1.5 py-1`}>
+    <div className="flex items-center justify-between gap-1">
+      <span className="text-[8px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
+      {icon && <span className={TONE_TEXT[tone]}>{icon}</span>}
+    </div>
+    <div className="font-mono text-[10px] font-bold text-slate-800 leading-tight">{value}</div>
+    {sub && <div className="text-[8px] text-slate-500 leading-tight">{sub}</div>}
+  </div>
+);
+
 export default LoteAnaliseModal;
+
