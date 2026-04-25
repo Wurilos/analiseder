@@ -2,12 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EQUIP_CATALOG, EquipInfo, getFabricante } from '@/lib/equip-catalog';
 import { formatMoeda } from '@/lib/format';
-import { Search, Server, MapPin, DollarSign, Hash, Factory, Info } from 'lucide-react';
+import { Search, Server, MapPin, DollarSign, Hash, Factory, Info, MessageSquarePlus, MessageSquareText, Loader2, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
+import { useObservacoes } from '@/hooks/useObservacoes';
+import { toast } from 'sonner';
 
 type EquipRow = EquipInfo & { codigo: string; codMedicao?: string; fabricante: 'Splice' | 'Focalle' };
 
