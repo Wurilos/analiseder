@@ -8,10 +8,14 @@ import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
 import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download } from 'lucide-react';
 
+// Critérios alinhados ao Dashboard:
+//   ID < 0.60         → Crítico
+//   0.60 ≤ ID < 0.85  → Alerta
+//   ID ≥ 0.85         → OK
 function severidade(id: number | null): { label: string; color: string; icon: React.ElementType } {
   if (id === null) return { label: 'Sem dados', color: 'text-muted-foreground', icon: Info };
-  if (id >= 0.95) return { label: 'Ótimo', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 };
-  if (id >= 0.85) return { label: 'Regular', color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle };
+  if (id >= 0.85) return { label: 'OK', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 };
+  if (id >= 0.60) return { label: 'Alerta', color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle };
   return { label: 'Crítico', color: 'text-red-600 dark:text-red-400', icon: AlertCircle };
 }
 
@@ -28,8 +32,8 @@ function gerarTextoMelhoria(g: EquipGroup): string[] {
   const ilpd = g.c_ILPd ?? 0;
   const ilpn = g.c_ILPn ?? 0;
 
-  if (id >= 0.98) {
-    linhas.push('✅ Equipamento com desempenho excelente. Manter as práticas atuais de manutenção e monitoramento.');
+  if (id >= 0.85) {
+    linhas.push('✅ Equipamento com desempenho satisfatório (ID ≥ 85%). Manter as práticas atuais de manutenção e monitoramento.');
     return linhas;
   }
 
@@ -123,11 +127,11 @@ export default function ResumoPage() {
 
   const stats = useMemo(() => {
     if (!groups.length) return null;
-    const criticos = groups.filter(g => (g.c_ID ?? 0) < 0.85).length;
-    const regulares = groups.filter(g => (g.c_ID ?? 0) >= 0.85 && (g.c_ID ?? 0) < 0.95).length;
-    const otimos = groups.filter(g => (g.c_ID ?? 0) >= 0.95).length;
+    const criticos = groups.filter(g => (g.c_ID ?? 0) < 0.60).length;
+    const alerta = groups.filter(g => (g.c_ID ?? 0) >= 0.60 && (g.c_ID ?? 0) < 0.85).length;
+    const ok = groups.filter(g => (g.c_ID ?? 0) >= 0.85).length;
     const descontoTotal = groups.reduce((s, g) => s + g.descontoTotal, 0);
-    return { criticos, regulares, otimos, descontoTotal };
+    return { criticos, alerta, ok, descontoTotal };
   }, [groups]);
 
   if (!records.length) {
@@ -146,7 +150,7 @@ export default function ResumoPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-foreground">Relatório Executivo</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Diagnóstico completo com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
+            Diagnóstico completo · Critérios alinhados ao Dashboard (Crítico &lt;60% · Alerta 60–85% · OK ≥85%) — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
           </p>
         </motion.div>
         <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
@@ -159,9 +163,9 @@ export default function ResumoPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'Críticos', value: stats.criticos, color: 'text-red-600 dark:text-red-400' },
-            { label: 'Regulares', value: stats.regulares, color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Ótimos', value: stats.otimos, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Críticos (<60%)', value: stats.criticos, color: 'text-red-600 dark:text-red-400' },
+            { label: 'Alerta (60–85%)', value: stats.alerta, color: 'text-amber-600 dark:text-amber-400' },
+            { label: 'OK (≥85%)', value: stats.ok, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Desconto Total', value: formatMoeda(stats.descontoTotal), color: 'text-foreground' },
           ].map((kpi) => (
             <Card key={kpi.label}>
