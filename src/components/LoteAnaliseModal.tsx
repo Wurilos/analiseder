@@ -439,4 +439,62 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   );
 };
 
+type Tone = 'red' | 'amber' | 'orange' | 'purple' | 'indigo' | 'teal';
+const TONE_BORDER: Record<Tone, string> = {
+  red: 'border-l-red-500', amber: 'border-l-amber-500', orange: 'border-l-orange-500',
+  purple: 'border-l-purple-500', indigo: 'border-l-indigo-500', teal: 'border-l-teal-500',
+};
+const TONE_TEXT: Record<Tone, string> = {
+  red: 'text-red-600', amber: 'text-amber-600', orange: 'text-orange-600',
+  purple: 'text-purple-600', indigo: 'text-indigo-600', teal: 'text-teal-600',
+};
+
+const PerdaMiniCard: React.FC<{
+  label: string; value: string; sub: string; tone: Tone;
+  icon: React.ReactNode; expandedContent?: React.ReactNode;
+}> = ({ label, value, sub, tone, icon, expandedContent }) => {
+  const [open, setOpen] = useState(false);
+  const expandable = !!expandedContent;
+  return (
+    <div className={`rounded-md border border-slate-200 border-l-4 ${TONE_BORDER[tone]} bg-slate-50 p-2`}>
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-[9px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
+        <div className="flex items-center gap-1">
+          <span className={TONE_TEXT[tone]}>{icon}</span>
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              className={`p-0.5 rounded hover:bg-slate-200 transition-colors ${TONE_TEXT[tone]}`}
+              aria-label={open ? 'Recolher' : 'Expandir'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              {open ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="font-mono text-sm font-extrabold text-slate-800 leading-tight mt-0.5">{value}</div>
+      <div className="text-[9px] text-slate-500 leading-tight">{sub}</div>
+      {expandable && open && (
+        <div className="mt-2 pt-2 border-t border-dashed border-slate-300">{expandedContent}</div>
+      )}
+    </div>
+  );
+};
+
+const SubMiniCard: React.FC<{ label: string; value: string; sub?: string; tone: Tone; icon?: React.ReactNode }> = ({
+  label, value, sub, tone, icon,
+}) => (
+  <div className={`rounded border border-slate-200 border-l-2 ${TONE_BORDER[tone]} bg-white px-1.5 py-1`}>
+    <div className="flex items-center justify-between gap-1">
+      <span className="text-[8px] font-bold uppercase tracking-wide text-slate-500">{label}</span>
+      {icon && <span className={TONE_TEXT[tone]}>{icon}</span>}
+    </div>
+    <div className="font-mono text-[10px] font-bold text-slate-800 leading-tight">{value}</div>
+    {sub && <div className="text-[8px] text-slate-500 leading-tight">{sub}</div>}
+  </div>
+);
+
 export default LoteAnaliseModal;
+
