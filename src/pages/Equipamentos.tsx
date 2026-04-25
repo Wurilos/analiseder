@@ -2,18 +2,24 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EQUIP_CATALOG, EquipInfo, getFabricante } from '@/lib/equip-catalog';
 import { formatMoeda } from '@/lib/format';
-import { Search, Server, MapPin, DollarSign, Hash, Factory, Info } from 'lucide-react';
+import { Search, Server, MapPin, DollarSign, Hash, Factory, Info, MessageSquarePlus, MessageSquareText, Loader2, Trash2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
+import { useObservacoes } from '@/hooks/useObservacoes';
+import { toast } from 'sonner';
 
 type EquipRow = EquipInfo & { codigo: string; codMedicao?: string; fabricante: 'Splice' | 'Focalle' };
 
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
   const [loteFilter, setLoteFilter] = useState('todos');
+  const { obs: obsMap, save: saveObs } = useObservacoes();
 
   const rows: EquipRow[] = useMemo(() =>
     Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({
@@ -118,12 +124,16 @@ export default function EquipamentosPage() {
                 <TableHead>Nº Série</TableHead>
                 <TableHead>Lote</TableHead>
                 <TableHead>Endereço</TableHead>
-                <TableHead className="text-right pr-6">Valor (R$)</TableHead>
+                <TableHead className="text-right">Valor (R$)</TableHead>
+                <TableHead className="text-center pr-6">Observações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((r, i) => (
-                <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
+              {filtered.map((r, i) => {
+                const userObs = obsMap[r.codigo];
+                const hasObs = !!userObs;
+                return (
+                <TableRow key={r.codigo} className={`${hasObs ? 'bg-amber-50 dark:bg-amber-500/10 border-l-2 border-l-amber-400' : (i % 2 === 0 ? 'bg-muted/30' : '')}`}>
                   <TableCell className="pl-6">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${r.fabricante === 'Splice' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}`}>
                       <Factory className="w-3 h-3" />
@@ -156,14 +166,22 @@ export default function EquipamentosPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{r.endereco}</TableCell>
-                  <TableCell className="text-right pr-6 font-mono text-xs font-semibold">
+                  <TableCell className="text-right font-mono text-xs font-semibold">
                     {formatMoeda(r.valor)}
                   </TableCell>
+                  <TableCell className="text-center pr-6">
+                    <ObsEditor
+                      codigo={r.codigo}
+                      value={userObs ?? ''}
+                      onSave={saveObs}
+                    />
+                  </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                     Nenhum equipamento encontrado.
                   </TableCell>
                 </TableRow>
@@ -175,3 +193,86 @@ export default function EquipamentosPage() {
     </div>
   );
 }
+
+function ObsEditor({ codigo, value, onSave }: { codigo: string; value: string; onSave: (codigo: string, obs: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const hasObs = !!value;
+
+  React.useEffect(() => { if (open) setDraft(value); }, [open, value]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(codigo, draft);
+      toast.success(draft.trim() ? 'Observação salva.' : 'Observação removida.');
+      setOpen(false);
+    } catch {
+      toast.error('Erro ao salvar observação.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClear = async () => {
+    setSaving(true);
+    try {
+      await onSave(codigo, '');
+      toast.success('Observação removida.');
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={hasObs ? 'secondary' : 'ghost'}
+          size="sm"
+          className={`h-7 px-2 ${hasObs ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200 dark:hover:bg-amber-500/30' : 'text-muted-foreground'}`}
+          title={hasObs ? value : 'Adicionar observação'}
+        >
+          {hasObs ? <MessageSquareText className="w-3.5 h-3.5" /> : <MessageSquarePlus className="w-3.5 h-3.5" />}
+          <span className="ml-1 text-[11px] max-w-[140px] truncate">
+            {hasObs ? value : 'Adicionar'}
+          </span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="end">
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-semibold">Observação do equipamento</h4>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Código <span className="font-mono">{codigo}</span>. Linhas com observação ficam destacadas no Ranking.
+            </p>
+          </div>
+          <Textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder="Ex.: Equipamento em manutenção entre 12 e 14/03 — pode interferir nos índices."
+            rows={4}
+            className="text-sm"
+          />
+          <div className="flex justify-between gap-2">
+            {hasObs ? (
+              <Button variant="ghost" size="sm" onClick={handleClear} disabled={saving} className="text-destructive hover:text-destructive">
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> Remover
+              </Button>
+            ) : <span />}
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+              <Button size="sm" onClick={handleSave} disabled={saving || draft.trim() === value.trim()}>
+                {saving && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+

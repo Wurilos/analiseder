@@ -5,10 +5,12 @@ import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-e
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
-import { Layers, Server, FileDown } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Layers, Server, FileDown, MessageSquareText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+import { useObservacoes } from '@/hooks/useObservacoes';
 
 function displaySerie(equipamento: string, serie: number | null | undefined): string {
   let s = serie ?? 0;
@@ -70,6 +72,7 @@ function fmtCurrency(v: number) {
 const RankingPage: React.FC = () => {
   const { getActiveRecords } = useData();
   const records = getActiveRecords();
+  const { obs: obsMap } = useObservacoes();
   const [search, setSearch] = useState('');
   const [fTipo, setFTipo] = useState('');
   const [fRodovia, setFRodovia] = useState('');
@@ -477,9 +480,9 @@ const RankingPage: React.FC = () => {
         </div>
 
         {viewMode === 'faixa' ? (
-          <FaixaTable sorted={sorted} onDetail={setDetail} />
+          <FaixaTable sorted={sorted} onDetail={setDetail} obsMap={obsMap} />
         ) : (
-          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} />
+          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} obsMap={obsMap} />
         )}
       </div>
 
@@ -492,7 +495,7 @@ const RankingPage: React.FC = () => {
   );
 };
 
-function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void }) {
+function FaixaTable({ sorted, onDetail, obsMap }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void; obsMap: Record<string, string> }) {
   return (
     <div className="table-wrap overflow-x-auto">
       <table>
@@ -510,11 +513,39 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
             const recos = getRecommendations(r);
             const cl = r.c_ID === null ? '' : r.c_ID < 0.6 ? 'id-critical' : r.c_ID < 0.85 ? 'id-low' : 'id-ok';
             const main = recos[0];
+            const userObs = obsMap[r.equipamento];
+            const obsCls = userObs ? 'has-observacao' : '';
             return (
-              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => onDetail(r)}>
+              <tr
+                key={`${r.equipamento}-${r.faixa}-${i}`}
+                className={`${cl} ${obsCls} cursor-pointer`}
+                onClick={() => onDetail(r)}
+                title={userObs ? `Observação: ${userObs}` : undefined}
+                style={userObs ? { background: 'hsl(45 95% 92% / 0.45)', borderLeft: '3px solid hsl(38 92% 50%)' } : undefined}
+              >
                 <td className="text-muted-foreground">{i + 1}</td>
                 <td className="font-mono text-primary font-bold">{displaySerie(r.equipamento, r.serie)}</td>
-                <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
+                <td className="text-muted-foreground text-[11px]">
+                  <span className="inline-flex items-center gap-1">
+                    {r.equipamento}
+                    {userObs && (
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <MessageSquareText
+                              className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0"
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                            <div className="font-semibold mb-1 text-amber-600 dark:text-amber-400">Observação</div>
+                            {userObs}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </span>
+                </td>
                 <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
                 <td className="font-mono">{r.faixa}</td>
                 <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
@@ -548,7 +579,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
   );
 }
 
-function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void }) {
+function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void; obsMap: Record<string, string> }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
@@ -567,16 +598,38 @@ function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; recor
             const cl = g.c_ID === null ? '' : g.c_ID < 0.6 ? 'id-critical' : g.c_ID < 0.85 ? 'id-low' : 'id-ok';
             const isExpanded = expanded === g.equipamento;
             const faixaRecords = records.filter(r => r.equipamento === g.equipamento);
+            const userObs = obsMap[g.equipamento];
 
             return (
               <React.Fragment key={g.equipamento}>
-                <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
+                <tr
+                  className={`${cl} cursor-pointer`}
+                  onClick={() => setExpanded(isExpanded ? null : g.equipamento)}
+                  title={userObs ? `Observação: ${userObs}` : undefined}
+                  style={userObs ? { background: 'hsl(45 95% 92% / 0.45)', borderLeft: '3px solid hsl(38 92% 50%)' } : undefined}
+                >
                   <td className="text-muted-foreground">{i + 1}</td>
                   <td className="font-mono text-primary font-bold">{displaySerie(g.equipamento, g.serie)}</td>
                   <td className="text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
                       <span className="font-semibold">{g.equipamento}</span>
+                      {userObs && (
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <MessageSquareText
+                                className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"
+                                onClick={e => e.stopPropagation()}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                              <div className="font-semibold mb-1 text-amber-600 dark:text-amber-400">Observação</div>
+                              {userObs}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </div>
                   </td>
                   <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
