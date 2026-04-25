@@ -766,7 +766,7 @@ const TONE_MAP: Record<PerdaTone, { border: string; bg: string; text: string }> 
 };
 
 function PerdaCard({
-  label, value, sub, icon, tone, compact = false, expandable = false, expandedContent,
+  label, value, sub, icon, tone, compact = false, expandable = false, expandedContent, formula,
 }: {
   label: string;
   value: string;
@@ -776,13 +776,28 @@ function PerdaCard({
   compact?: boolean;
   expandable?: boolean;
   expandedContent?: React.ReactNode;
+  formula?: { title: string; expr: string; desc?: string };
 }) {
   const t = TONE_MAP[tone];
   const [open, setOpen] = useState(false);
+  const labelEl = (
+    <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide ${formula ? 'cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2' : ''}`}>{label}</span>
+  );
   return (
     <div className={`rounded-lg border border-border border-l-4 ${t.border} ${t.bg} ${compact ? 'p-2.5' : 'p-3'}`}>
       <div className="flex items-center justify-between gap-2">
-        <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide`}>{label}</span>
+        {formula ? (
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>{labelEl}</TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <div className="font-semibold mb-1">{formula.title}</div>
+                <div className="font-mono text-[11px] bg-muted/50 rounded px-2 py-1 mb-1 whitespace-pre-wrap break-words">{formula.expr}</div>
+                {formula.desc && <div className="text-[10px] text-muted-foreground">{formula.desc}</div>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : labelEl}
         <div className="flex items-center gap-1.5">
           <span className={t.text}>{icon}</span>
           {expandable && (
