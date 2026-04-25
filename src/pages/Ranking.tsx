@@ -598,16 +598,38 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
             const cl = g.c_ID === null ? '' : g.c_ID < 0.6 ? 'id-critical' : g.c_ID < 0.85 ? 'id-low' : 'id-ok';
             const isExpanded = expanded === g.equipamento;
             const faixaRecords = records.filter(r => r.equipamento === g.equipamento);
+            const userObs = obsMap[g.equipamento];
 
             return (
               <React.Fragment key={g.equipamento}>
-                <tr className={`${cl} cursor-pointer`} onClick={() => setExpanded(isExpanded ? null : g.equipamento)}>
+                <tr
+                  className={`${cl} cursor-pointer`}
+                  onClick={() => setExpanded(isExpanded ? null : g.equipamento)}
+                  title={userObs ? `Observação: ${userObs}` : undefined}
+                  style={userObs ? { background: 'hsl(45 95% 92% / 0.45)', borderLeft: '3px solid hsl(38 92% 50%)' } : undefined}
+                >
                   <td className="text-muted-foreground">{i + 1}</td>
                   <td className="font-mono text-primary font-bold">{displaySerie(g.equipamento, g.serie)}</td>
                   <td className="text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
                       <span className="font-semibold">{g.equipamento}</span>
+                      {userObs && (
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <MessageSquareText
+                                className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0"
+                                onClick={e => e.stopPropagation()}
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                              <div className="font-semibold mb-1 text-amber-600 dark:text-amber-400">Observação</div>
+                              {userObs}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                     </div>
                   </td>
                   <td><span className={`tag tag-${g.tipo.toLowerCase()}`}>{g.tipo}</span></td>
