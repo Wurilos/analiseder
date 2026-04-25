@@ -746,16 +746,34 @@ function PerdaCard({
   );
 }
 
-function SubMini({ label, value, sub, icon, tone }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone }) {
+function SubMini({ label, value, sub, icon, tone, expandedContent }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone; expandedContent?: React.ReactNode }) {
   const t = TONE_MAP[tone];
+  const [open, setOpen] = useState(false);
+  const expandable = !!expandedContent;
   return (
     <div className={`rounded-md border border-border/70 border-l-2 ${t.border} bg-background/60 px-2 py-1.5`}>
       <div className="flex items-center justify-between gap-1">
         <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
-        {icon && <span className={t.text}>{icon}</span>}
+        <div className="flex items-center gap-1">
+          {icon && <span className={t.text}>{icon}</span>}
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              className={`p-0.5 rounded hover:bg-foreground/10 transition-colors ${t.text}`}
+              aria-label={open ? 'Recolher' : 'Expandir'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              {open ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+            </button>
+          )}
+        </div>
       </div>
       <div className="font-mono text-[11px] font-bold text-foreground leading-tight mt-0.5">{value}</div>
       {sub && <div className="text-[9px] text-muted-foreground/80 leading-tight">{sub}</div>}
+      {expandable && open && (
+        <div className="mt-1.5 pt-1.5 border-t border-dashed border-border/60">{expandedContent}</div>
+      )}
     </div>
   );
 }
