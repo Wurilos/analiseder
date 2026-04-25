@@ -127,11 +127,11 @@ export default function ResumoPage() {
 
   const stats = useMemo(() => {
     if (!groups.length) return null;
-    const criticos = groups.filter(g => (g.c_ID ?? 0) < 0.85).length;
-    const regulares = groups.filter(g => (g.c_ID ?? 0) >= 0.85 && (g.c_ID ?? 0) < 0.95).length;
-    const otimos = groups.filter(g => (g.c_ID ?? 0) >= 0.95).length;
+    const criticos = groups.filter(g => (g.c_ID ?? 0) < 0.60).length;
+    const alerta = groups.filter(g => (g.c_ID ?? 0) >= 0.60 && (g.c_ID ?? 0) < 0.85).length;
+    const ok = groups.filter(g => (g.c_ID ?? 0) >= 0.85).length;
     const descontoTotal = groups.reduce((s, g) => s + g.descontoTotal, 0);
-    return { criticos, regulares, otimos, descontoTotal };
+    return { criticos, alerta, ok, descontoTotal };
   }, [groups]);
 
   if (!records.length) {
