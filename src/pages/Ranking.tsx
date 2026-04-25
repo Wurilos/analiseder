@@ -480,9 +480,9 @@ const RankingPage: React.FC = () => {
         </div>
 
         {viewMode === 'faixa' ? (
-          <FaixaTable sorted={sorted} onDetail={setDetail} />
+          <FaixaTable sorted={sorted} onDetail={setDetail} obsMap={obsMap} />
         ) : (
-          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} />
+          <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} obsMap={obsMap} />
         )}
       </div>
 
