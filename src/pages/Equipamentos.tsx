@@ -181,7 +181,7 @@ export default function EquipamentosPage() {
               })}
               {filtered.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-10 text-muted-foreground">
                     Nenhum equipamento encontrado.
                   </TableCell>
                 </TableRow>
@@ -193,3 +193,86 @@ export default function EquipamentosPage() {
     </div>
   );
 }
+
+function ObsEditor({ codigo, value, onSave }: { codigo: string; value: string; onSave: (codigo: string, obs: string) => Promise<void> }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const hasObs = !!value;
+
+  React.useEffect(() => { if (open) setDraft(value); }, [open, value]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await onSave(codigo, draft);
+      toast.success(draft.trim() ? 'Observação salva.' : 'Observação removida.');
+      setOpen(false);
+    } catch {
+      toast.error('Erro ao salvar observação.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleClear = async () => {
+    setSaving(true);
+    try {
+      await onSave(codigo, '');
+      toast.success('Observação removida.');
+      setOpen(false);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant={hasObs ? 'secondary' : 'ghost'}
+          size="sm"
+          className={`h-7 px-2 ${hasObs ? 'bg-amber-100 hover:bg-amber-200 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200 dark:hover:bg-amber-500/30' : 'text-muted-foreground'}`}
+          title={hasObs ? value : 'Adicionar observação'}
+        >
+          {hasObs ? <MessageSquareText className="w-3.5 h-3.5" /> : <MessageSquarePlus className="w-3.5 h-3.5" />}
+          <span className="ml-1 text-[11px] max-w-[140px] truncate">
+            {hasObs ? value : 'Adicionar'}
+          </span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80" align="end">
+        <div className="space-y-3">
+          <div>
+            <h4 className="text-sm font-semibold">Observação do equipamento</h4>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              Código <span className="font-mono">{codigo}</span>. Linhas com observação ficam destacadas no Ranking.
+            </p>
+          </div>
+          <Textarea
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            placeholder="Ex.: Equipamento em manutenção entre 12 e 14/03 — pode interferir nos índices."
+            rows={4}
+            className="text-sm"
+          />
+          <div className="flex justify-between gap-2">
+            {hasObs ? (
+              <Button variant="ghost" size="sm" onClick={handleClear} disabled={saving} className="text-destructive hover:text-destructive">
+                <Trash2 className="w-3.5 h-3.5 mr-1" /> Remover
+              </Button>
+            ) : <span />}
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => setOpen(false)} disabled={saving}>Cancelar</Button>
+              <Button size="sm" onClick={handleSave} disabled={saving || draft.trim() === value.trim()}>
+                {saving && <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />}
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
