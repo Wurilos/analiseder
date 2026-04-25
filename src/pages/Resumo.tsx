@@ -163,9 +163,9 @@ export default function ResumoPage() {
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
-            { label: 'Críticos', value: stats.criticos, color: 'text-red-600 dark:text-red-400' },
-            { label: 'Regulares', value: stats.regulares, color: 'text-amber-600 dark:text-amber-400' },
-            { label: 'Ótimos', value: stats.otimos, color: 'text-emerald-600 dark:text-emerald-400' },
+            { label: 'Críticos (<60%)', value: stats.criticos, color: 'text-red-600 dark:text-red-400' },
+            { label: 'Alerta (60–85%)', value: stats.alerta, color: 'text-amber-600 dark:text-amber-400' },
+            { label: 'OK (≥85%)', value: stats.ok, color: 'text-emerald-600 dark:text-emerald-400' },
             { label: 'Desconto Total', value: formatMoeda(stats.descontoTotal), color: 'text-foreground' },
           ].map((kpi) => (
             <Card key={kpi.label}>
