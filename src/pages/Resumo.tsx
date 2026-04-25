@@ -150,7 +150,7 @@ export default function ResumoPage() {
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
           <h1 className="text-2xl font-bold text-foreground">Relatório Executivo</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Diagnóstico completo com recomendações de melhoria — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
+            Diagnóstico completo · Critérios alinhados ao Dashboard (Crítico &lt;60% · Alerta 60–85% · OK ≥85%) — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
           </p>
         </motion.div>
         <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
