@@ -124,12 +124,16 @@ export default function EquipamentosPage() {
                 <TableHead>Nº Série</TableHead>
                 <TableHead>Lote</TableHead>
                 <TableHead>Endereço</TableHead>
-                <TableHead className="text-right pr-6">Valor (R$)</TableHead>
+                <TableHead className="text-right">Valor (R$)</TableHead>
+                <TableHead className="text-center pr-6">Observações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map((r, i) => (
-                <TableRow key={r.codigo} className={i % 2 === 0 ? 'bg-muted/30' : ''}>
+              {filtered.map((r, i) => {
+                const userObs = obsMap[r.codigo];
+                const hasObs = !!userObs;
+                return (
+                <TableRow key={r.codigo} className={`${hasObs ? 'bg-amber-50 dark:bg-amber-500/10 border-l-2 border-l-amber-400' : (i % 2 === 0 ? 'bg-muted/30' : '')}`}>
                   <TableCell className="pl-6">
                     <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium ${r.fabricante === 'Splice' ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-purple-500/10 text-purple-600 dark:text-purple-400'}`}>
                       <Factory className="w-3 h-3" />
@@ -162,11 +166,19 @@ export default function EquipamentosPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-xs text-muted-foreground">{r.endereco}</TableCell>
-                  <TableCell className="text-right pr-6 font-mono text-xs font-semibold">
+                  <TableCell className="text-right font-mono text-xs font-semibold">
                     {formatMoeda(r.valor)}
                   </TableCell>
+                  <TableCell className="text-center pr-6">
+                    <ObsEditor
+                      codigo={r.codigo}
+                      value={userObs ?? ''}
+                      onSave={saveObs}
+                    />
+                  </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
