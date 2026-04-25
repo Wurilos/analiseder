@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { EquipGroup, IDRecord } from '@/types';
 import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
-import { DollarSign, Percent } from 'lucide-react';
+import { DollarSign, Percent, ShieldCheck, Activity, Tags, Sun, Moon, Camera, Send, ScanLine, FileText, Plus, Minus } from 'lucide-react';
 
 interface Props {
   open: boolean;
@@ -197,6 +197,31 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   const totalResumo = useMemo(() => calcResumo(groupsLote, recordsLote), [groupsLote, recordsLote]);
   const spliceResumo = useMemo(() => calcResumo(splice, spliceRecords), [splice, spliceRecords]);
   const focalleResumo = useMemo(() => calcResumo(focalle, focalleRecords), [focalle, focalleRecords]);
+
+  // Perdas por índice/subíndice (contrato inteiro — bate com o Dashboard)
+  const perdas = useMemo(() => {
+    const perdaIDF = groups.reduce((s, g) => s + (g.perdaIDF || 0), 0);
+    const perdaIEF = groups.reduce((s, g) => s + (g.perdaIEF || 0), 0);
+    const perdaICV = groups.reduce((s, g) => s + (g.perdaICV || 0), 0);
+    const total = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
+
+    // Subíndices do IEF: gap × valorTotal por equipamento, somado
+    const subKeys: Array<keyof EquipGroup> = ['c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt', 'c_ILPd', 'c_ILPn'];
+    const subOut: Record<string, number> = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
+    const map: Record<string, string> = {
+      c_ICId: 'ICId', c_ICIn: 'ICIn', c_IEVri: 'IEVri',
+      c_IEVdt: 'IEVdt', c_ILPd: 'ILPd', c_ILPn: 'ILPn',
+    };
+    groups.forEach(g => {
+      subKeys.forEach(k => {
+        const v = g[k] as number | null;
+        if (v !== null && v !== undefined) {
+          subOut[map[k as string]] += Math.max(0, 1 - v) * (g.valorTotal || 0);
+        }
+      });
+    });
+    return { main: { total, IDF: perdaIDF, IEF: perdaIEF, ICV: perdaICV }, sub: subOut };
+  }, [groups]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
