@@ -632,8 +632,20 @@ const DashboardPage: React.FC = () => {
                         <Info size={12} />
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent side="left" className="max-w-xs text-xs">
-                      Cada perda mostra "quanto ganharíamos se <em>apenas este índice</em> fosse 1.0". Como o ID é multiplicativo (ID = IDF × (0,9·IEF + 0,1·ICV)), esses ganhos se sobrepõem — a soma é maior que o desconto real. As barras mostram <strong>potencial isolado de recuperação</strong>; o desconto real é o efeito <strong>combinado</strong> da fórmula do edital.
+                    <TooltipContent side="left" className="max-w-sm text-xs space-y-2 leading-relaxed">
+                      <div className="font-semibold text-sm">Por que a soma não bate com o desconto real?</div>
+                      <div>
+                        Imagine que seu pagamento depende de <strong>3 notas multiplicadas</strong> entre si (não somadas). Para calcular a perda de cada índice, perguntamos: <em>"e se só este fosse 100%, mantendo os outros como estão?"</em>
+                      </div>
+                      <div>
+                        É como 3 pessoas dizendo "economizei R$ 100 no jantar": somando dá R$ 300, mas a economia real foi R$ 200 — <strong>parte é a mesma</strong>, contada em lugares diferentes.
+                      </div>
+                      <div>
+                        • <strong>Σ Perdas isoladas</strong>: potencial máximo por alavanca (onde focar).<br/>
+                        • <strong>Desconto real</strong>: efeito combinado das 3 notas (o que saiu do bolso).<br/>
+                        • <strong>Δ Sobreposição</strong>: ganho que se repete ao olhar cada índice separadamente.
+                      </div>
+                      <div className="text-muted-foreground">Os dois números estão certos — respondem a perguntas diferentes.</div>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
