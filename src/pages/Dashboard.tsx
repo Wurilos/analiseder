@@ -4,7 +4,7 @@ import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, equipLabelFull, getFabricanteByCodigo } from '@/lib/equip-catalog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine, FileBarChart2 } from 'lucide-react';
+import { BarChart3, Target, AlertTriangle, TrendingDown, Monitor, Layers, Activity, ShieldCheck, Tags, DollarSign, Camera, Moon, Sun, Send, FileText, ScanLine, FileBarChart2, Plus, Minus } from 'lucide-react';
 import LoteAnaliseModal from '@/components/LoteAnaliseModal';
 import * as echarts from 'echarts';
 import { EquipGroup } from '@/types';
@@ -550,33 +550,48 @@ const DashboardPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Perdas Financeiras — Principais */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Principais</h3>
-          <span className="text-[11px] text-muted-foreground">{filteredEquipamentos} equipamento(s) considerados</span>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <PerdaCard label="Perda Total" value={fmtBRL(perdas.main.total)} sub="Desconto contratual no período" icon={<DollarSign className="w-5 h-5" />} tone="red" />
-          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" />
-          <PerdaCard label="Perda por IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" icon={<Activity className="w-5 h-5" />} tone="orange" />
-          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
-        </div>
-      </div>
-
-      {/* Perdas Financeiras — Subíndices do IEF */}
+      {/* Perdas Financeiras — Principais (com subíndices expansíveis) */}
       <div className="mt-4 mb-4">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras — Subíndices do IEF</h3>
-          <span className="text-[11px] text-muted-foreground">Ganho potencial se cada subíndice atingir 1.00</span>
+          <h3 className="text-sm font-semibold text-foreground/90 uppercase tracking-wide">Perdas Financeiras</h3>
+          <span className="text-[11px] text-muted-foreground">{filteredEquipamentos} equipamento(s) · clique no <Plus className="inline w-3 h-3" /> para detalhar</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <PerdaCard label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-5 h-5" />} tone="amber" compact />
-          <PerdaCard label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-5 h-5" />} tone="indigo" compact />
-          <PerdaCard label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-5 h-5" />} tone="orange" compact />
-          <PerdaCard label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-5 h-5" />} tone="purple" compact />
-          <PerdaCard label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-5 h-5" />} tone="red" compact />
-          <PerdaCard label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-5 h-5" />} tone="teal" compact />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <PerdaCard
+            label="Perda Total"
+            value={fmtBRL(perdas.main.total)}
+            sub="Desconto contratual no período"
+            icon={<DollarSign className="w-5 h-5" />}
+            tone="red"
+            expandable
+            expandedContent={
+              <div className="grid grid-cols-3 gap-2">
+                <SubMini label="IDF" value={fmtBRL(perdas.main.IDF)} tone="amber" />
+                <SubMini label="IEF" value={fmtBRL(perdas.main.IEF)} tone="orange" />
+                <SubMini label="ICV" value={fmtBRL(perdas.main.ICV)} tone="purple" />
+              </div>
+            }
+          />
+          <PerdaCard label="Perda por IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-5 h-5" />} tone="amber" />
+          <PerdaCard
+            label="Perda por IEF"
+            value={fmtBRL(perdas.main.IEF)}
+            sub="Eficiência funcional"
+            icon={<Activity className="w-5 h-5" />}
+            tone="orange"
+            expandable
+            expandedContent={
+              <div className="grid grid-cols-2 gap-2">
+                <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" />
+                <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" />
+                <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" />
+                <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" />
+                <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" />
+                <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" />
+              </div>
+            }
+          />
+          <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
         </div>
       </div>
 
@@ -688,7 +703,7 @@ const TONE_MAP: Record<PerdaTone, { border: string; bg: string; text: string }> 
 };
 
 function PerdaCard({
-  label, value, sub, icon, tone, compact = false,
+  label, value, sub, icon, tone, compact = false, expandable = false, expandedContent,
 }: {
   label: string;
   value: string;
@@ -696,18 +711,54 @@ function PerdaCard({
   icon: React.ReactNode;
   tone: PerdaTone;
   compact?: boolean;
+  expandable?: boolean;
+  expandedContent?: React.ReactNode;
 }) {
   const t = TONE_MAP[tone];
+  const [open, setOpen] = useState(false);
   return (
     <div className={`rounded-lg border border-border border-l-4 ${t.border} ${t.bg} ${compact ? 'p-2.5' : 'p-3'}`}>
       <div className="flex items-center justify-between gap-2">
         <span className={`${compact ? 'text-[10px]' : 'text-xs'} font-semibold text-muted-foreground uppercase tracking-wide`}>{label}</span>
-        <span className={t.text}>{icon}</span>
+        <div className="flex items-center gap-1.5">
+          <span className={t.text}>{icon}</span>
+          {expandable && (
+            <button
+              type="button"
+              onClick={() => setOpen(o => !o)}
+              className={`p-0.5 rounded hover:bg-foreground/10 transition-colors ${t.text}`}
+              aria-label={open ? 'Recolher detalhes' : 'Expandir detalhes'}
+              title={open ? 'Recolher' : 'Expandir'}
+            >
+              {open ? <Minus className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            </button>
+          )}
+        </div>
       </div>
       <div className={`font-mono font-bold mt-1 text-foreground ${compact ? 'text-base' : 'text-xl'}`}>{value}</div>
       <div className="text-[11px] text-muted-foreground mt-0.5">{sub}</div>
+      {expandable && open && expandedContent && (
+        <div className="mt-3 pt-3 border-t border-dashed border-border/70">
+          {expandedContent}
+        </div>
+      )}
     </div>
   );
 }
+
+function SubMini({ label, value, sub, icon, tone }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone }) {
+  const t = TONE_MAP[tone];
+  return (
+    <div className={`rounded-md border border-border/70 border-l-2 ${t.border} bg-background/60 px-2 py-1.5`}>
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        {icon && <span className={t.text}>{icon}</span>}
+      </div>
+      <div className="font-mono text-[11px] font-bold text-foreground leading-tight mt-0.5">{value}</div>
+      {sub && <div className="text-[9px] text-muted-foreground/80 leading-tight">{sub}</div>}
+    </div>
+  );
+}
+
 
 export default DashboardPage;
