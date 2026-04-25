@@ -5,10 +5,12 @@ import { calcGainPotential, getRecommendations, calcIDAtual } from '@/lib/calc-e
 import { IDRecord, EquipGroup, ViewMode } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { DetailModal } from '@/components/RankingDetailModal';
-import { Layers, Server, FileDown } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Layers, Server, FileDown, MessageSquareText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+import { useObservacoes } from '@/hooks/useObservacoes';
 
 function displaySerie(equipamento: string, serie: number | null | undefined): string {
   let s = serie ?? 0;
