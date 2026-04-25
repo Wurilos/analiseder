@@ -72,6 +72,7 @@ function fmtCurrency(v: number) {
 const RankingPage: React.FC = () => {
   const { getActiveRecords } = useData();
   const records = getActiveRecords();
+  const { obs: obsMap } = useObservacoes();
   const [search, setSearch] = useState('');
   const [fTipo, setFTipo] = useState('');
   const [fRodovia, setFRodovia] = useState('');
