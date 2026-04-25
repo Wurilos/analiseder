@@ -338,7 +338,43 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
             )}
           </div>
 
-          {isMisto ? (
+          {/* Perdas Financeiras (cards expansíveis) */}
+          <div className="rounded-lg border border-slate-300 bg-white p-3">
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-700">Perdas Financeiras</h4>
+              <span className="text-[10px] text-slate-500">Clique no <Plus className="inline w-3 h-3" /> para detalhar</span>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <PerdaMiniCard
+                label="Perda Total" value={fmtBRL(perdas.main.total)} sub="Desconto contratual" tone="red"
+                icon={<DollarSign className="w-4 h-4" />}
+                expandedContent={
+                  <div className="grid grid-cols-3 gap-1.5">
+                    <SubMiniCard label="IDF" value={fmtBRL(perdas.main.IDF)} tone="amber" />
+                    <SubMiniCard label="IEF" value={fmtBRL(perdas.main.IEF)} tone="orange" />
+                    <SubMiniCard label="ICV" value={fmtBRL(perdas.main.ICV)} tone="purple" />
+                  </div>
+                }
+              />
+              <PerdaMiniCard label="Perda IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" tone="amber" icon={<ShieldCheck className="w-4 h-4" />} />
+              <PerdaMiniCard
+                label="Perda IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" tone="orange"
+                icon={<Activity className="w-4 h-4" />}
+                expandedContent={
+                  <div className="grid grid-cols-2 gap-1.5">
+                    <SubMiniCard label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" tone="amber" icon={<Sun className="w-3 h-3" />} />
+                    <SubMiniCard label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" tone="indigo" icon={<Moon className="w-3 h-3" />} />
+                    <SubMiniCard label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio imagens" tone="orange" icon={<Camera className="w-3 h-3" />} />
+                    <SubMiniCard label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio dados" tone="purple" icon={<Send className="w-3 h-3" />} />
+                    <SubMiniCard label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" tone="red" icon={<ScanLine className="w-3 h-3" />} />
+                    <SubMiniCard label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" tone="teal" icon={<FileText className="w-3 h-3" />} />
+                  </div>
+                }
+              />
+              <PerdaMiniCard label="Perda ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" tone="purple" icon={<Tags className="w-4 h-4" />} />
+            </div>
+          </div>
+
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
               {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} isMisto={isMisto} />}
