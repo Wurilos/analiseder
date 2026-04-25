@@ -8,10 +8,14 @@ import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
 import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download } from 'lucide-react';
 
+// Critérios alinhados ao Dashboard:
+//   ID < 0.60         → Crítico
+//   0.60 ≤ ID < 0.85  → Alerta
+//   ID ≥ 0.85         → OK
 function severidade(id: number | null): { label: string; color: string; icon: React.ElementType } {
   if (id === null) return { label: 'Sem dados', color: 'text-muted-foreground', icon: Info };
-  if (id >= 0.95) return { label: 'Ótimo', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 };
-  if (id >= 0.85) return { label: 'Regular', color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle };
+  if (id >= 0.85) return { label: 'OK', color: 'text-emerald-600 dark:text-emerald-400', icon: CheckCircle2 };
+  if (id >= 0.60) return { label: 'Alerta', color: 'text-amber-600 dark:text-amber-400', icon: AlertTriangle };
   return { label: 'Crítico', color: 'text-red-600 dark:text-red-400', icon: AlertCircle };
 }
 
