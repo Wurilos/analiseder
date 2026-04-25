@@ -824,14 +824,28 @@ function PerdaCard({
   );
 }
 
-function SubMini({ label, value, sub, icon, tone, expandedContent }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone; expandedContent?: React.ReactNode }) {
+function SubMini({ label, value, sub, icon, tone, expandedContent, formula }: { label: string; value: string; sub?: string; icon?: React.ReactNode; tone: PerdaTone; expandedContent?: React.ReactNode; formula?: { title: string; expr: string; desc?: string } }) {
   const t = TONE_MAP[tone];
   const [open, setOpen] = useState(false);
   const expandable = !!expandedContent;
+  const labelEl = (
+    <span className={`text-[9px] font-bold uppercase tracking-wide text-muted-foreground ${formula ? 'cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2' : ''}`}>{label}</span>
+  );
   return (
     <div className={`rounded-md border border-border/70 border-l-2 ${t.border} bg-background/60 px-2 py-1.5`}>
       <div className="flex items-center justify-between gap-1">
-        <span className="text-[9px] font-bold uppercase tracking-wide text-muted-foreground">{label}</span>
+        {formula ? (
+          <TooltipProvider delayDuration={120}>
+            <Tooltip>
+              <TooltipTrigger asChild>{labelEl}</TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs text-xs">
+                <div className="font-semibold mb-1">{formula.title}</div>
+                <div className="font-mono text-[11px] bg-muted/50 rounded px-2 py-1 mb-1 whitespace-pre-wrap break-words">{formula.expr}</div>
+                {formula.desc && <div className="text-[10px] text-muted-foreground">{formula.desc}</div>}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : labelEl}
         <div className="flex items-center gap-1">
           {icon && <span className={t.text}>{icon}</span>}
           {expandable && (
