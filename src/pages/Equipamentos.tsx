@@ -19,6 +19,7 @@ type EquipRow = EquipInfo & { codigo: string; codMedicao?: string; fabricante: '
 export default function EquipamentosPage() {
   const [search, setSearch] = useState('');
   const [loteFilter, setLoteFilter] = useState('todos');
+  const { obs: obsMap, save: saveObs } = useObservacoes();
 
   const rows: EquipRow[] = useMemo(() =>
     Object.entries(EQUIP_CATALOG).map(([codigo, info]) => ({
