@@ -513,11 +513,39 @@ function FaixaTable({ sorted, onDetail, obsMap }: { sorted: IDRecord[]; onDetail
             const recos = getRecommendations(r);
             const cl = r.c_ID === null ? '' : r.c_ID < 0.6 ? 'id-critical' : r.c_ID < 0.85 ? 'id-low' : 'id-ok';
             const main = recos[0];
+            const userObs = obsMap[r.equipamento];
+            const obsCls = userObs ? 'has-observacao' : '';
             return (
-              <tr key={`${r.equipamento}-${r.faixa}-${i}`} className={`${cl} cursor-pointer`} onClick={() => onDetail(r)}>
+              <tr
+                key={`${r.equipamento}-${r.faixa}-${i}`}
+                className={`${cl} ${obsCls} cursor-pointer`}
+                onClick={() => onDetail(r)}
+                title={userObs ? `Observação: ${userObs}` : undefined}
+                style={userObs ? { background: 'hsl(45 95% 92% / 0.45)', borderLeft: '3px solid hsl(38 92% 50%)' } : undefined}
+              >
                 <td className="text-muted-foreground">{i + 1}</td>
                 <td className="font-mono text-primary font-bold">{displaySerie(r.equipamento, r.serie)}</td>
-                <td className="text-muted-foreground text-[11px]">{r.equipamento}</td>
+                <td className="text-muted-foreground text-[11px]">
+                  <span className="inline-flex items-center gap-1">
+                    {r.equipamento}
+                    {userObs && (
+                      <TooltipProvider delayDuration={150}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <MessageSquareText
+                              className="w-3 h-3 text-amber-600 dark:text-amber-400 shrink-0"
+                              onClick={e => e.stopPropagation()}
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs whitespace-pre-wrap">
+                            <div className="font-semibold mb-1 text-amber-600 dark:text-amber-400">Observação</div>
+                            {userObs}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </span>
+                </td>
                 <td><span className={`tag tag-${r.tipo.toLowerCase()}`}>{r.tipo}</span></td>
                 <td className="font-mono">{r.faixa}</td>
                 <td className="text-muted-foreground text-[11px]">{r.rodovia}</td>
