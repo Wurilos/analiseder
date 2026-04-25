@@ -375,6 +375,7 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
             </div>
           </div>
 
+          {isMisto ? (
             // Layout com Splice + Focalle lado a lado
             <div className="grid grid-cols-2 gap-3">
               {splice.length > 0 && <FabricanteBlock fabricante="Splice" resumo={spliceResumo} isMisto={isMisto} />}
