@@ -566,9 +566,21 @@ const DashboardPage: React.FC = () => {
             expandable
             expandedContent={
               <div className="grid grid-cols-3 gap-2">
-                <SubMini label="IDF" value={fmtBRL(perdas.main.IDF)} tone="amber" />
-                <SubMini label="IEF" value={fmtBRL(perdas.main.IEF)} tone="orange" />
-                <SubMini label="ICV" value={fmtBRL(perdas.main.ICV)} tone="purple" />
+                <SubMini label="IDF" value={fmtBRL(perdas.main.IDF)} sub="Disponibilidade" icon={<ShieldCheck className="w-3 h-3" />} tone="amber" />
+                <SubMini
+                  label="IEF" value={fmtBRL(perdas.main.IEF)} sub="Eficiência funcional" icon={<Activity className="w-3 h-3" />} tone="orange"
+                  expandedContent={
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <SubMini label="ICId" value={fmtBRL(perdas.sub.ICId)} sub="Captura diurna" icon={<Sun className="w-3 h-3" />} tone="amber" />
+                      <SubMini label="ICIn" value={fmtBRL(perdas.sub.ICIn)} sub="Captura noturna" icon={<Moon className="w-3 h-3" />} tone="indigo" />
+                      <SubMini label="IEVri" value={fmtBRL(perdas.sub.IEVri)} sub="Envio de imagens" icon={<Camera className="w-3 h-3" />} tone="orange" />
+                      <SubMini label="IEVdt" value={fmtBRL(perdas.sub.IEVdt)} sub="Envio de dados" icon={<Send className="w-3 h-3" />} tone="purple" />
+                      <SubMini label="ILPd" value={fmtBRL(perdas.sub.ILPd)} sub="OCR diurno" icon={<ScanLine className="w-3 h-3" />} tone="red" />
+                      <SubMini label="ILPn" value={fmtBRL(perdas.sub.ILPn)} sub="OCR noturno" icon={<FileText className="w-3 h-3" />} tone="teal" />
+                    </div>
+                  }
+                />
+                <SubMini label="ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-3 h-3" />} tone="purple" />
               </div>
             }
           />
@@ -593,6 +605,56 @@ const DashboardPage: React.FC = () => {
           />
           <PerdaCard label="Perda por ICV" value={fmtBRL(perdas.main.ICV)} sub="Classificação veicular" icon={<Tags className="w-5 h-5" />} tone="purple" />
         </div>
+
+        {/* Auditoria matemática */}
+        {(() => {
+          const somaPerdas = perdas.main.IDF + perdas.main.IEF + perdas.main.ICV;
+          const delta = somaPerdas - perdas.main.total;
+          const sobrepPct = perdas.main.total > 0 ? (delta / perdas.main.total) * 100 : 0;
+          return (
+            <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                  <Sigma size={11} /> Auditoria matemática
+                </div>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="opacity-60 hover:opacity-100 text-muted-foreground">
+                        <Info size={12} />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left" className="max-w-xs text-xs">
+                      Cada perda mostra "quanto ganharíamos se <em>apenas este índice</em> fosse 1.0". Como o ID é multiplicativo (ID = IDF × (0,9·IEF + 0,1·ICV)), esses ganhos se sobrepõem — a soma é maior que o desconto real. As barras mostram <strong>potencial isolado de recuperação</strong>; o desconto real é o efeito <strong>combinado</strong> da fórmula do edital.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><Sigma size={10} /> Σ Perdas isoladas</div>
+                  <div className="font-mono text-sm font-bold mt-0.5">{fmtBRL(somaPerdas)}</div>
+                  <div className="text-[10px] text-muted-foreground">IDF + IEF + ICV</div>
+                </div>
+                <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><Calculator size={10} /> Desconto real</div>
+                  <div className="font-mono text-sm font-bold mt-0.5">{fmtBRL(perdas.main.total)}</div>
+                  <div className="text-[10px] text-muted-foreground">V. Total − V. Recebido</div>
+                </div>
+                <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><GitCompare size={10} /> Δ Sobreposição</div>
+                  <div className="font-mono text-sm font-bold mt-0.5" style={{ color: delta >= 0 ? '#d97706' : '#059669' }}>{delta >= 0 ? '+' : ''}{fmtBRL(delta)}</div>
+                  <div className="text-[10px] text-muted-foreground">{sobrepPct >= 0 ? '+' : ''}{sobrepPct.toFixed(1)}% sobrepostos</div>
+                </div>
+                <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><CheckCircle2 size={10} className="text-green-600" /> Conferência</div>
+                  <div className="font-mono text-sm font-bold mt-0.5 text-green-600">{fmtBRL(perdas.main.total)} ✓</div>
+                  <div className="text-[10px] text-muted-foreground font-mono truncate">Bate com card "Perda Total"</div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* ECharts Grid */}
