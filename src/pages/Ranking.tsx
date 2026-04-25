@@ -495,7 +495,7 @@ const RankingPage: React.FC = () => {
   );
 };
 
-function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void }) {
+function FaixaTable({ sorted, onDetail, obsMap }: { sorted: IDRecord[]; onDetail: (r: IDRecord) => void; obsMap: Record<string, string> }) {
   return (
     <div className="table-wrap overflow-x-auto">
       <table>
@@ -551,7 +551,7 @@ function FaixaTable({ sorted, onDetail }: { sorted: IDRecord[]; onDetail: (r: ID
   );
 }
 
-function EquipTable({ groups, records, onDetail }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void }) {
+function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[]; records: IDRecord[]; onDetail: (r: IDRecord) => void; obsMap: Record<string, string> }) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
   return (
