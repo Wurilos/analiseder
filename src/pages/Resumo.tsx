@@ -32,8 +32,8 @@ function gerarTextoMelhoria(g: EquipGroup): string[] {
   const ilpd = g.c_ILPd ?? 0;
   const ilpn = g.c_ILPn ?? 0;
 
-  if (id >= 0.98) {
-    linhas.push('✅ Equipamento com desempenho excelente. Manter as práticas atuais de manutenção e monitoramento.');
+  if (id >= 0.85) {
+    linhas.push('✅ Equipamento com desempenho satisfatório (ID ≥ 85%). Manter as práticas atuais de manutenção e monitoramento.');
     return linhas;
   }
 
