@@ -7,8 +7,7 @@ import { IDRecord, EquipGroup } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useTheme } from '@/hooks/use-theme';
 import KPICard from '@/components/KPICard';
-import { DollarSign, TrendingUp, TrendingDown, Sigma, Calculator, GitCompare, CheckCircle2, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
 import * as echarts from 'echarts';
 import { useRef, useEffect } from 'react';
 
@@ -179,71 +178,6 @@ const ValoresPage: React.FC = () => {
               </div>
             ))}
           </div>
-
-          {/* Auditoria matemática */}
-          {(() => {
-            const somaPerdas = totals.perdaIDF + totals.perdaIEF + totals.perdaICV;
-            const delta = somaPerdas - totals.desconto;
-            const sobrepPct = totals.desconto > 0 ? (delta / totals.desconto) * 100 : 0;
-            return (
-              <div className="mt-4 pt-3 border-t border-dashed border-border">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 font-semibold">
-                  Auditoria matemática
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  <div className="rounded-md border border-dashed border-border bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                      <Sigma size={11} /> Σ Perdas isoladas
-                    </div>
-                    <div className="font-mono text-sm font-bold mt-1">{moeda(somaPerdas)}</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5">IDF + IEF + ICV</div>
-                  </div>
-
-                  <div className="rounded-md border border-dashed border-border bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                      <Calculator size={11} /> Desconto real
-                    </div>
-                    <div className="font-mono text-sm font-bold mt-1">{moeda(totals.desconto)}</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5">V. Total − V. Recebido</div>
-                  </div>
-
-                  <div className="rounded-md border border-dashed border-border bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                      <GitCompare size={11} /> Δ Sobreposição
-                      <TooltipProvider delayDuration={150}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button type="button" className="ml-auto opacity-60 hover:opacity-100">
-                              <Info size={11} />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top" className="max-w-xs text-xs">
-                            Cada perda mostra "quanto ganharíamos se <em>apenas este índice</em> fosse 1.0". Como o ID é multiplicativo (ID = IDF × (0,9·IEF + 0,1·ICV)), esses ganhos se sobrepõem — a soma é maior que o desconto real. As barras mostram <strong>potencial isolado de recuperação</strong>; o desconto real é o efeito <strong>combinado</strong> da fórmula do edital.
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <div className="font-mono text-sm font-bold mt-1" style={{ color: delta >= 0 ? '#d97706' : '#059669' }}>
-                      {delta >= 0 ? '+' : ''}{moeda(delta)}
-                    </div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5">
-                      {sobrepPct >= 0 ? '+' : ''}{sobrepPct.toFixed(1)}% sobrepostos
-                    </div>
-                  </div>
-
-                  <div className="rounded-md border border-dashed border-border bg-muted/30 p-2.5">
-                    <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">
-                      <CheckCircle2 size={11} className="text-green-600" /> Conferência
-                    </div>
-                    <div className="font-mono text-sm font-bold mt-1 text-green-600">{moeda(totals.desconto)} ✓</div>
-                    <div className="text-[10px] text-muted-foreground mt-0.5 font-mono truncate">
-                      {moeda(totals.valorTotal)} − {moeda(totals.valorRecebido)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })()}
         </div>
       </div>
 
