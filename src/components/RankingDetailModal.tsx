@@ -1,7 +1,9 @@
 import React from 'react';
 import { IDRecord } from '@/types';
-import { EQUIP_CATALOG } from '@/lib/equip-catalog';
-import { calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { EQUIP_CATALOG, getValorEquip } from '@/lib/equip-catalog';
+import { calcID, calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { formatMoeda } from '@/lib/format';
+import { useData } from '@/context/DataContext';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
