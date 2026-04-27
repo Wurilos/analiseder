@@ -10,12 +10,55 @@ function fmt(v: number | null, d = 3) {
   return Number(v).toFixed(d);
 }
 
+interface FaixaFinance {
+  valorFaixa: number;
+  valorRecebido: number;
+  perda: number;
+  pctPerda: number;
+  perdaIDF: number;
+  perdaIEF: number;
+  perdaICV: number;
+  hasID: boolean;
+}
+
+function computeFaixaFinance(r: IDRecord, numFaixasEquip: number): FaixaFinance {
+  const cat = EQUIP_CATALOG[r.equipamento];
+  const n = Math.max(1, numFaixasEquip);
+  const valorTotal = cat ? cat.valor : getValorEquip(r.equipamento, r.tipo) * n;
+  const valorFaixa = valorTotal / n;
+  const id = r.f_ID ?? r.c_ID;
+  const idf = r.f_IDF ?? r.c_IDF;
+  const ief = r.f_IEF ?? r.c_IEF;
+  const icv = r.f_ICV ?? r.c_ICV;
+  if (id === null || idf === null || ief === null || icv === null) {
+    return { valorFaixa, valorRecebido: 0, perda: 0, pctPerda: 0, perdaIDF: 0, perdaIEF: 0, perdaICV: 0, hasID: false };
+  }
+  const valorRecebido = valorFaixa * id;
+  const perda = valorFaixa - valorRecebido;
+  const pctPerda = valorFaixa > 0 ? perda / valorFaixa : 0;
+  const id_idf1 = calcID(r.tipo, 1.0, ief, icv) ?? id;
+  const id_ief1 = calcID(r.tipo, idf, 1.0, icv) ?? id;
+  const id_icv1 = calcID(r.tipo, idf, ief, 1.0) ?? id;
+  return {
+    valorFaixa, valorRecebido, perda, pctPerda,
+    perdaIDF: valorFaixa * Math.max(0, id_idf1 - id),
+    perdaIEF: valorFaixa * Math.max(0, id_ief1 - id),
+    perdaICV: valorFaixa * Math.max(0, id_icv1 - id),
+    hasID: true,
+  };
+}
+
 export function DetailModal({ r }: { r: IDRecord }) {
+  const { records } = useData();
+  const numFaixasEquip = records.filter(x => x.equipamento === r.equipamento).length || 1;
+  const fin = computeFaixaFinance(r, numFaixasEquip);
   const gain = calcGainPotential(r);
   const recos = getRecommendations(r);
   const cat = EQUIP_CATALOG[r.equipamento];
   const idColor = (r.c_ID ?? 0) < 0.6 ? 'text-red-600 dark:text-destructive' : (r.c_ID ?? 0) < 0.85 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
   const idfColor = r.c_IDF !== null && r.c_IDF < 0.95 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
+  const perdaColor = fin.pctPerda >= 0.4 ? 'text-red-600 dark:text-destructive' : fin.pctPerda >= 0.15 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
+  const perdaBorder = fin.pctPerda >= 0.4 ? 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/5' : fin.pctPerda >= 0.15 ? 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/5' : 'border-green-200 bg-green-50 dark:border-emerald-500/25 dark:bg-emerald-500/5';
 
   return (
     <div>
