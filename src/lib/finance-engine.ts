@@ -71,8 +71,10 @@ const SEV_OK = 0.85;
 function emptyTotals(): FinanceTotals {
   return {
     numEquipamentos: 0, numFaixas: 0, numFaixasComID: 0,
+    numFaixasComIDPositivo: 0, numEquipComIDPositivo: 0,
     valorContratado: 0, valorRecebido: 0, descontoTotal: 0, pctDesconto: 0,
-    idMedioFaixa: 0, idMedioEquipamento: 0,
+    idMedioFaixa: 0, idMedioFaixaSemZero: 0,
+    idMedioEquipamento: 0, idMedioEquipamentoSemZero: 0,
     faixasCriticas: 0, faixasAlerta: 0, faixasOk: 0,
     equipCriticos: 0, equipAlerta: 0, equipOk: 0,
     perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
