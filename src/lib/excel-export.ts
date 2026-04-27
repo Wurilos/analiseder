@@ -435,14 +435,14 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   }
   // formatação por linha
   for (let r = 1; r <= rows.length; r++) {
-    for (let c = 6; c <= 15; c++) {
+    for (let c = 7; c <= 16; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (ws[addr]) {
         (ws[addr] as any).z = '0.0%';
         (ws[addr] as any).s = { ...((ws[addr] as any).s || {}), border, alignment: { horizontal: 'right' }, font: { name: 'Consolas', sz: 10 } };
       }
     }
-    for (const c of [17, 18, 19, 21]) {
+    for (const c of [18, 19, 20, 22]) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (ws[addr]) {
         (ws[addr] as any).z = 'R$ #,##0.00';
@@ -450,8 +450,8 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
       }
     }
     // severidade colorida
-    const sevAddr = XLSX.utils.encode_cell({ r, c: 16 });
-    const sev = rows[r - 1][16] as string;
+    const sevAddr = XLSX.utils.encode_cell({ r, c: 17 });
+    const sev = rows[r - 1][17] as string;
     const c = sev === 'Crítico' ? { bg: RED_BG, fg: RED_FG }
            : sev === 'Alerta' ? { bg: AMBER_BG, fg: AMBER_FG }
            : sev === 'OK' ? { bg: GREEN_BG, fg: GREEN_FG }
@@ -465,7 +465,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
       };
     }
     // demais células de texto: borda + tamanho padrão
-    for (const c2 of [0, 1, 2, 3, 4, 5, 20, 22]) {
+    for (const c2 of [0, 1, 2, 3, 4, 5, 6, 21, 23]) {
       const addr = XLSX.utils.encode_cell({ r, c: c2 });
       if (ws[addr]) {
         (ws[addr] as any).s = { ...((ws[addr] as any).s || {}), border, font: { sz: 10 }, alignment: { vertical: 'center' } };
@@ -474,7 +474,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   }
 
   ws['!cols'] = [
-    { wch: 14 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 },
+    { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 },
     { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
     { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
     { wch: 12 },
