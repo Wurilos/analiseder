@@ -578,9 +578,10 @@ const DashboardPage: React.FC = () => {
 
         {/* Auditoria matemática */}
         {(() => {
-          const somaPerdas = perdas.main.IDF + perdas.main.IEF + perdas.main.ICV;
-          const delta = somaPerdas - perdas.main.total;
-          const sobrepPct = perdas.main.total > 0 ? (delta / perdas.main.total) * 100 : 0;
+          // Auditoria usa a visão ponderada isolada (audit.*), não os cards proporcionais.
+          const somaPerdas = finance.audit.somaIsoladas;
+          const delta = finance.audit.sobreposicao;
+          const sobrepPct = finance.audit.pctSobreposicao * 100;
           return (
             <div className="mt-3 rounded-lg border border-dashed border-border bg-muted/20 p-3">
               <div className="flex items-center justify-between mb-2">
@@ -603,7 +604,7 @@ const DashboardPage: React.FC = () => {
                         É como 3 pessoas dizendo "economizei R$ 100 no jantar": somando dá R$ 300, mas a economia real foi R$ 200 — <strong>parte é a mesma</strong>, contada em lugares diferentes.
                       </div>
                       <div>
-                        • <strong>Σ Perdas isoladas</strong>: potencial máximo por alavanca (onde focar).<br/>
+                        • <strong>Σ Perdas isoladas</strong>: potencial máximo por alavanca, ponderado pelo valor de cada equipamento (onde focar).<br/>
                         • <strong>Desconto real</strong>: efeito combinado das 3 notas (o que saiu do bolso).<br/>
                         • <strong>Δ Sobreposição</strong>: ganho que se repete ao olhar cada índice separadamente.
                       </div>
@@ -616,7 +617,7 @@ const DashboardPage: React.FC = () => {
                 <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><Sigma size={10} /> Σ Perdas isoladas</div>
                   <div className="font-mono text-sm font-bold mt-0.5">{fmtBRL(somaPerdas)}</div>
-                  <div className="text-[10px] text-muted-foreground">IDF + IEF + ICV</div>
+                  <div className="text-[10px] text-muted-foreground">IDF + IEF + ICV (ponderado)</div>
                 </div>
                 <div className="rounded-md border border-dashed border-border bg-background/60 p-2">
                   <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold flex items-center gap-1"><Calculator size={10} /> Desconto real</div>

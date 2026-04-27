@@ -40,9 +40,22 @@ export interface FinanceTotals {
   // Severidade
   faixasCriticas: number; faixasAlerta: number; faixasOk: number;
   equipCriticos: number;  equipAlerta: number;  equipOk: number;
-  // Perdas
+  // Perdas — visão CONTÁBIL (proporcional, soma = descontoTotal).
+  // Use nos cards principais que precisam fechar com a Perda Total.
   perdaIDF: number; perdaIEF: number; perdaICV: number;
   perdaSub: FinancePerdaSub;
+  // Perdas — visão de AUDITORIA (ponderada pelo valor de cada equipamento,
+  // ganho marginal isolado: "quanto este índice custa em R$, sozinho").
+  // NÃO somam descontoTotal — a diferença é a sobreposição (efeito multiplicativo).
+  audit: {
+    perdaIDF: number;        // Σ (ID se IDF=1 − ID atual) × valor_equip
+    perdaIEF: number;        // idem para IEF
+    perdaICV: number;        // idem para ICV
+    perdaSub: FinancePerdaSub; // sub-IEF SEM normalização (R$ reais isolados)
+    somaIsoladas: number;    // perdaIDF + perdaIEF + perdaICV (auditoria)
+    sobreposicao: number;    // somaIsoladas − descontoTotal
+    pctSobreposicao: number; // sobreposicao / descontoTotal
+  };
 }
 
 const getDisplayID = (r: { f_ID: number | null; c_ID: number | null }) =>
@@ -60,6 +73,11 @@ function emptyTotals(): FinanceTotals {
     equipCriticos: 0, equipAlerta: 0, equipOk: 0,
     perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
     perdaSub: { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 },
+    audit: {
+      perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
+      perdaSub: { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 },
+      somaIsoladas: 0, sobreposicao: 0, pctSobreposicao: 0,
+    },
   };
 }
 
@@ -155,6 +173,17 @@ export function computeFinanceForGroups(groups: EquipGroup[], records: IDRecord[
     const k = t.perdaIEF / subSum;
     for (const sk of subKeys) t.perdaSub[sk] = subRaw[sk] * k;
   }
+
+  // --- Auditoria (ponderada isolada, SEM normalização) — fonte oficial p/ cards de auditoria
+  t.audit.perdaIDF = rawIDF;
+  t.audit.perdaIEF = rawIEF;
+  t.audit.perdaICV = rawICV;
+  for (const sk of subKeys) t.audit.perdaSub[sk] = subRaw[sk];
+  t.audit.somaIsoladas = rawIDF + rawIEF + rawICV;
+  t.audit.sobreposicao = t.audit.somaIsoladas - t.descontoTotal;
+  t.audit.pctSobreposicao = t.descontoTotal > 0
+    ? t.audit.sobreposicao / t.descontoTotal
+    : 0;
 
   return t;
 }
