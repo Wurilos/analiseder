@@ -126,6 +126,33 @@ export function DetailModal({ r }: { r: IDRecord }) {
         </div>
       </div>
 
+      <div className="mt-4 border border-border rounded-lg p-4">
+        <div className="text-xs font-bold text-primary mb-2">💰 Impacto Financeiro</div>
+        {fin.hasID ? (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              <FinCard label="Valor Contratado" value={formatMoeda(fin.valorFaixa)} desc="Valor da faixa no período" />
+              <FinCard label="Valor a Receber" value={formatMoeda(fin.valorRecebido)} desc={`Valor × ID (${(((r.f_ID ?? r.c_ID) ?? 0) * 100).toFixed(1)}%)`} />
+              <FinCard
+                label="Perda no Faturamento"
+                value={formatMoeda(fin.perda)}
+                desc={`${(fin.pctPerda * 100).toFixed(1)}% do contratado`}
+                valueClass={`font-mono text-lg font-bold ${perdaColor}`}
+                wrapperClass={`border rounded-lg p-3 text-center ${perdaBorder}`}
+              />
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-3 mb-1">Quanto cada índice está custando nesta faixa:</div>
+            <div className="grid grid-cols-3 gap-2">
+              <GainMoneyCard label="IDF=1.0" value={fin.perdaIDF} desc="Recuperável c/ disponibilidade 100%" />
+              <GainMoneyCard label="IEF=1.0" value={fin.perdaIEF} desc="Recuperável c/ eficiência 100%" />
+              <GainMoneyCard label="ICV=1.0" value={fin.perdaICV} desc="Recuperável c/ classificação 100%" />
+            </div>
+          </>
+        ) : (
+          <div className="text-xs text-muted-foreground">Faixa sem ID calculável — impacto financeiro indisponível.</div>
+        )}
+      </div>
+
       <div className="mt-4">
         <div className="text-sm font-bold mb-2">🎯 Recomendações</div>
         <div className="space-y-2">
