@@ -43,7 +43,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h1 className="text-base font-display font-extrabold text-sidebar-foreground tracking-tight">
-              DER Analytics
+              Splice News - Analytics
             </h1>
             <p className="text-[10.5px] text-sidebar-foreground/60 leading-none font-mono">
               Índices de Desempenho

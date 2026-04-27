@@ -193,7 +193,7 @@ const IndicesPage: React.FC = () => {
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
           <div className="text-4xl mb-4">📊</div>
-          <h1 className="text-2xl font-display font-extrabold text-primary mb-2">DER Analytics</h1>
+          <h1 className="text-2xl font-display font-extrabold text-primary mb-2">Splice News - Analytics</h1>
           <p className="text-sm text-muted-foreground">Análise de Índices de Desempenho · Edital 145/2023</p>
         </div>
         <UploadCard
