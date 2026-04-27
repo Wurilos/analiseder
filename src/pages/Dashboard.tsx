@@ -330,10 +330,16 @@ const DashboardPage: React.FC = () => {
   const filteredEquipamentos = groups.length;
   const withID = useMemo(() => filtered.filter(r => getDisplayID(r) !== null), [filtered]);
   const ids = useMemo(() => withID.map(r => getDisplayID(r)!).sort((a, b) => a - b), [withID]);
-  // Operacional: ignora null E zerados (ID = 0)
+  // Operacional por faixa: ignora null E zerados (ID = 0)
   const withIDPos = useMemo(() => filtered.filter(r => { const v = getDisplayID(r); return v !== null && v > 0; }), [filtered]);
   const idsPos = useMemo(() => withIDPos.map(r => getDisplayID(r)!), [withIDPos]);
-  const avg = idsPos.length ? idsPos.reduce((s, v) => s + v, 0) / idsPos.length : 0;
+  const avgFaixaPos = idsPos.length ? idsPos.reduce((s, v) => s + v, 0) / idsPos.length : 0;
+  // Operacional por equipamento: ignora null E zerados
+  const groupsWithIDPos = useMemo(() => groups.filter(g => g.c_ID !== null && g.c_ID > 0), [groups]);
+  const avgEquipPos = groupsWithIDPos.length
+    ? groupsWithIDPos.reduce((s, g) => s + (g.c_ID ?? 0), 0) / groupsWithIDPos.length
+    : 0;
+  const avg = dashView === 'equip' ? avgEquipPos : avgFaixaPos;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
   const allIDs = useMemo(() => recordsByFab.map(r => getDisplayID(r)).filter((id): id is number => id !== null), [recordsByFab]);
   const sumAllIDs = allIDs.reduce((s, v) => s + v, 0);
