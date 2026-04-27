@@ -449,8 +449,8 @@ const DashboardPage: React.FC = () => {
           label="ID Médio"
           value={(avg * 100).toFixed(1) + '%'}
           sub={dashView === 'equip'
-            ? `${groupsWithID.length} de ${filteredEquipamentos} equipamentos com ID calculado`
-            : `${withID.length} de ${filteredFaixas} faixas com ID calculado`}
+            ? `${groupsWithIDPos.length} de ${filteredEquipamentos} equipamentos com ID > 0`
+            : `${withIDPos.length} de ${filteredFaixas} faixas com ID > 0`}
           icon={<BarChart3 size={22} />}
           iconColor={avg < 0.6 ? 'red' : avg < 0.85 ? 'amber' : 'green'}
           severity={avg < 0.6 ? 'danger' : avg < 0.85 ? 'warn' : 'good'}
@@ -458,7 +458,7 @@ const DashboardPage: React.FC = () => {
         <KPICard
           label="ID Médio (Todos Importados)"
           value={(avgAllIDs * 100).toFixed(1) + '%'}
-          sub={`${allIDs.length} de ${totalFaixas} faixas com ID calculado`}
+          sub={`${allIDs.length} faixas (inclui ID = 0)`}
           icon={<Activity size={22} />}
           iconColor="teal"
           severity={avgAllIDs < 0.6 ? 'danger' : avgAllIDs < 0.85 ? 'warn' : 'good'}
