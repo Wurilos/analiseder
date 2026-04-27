@@ -29,6 +29,8 @@ export interface FinanceTotals {
   numEquipamentos: number;
   numFaixas: number;
   numFaixasComID: number;
+  numFaixasComIDPositivo: number;
+  numEquipComIDPositivo: number;
   // Financeiro
   valorContratado: number;
   valorRecebido: number;
