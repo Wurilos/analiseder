@@ -82,4 +82,38 @@ describe('finance-engine', () => {
     expect(f.descontoTotal).toBe(22_000);
     expect(f.pctDesconto).toBeCloseTo(0.22, 4);
   });
+
+  it('audit.somaIsoladas = audit.perdaIDF + IEF + ICV', () => {
+    const g = [mkGroup()];
+    const r = [mkRec(), mkRec({ faixa: 'F2' })];
+    const f = computeFinanceForGroups(g, r);
+    const soma = f.audit.perdaIDF + f.audit.perdaIEF + f.audit.perdaICV;
+    expect(Math.abs(soma - f.audit.somaIsoladas)).toBeLessThan(0.01);
+  });
+
+  it('audit.sobreposicao = somaIsoladas − descontoTotal', () => {
+    const g = [mkGroup()];
+    const r = [mkRec(), mkRec({ faixa: 'F2' })];
+    const f = computeFinanceForGroups(g, r);
+    expect(Math.abs(f.audit.sobreposicao - (f.audit.somaIsoladas - f.descontoTotal))).toBeLessThan(0.01);
+  });
+
+  it('audit.somaIsoladas ≥ descontoTotal (sobreposição é não-negativa)', () => {
+    const g = [mkGroup()];
+    const r = [mkRec(), mkRec({ faixa: 'F2' })];
+    const f = computeFinanceForGroups(g, r);
+    expect(f.audit.somaIsoladas).toBeGreaterThanOrEqual(f.descontoTotal - 0.01);
+    expect(f.audit.sobreposicao).toBeGreaterThanOrEqual(-0.01);
+  });
+
+  it('audit.perdaSub é NÃO normalizado (independente de perdaIEF)', () => {
+    const g = [mkGroup()];
+    const r = [mkRec(), mkRec({ faixa: 'F2' })];
+    const f = computeFinanceForGroups(g, r);
+    const sumAuditSub = f.audit.perdaSub.ICId + f.audit.perdaSub.ICIn
+      + f.audit.perdaSub.IEVri + f.audit.perdaSub.IEVdt
+      + f.audit.perdaSub.ILPd + f.audit.perdaSub.ILPn;
+    // Sub-IEF de auditoria existe e é positivo (não zerado pela normalização)
+    expect(sumAuditSub).toBeGreaterThan(0);
+  });
 });
