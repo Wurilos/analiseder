@@ -49,8 +49,8 @@ function computeFaixaFinance(r: IDRecord, numFaixasEquip: number): FaixaFinance 
 }
 
 export function DetailModal({ r }: { r: IDRecord }) {
-  const { records } = useData();
-  const numFaixasEquip = records.filter(x => x.equipamento === r.equipamento).length || 1;
+  const { getActiveRecords } = useData();
+  const numFaixasEquip = getActiveRecords().filter(x => x.equipamento === r.equipamento).length || 1;
   const fin = computeFaixaFinance(r, numFaixasEquip);
   const gain = calcGainPotential(r);
   const recos = getRecommendations(r);
