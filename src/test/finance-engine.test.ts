@@ -116,4 +116,18 @@ describe('finance-engine', () => {
     // Sub-IEF de auditoria existe e é positivo (não zerado pela normalização)
     expect(sumAuditSub).toBeGreaterThan(0);
   });
+
+  it('idMedioFaixaSemZero ignora null E zerados; idMedioFaixa inclui zerados', () => {
+    const g = [mkGroup({ c_ID: 0.8 })];
+    const r = [
+      mkRec({ faixa: 'F1', c_ID: 0.8 }),
+      mkRec({ faixa: 'F2', c_ID: 0.0 }),       // zerado: entra na média geral, fora da operacional
+      mkRec({ faixa: 'F3', c_ID: null }),       // nulo: fora de ambas
+    ];
+    const f = computeFinanceForGroups(g, r);
+    expect(f.numFaixasComID).toBe(2);          // 0.8 e 0.0
+    expect(f.numFaixasComIDPositivo).toBe(1);  // só 0.8
+    expect(f.idMedioFaixa).toBeCloseTo(0.4, 4);        // (0.8 + 0) / 2
+    expect(f.idMedioFaixaSemZero).toBeCloseTo(0.8, 4); // só 0.8
+  });
 });

@@ -29,14 +29,18 @@ export interface FinanceTotals {
   numEquipamentos: number;
   numFaixas: number;
   numFaixasComID: number;
+  numFaixasComIDPositivo: number;
+  numEquipComIDPositivo: number;
   // Financeiro
   valorContratado: number;
   valorRecebido: number;
   descontoTotal: number;
   pctDesconto: number;
   // ID
-  idMedioFaixa: number;          // média simples por faixa (oficial p/ pagamento)
-  idMedioEquipamento: number;    // média simples por equipamento
+  idMedioFaixa: number;          // média simples por faixa, inclui zerados (oficial p/ pagamento)
+  idMedioFaixaSemZero: number;   // média operacional: ignora null e ID = 0
+  idMedioEquipamento: number;    // média simples por equipamento (inclui zerados)
+  idMedioEquipamentoSemZero: number; // média operacional por equipamento
   // Severidade
   faixasCriticas: number; faixasAlerta: number; faixasOk: number;
   equipCriticos: number;  equipAlerta: number;  equipOk: number;
@@ -67,8 +71,10 @@ const SEV_OK = 0.85;
 function emptyTotals(): FinanceTotals {
   return {
     numEquipamentos: 0, numFaixas: 0, numFaixasComID: 0,
+    numFaixasComIDPositivo: 0, numEquipComIDPositivo: 0,
     valorContratado: 0, valorRecebido: 0, descontoTotal: 0, pctDesconto: 0,
-    idMedioFaixa: 0, idMedioEquipamento: 0,
+    idMedioFaixa: 0, idMedioFaixaSemZero: 0,
+    idMedioEquipamento: 0, idMedioEquipamentoSemZero: 0,
     faixasCriticas: 0, faixasAlerta: 0, faixasOk: 0,
     equipCriticos: 0, equipAlerta: 0, equipOk: 0,
     perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
@@ -100,6 +106,13 @@ export function computeFinanceForGroups(groups: EquipGroup[], records: IDRecord[
     ? faixaIDs.reduce((s, v) => s + v, 0) / faixaIDs.length
     : 0;
 
+  // ID Médio operacional por faixa: ignora null E zerados
+  const faixaIDsPos = faixaIDs.filter(v => v > 0);
+  t.numFaixasComIDPositivo = faixaIDsPos.length;
+  t.idMedioFaixaSemZero = faixaIDsPos.length
+    ? faixaIDsPos.reduce((s, v) => s + v, 0) / faixaIDsPos.length
+    : 0;
+
   // Severidade por faixa
   for (const v of faixaIDs) {
     if (v < SEV_CRIT) t.faixasCriticas++;
@@ -113,6 +126,11 @@ export function computeFinanceForGroups(groups: EquipGroup[], records: IDRecord[
     .filter((v): v is number => v !== null);
   t.idMedioEquipamento = equipIDs.length
     ? equipIDs.reduce((s, v) => s + v, 0) / equipIDs.length
+    : 0;
+  const equipIDsPos = equipIDs.filter(v => v > 0);
+  t.numEquipComIDPositivo = equipIDsPos.length;
+  t.idMedioEquipamentoSemZero = equipIDsPos.length
+    ? equipIDsPos.reduce((s, v) => s + v, 0) / equipIDsPos.length
     : 0;
   for (const v of equipIDs) {
     if (v < SEV_CRIT) t.equipCriticos++;
