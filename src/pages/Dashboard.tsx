@@ -330,7 +330,10 @@ const DashboardPage: React.FC = () => {
   const filteredEquipamentos = groups.length;
   const withID = useMemo(() => filtered.filter(r => getDisplayID(r) !== null), [filtered]);
   const ids = useMemo(() => withID.map(r => getDisplayID(r)!).sort((a, b) => a - b), [withID]);
-  const avg = ids.length ? ids.reduce((s, v) => s + v, 0) / ids.length : 0;
+  // Operacional: ignora null E zerados (ID = 0)
+  const withIDPos = useMemo(() => filtered.filter(r => { const v = getDisplayID(r); return v !== null && v > 0; }), [filtered]);
+  const idsPos = useMemo(() => withIDPos.map(r => getDisplayID(r)!), [withIDPos]);
+  const avg = idsPos.length ? idsPos.reduce((s, v) => s + v, 0) / idsPos.length : 0;
   const med = ids.length ? ids[Math.floor(ids.length / 2)] : 0;
   const allIDs = useMemo(() => recordsByFab.map(r => getDisplayID(r)).filter((id): id is number => id !== null), [recordsByFab]);
   const sumAllIDs = allIDs.reduce((s, v) => s + v, 0);
