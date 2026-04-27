@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
+import { computeFinanceForGroups } from '@/lib/finance-engine';
 import { EquipGroup } from '@/types';
 import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
@@ -125,14 +126,17 @@ export default function ResumoPage() {
     return groupByEquipamento(records).sort((a, b) => (a.c_ID ?? 0) - (b.c_ID ?? 0));
   }, [records]);
 
+  // Cérebro único — Críticos/Alerta/OK e Desconto Total batem com Dashboard.
   const stats = useMemo(() => {
     if (!groups.length) return null;
-    const criticos = groups.filter(g => (g.c_ID ?? 0) < 0.60).length;
-    const alerta = groups.filter(g => (g.c_ID ?? 0) >= 0.60 && (g.c_ID ?? 0) < 0.85).length;
-    const ok = groups.filter(g => (g.c_ID ?? 0) >= 0.85).length;
-    const descontoTotal = groups.reduce((s, g) => s + g.descontoTotal, 0);
-    return { criticos, alerta, ok, descontoTotal };
-  }, [groups]);
+    const f = computeFinanceForGroups(groups, records);
+    return {
+      criticos: f.equipCriticos,
+      alerta: f.equipAlerta,
+      ok: f.equipOk,
+      descontoTotal: f.descontoTotal,
+    };
+  }, [groups, records]);
 
   if (!records.length) {
     return (
