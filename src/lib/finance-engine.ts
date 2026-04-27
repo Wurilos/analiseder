@@ -73,6 +73,11 @@ function emptyTotals(): FinanceTotals {
     equipCriticos: 0, equipAlerta: 0, equipOk: 0,
     perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
     perdaSub: { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 },
+    audit: {
+      perdaIDF: 0, perdaIEF: 0, perdaICV: 0,
+      perdaSub: { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 },
+      somaIsoladas: 0, sobreposicao: 0, pctSobreposicao: 0,
+    },
   };
 }
 
