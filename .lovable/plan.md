@@ -1,44 +1,84 @@
-# Alinhar Resumo ao Dashboard
+## Cérebro Único de Cálculo (`src/lib/finance-engine.ts`)
 
-Hoje as duas telas usam regras diferentes, então os números nunca batem. Vamos padronizar tudo pelo Dashboard (que é a referência oficial).
+Hoje cada página calcula seus próprios totais e médias, gerando diferenças entre Dashboard, Resumo, Valores e Modal de Análise. A solução é centralizar tudo em **um único módulo**, com **uma única função de agregação** que cada página consome.
 
-## Divergências encontradas
+### Problema diagnosticado
 
-| Item | Dashboard (referência) | Resumo (hoje) |
+| Página/Card | Como calcula hoje | Risco |
 |---|---|---|
-| Severidade | <0.60 Crítico · 0.60–0.85 Alerta · ≥0.85 OK | <0.85 Crítico · 0.85–0.95 Regular · ≥0.95 Ótimo |
-| ID exibido por equipamento | `f_ID ?? c_ID` (planilha primeiro) | `c_ID` (calculado) |
-| Filtros (rodovia, tipo, fabricante, etc.) | Aplica | Não aplica |
-| Cálculo de Desconto Total | Soma `g.descontoTotal` dos grupos filtrados | Soma de todos os grupos (sem filtro) |
+| Dashboard — ID Médio | média simples sobre faixas filtradas | ✅ correto |
+| Dashboard — Perdas IDF/IEF/ICV + sub-IEF normalizados | lógica própria (linhas 360-410) | ✅ correto, mas duplicada |
+| Valores — Totais | soma própria sobre `groups` | duplicação |
+| Resumo — Desconto Total | soma própria | duplicação, suscetível a divergir |
+| LoteAnaliseModal — Totais | função `calcResumo` própria | já alinhado, mas duplicado |
+| Indices/Mapa | recalculam médias e somas | propenso a drift |
+| `grouping.ts` | calcula `perdaIDF/IEF/ICV` por equipamento usando `c_*` | ok como base, mas os subíndices ficam soltos |
 
-Como a fonte de `descontoTotal` no `groupByEquipamento` já usa `f_ID`, o valor financeiro só diverge porque o Resumo ignora filtros e porque a contagem de Críticos/Regulares/Ótimos usa cortes diferentes.
+### Solução: um único motor com uma única API
 
-## Mudanças
+**Novo arquivo `src/lib/finance-engine.ts`** exporta:
 
-### 1. `src/pages/Resumo.tsx` — alinhar severidade
-- `severidade(id)`:
-  - `id >= 0.85` → "OK" (verde)
-  - `id >= 0.60` → "Alerta" (âmbar)
-  - `id < 0.60` → "Crítico" (vermelho)
-- `stats`: trocar contagens para
-  - `criticos = c_ID < 0.60`
-  - `alerta = 0.60 ≤ c_ID < 0.85`
-  - `ok = c_ID ≥ 0.85`
-- Renomear o card "Regulares" → "Alerta" e "Ótimos" → "OK", mantendo as cores do Dashboard.
-- Ajustar a função `gerarTextoMelhoria`:
-  - "desempenho excelente" passa a usar `id >= 0.85` (era 0.98).
-  - Os textos por subíndice continuam iguais (já são limites independentes).
+```ts
+export interface FinanceTotals {
+  // Universos
+  numEquipamentos: number;
+  numFaixas: number;
+  numFaixasComID: number;
+  // Financeiro
+  valorContratado: number;
+  valorRecebido: number;
+  descontoTotal: number;
+  pctDesconto: number;
+  // ID
+  idMedioFaixa: number;        // média simples por faixa (oficial p/ pagamento)
+  idMedioEquipamento: number;  // média simples por equipamento
+  // Severidade (cortes oficiais Dashboard: <0.60 / 0.60-0.85 / ≥0.85)
+  faixasCriticas: number; faixasAlerta: number; faixasOk: number;
+  equipCriticos: number;  equipAlerta: number;  equipOk: number;
+  // Perdas (decompostas proporcionalmente — IDF+IEF+ICV = descontoTotal)
+  perdaIDF: number; perdaIEF: number; perdaICV: number;
+  // Subíndices do IEF (normalizados para somar perdaIEF)
+  perdaSub: { ICId: number; ICIn: number; IEVri: number; IEVdt: number; ILPd: number; ILPn: number };
+}
 
-### 2. `src/pages/Resumo.tsx` — usar o mesmo ID do Dashboard
-- Trocar a ordenação e exibição para usar `f_ID ?? c_ID` (o `groupByEquipamento` já preenche `c_ID` com `f_ID ?? c_ID`, então só precisamos garantir que o componente leia `g.c_ID` — já está correto). Vamos validar lendo o agrupador e adicionando um helper `getDisplayID(g) = g.c_ID` para deixar explícito.
+export function computeFinance(records: IDRecord[]): FinanceTotals;
+export function computeFinanceForGroups(groups: EquipGroup[], records: IDRecord[]): FinanceTotals;
+```
 
-### 3. `src/pages/Resumo.tsx` — refletir filtros (opcional, mas recomendado)
-- Adicionar no topo do Resumo um aviso "Sem filtros aplicados — mostrando todos os equipamentos do período" para deixar claro por que o número pode diferir do Dashboard quando o usuário tem filtros ativos. (Não vamos duplicar a barra de filtros — o Resumo é executivo e abrange o período inteiro.)
+Toda a lógica que hoje vive em `Dashboard.tsx` (perdas + sub-IEF normalizados) e em `LoteAnaliseModal.tsx` (decomposição proporcional) é movida para cá. Se houver dúvida entre 2 implementações, prevalece a do **Dashboard atual** (que você confirmou como referência).
 
-### 4. Cabeçalho do Resumo
-- Atualizar o subtítulo: "Diagnóstico completo · Critérios alinhados ao Dashboard (Crítico <60% · Alerta 60–85% · OK ≥85%)".
+### Refatorações nas páginas
 
-## Arquivos alterados
-- `src/pages/Resumo.tsx` (única alteração)
+Cada página passa a chamar o motor:
 
-Nenhuma migração de banco e nenhuma alteração no Dashboard ou no engine de cálculo.
+1. **`Dashboard.tsx`** — substitui o bloco `perdas` (linhas 359-410) e os contadores `below6/below85` por `computeFinance(filtered)`.
+2. **`Valores.tsx`** — substitui o `useMemo` `totals` (linhas 108-115) por `computeFinanceForGroups(groups, records)`. Mantém apenas a lógica de tabela/lista.
+3. **`Resumo.tsx`** — substitui os contadores `criticos/alerta/ok/descontoTotal` (linhas 130-134) por campos do motor.
+4. **`LoteAnaliseModal.tsx`** — `calcResumo` interna é substituída por `computeFinanceForGroups`. Os blocos por fabricante chamam o mesmo motor passando o subset Splice/Focalle.
+5. **`Indices.tsx` / `Mapa.tsx`** — passam a usar o motor para qualquer total financeiro ou contagem por severidade exibida.
+
+### Regras de consistência (memorizadas)
+
+- **ID Geral / pagamento** = média simples por faixa (decisão sua confirmada).
+- **Cortes de severidade** = `<0.60 Crítico`, `0.60–0.85 Alerta`, `≥0.85 OK` (cortes oficiais do Dashboard).
+- **Perda Total** = soma de `descontoTotal` por equipamento.
+- **IDF + IEF + ICV** = decomposição proporcional → soma exatamente Perda Total.
+- **Sub-IEF (6 cards)** = ganho marginal real (simular sub=1.0) normalizado para somar Perda IEF.
+- **`f_*` (planilha) tem prioridade sobre `c_*` (calculado)**, mantendo a regra do projeto.
+
+### Garantia anti-regressão
+
+- Adiciono testes em `src/test/` cobrindo: identidade `IDF+IEF+ICV = descontoTotal`, identidade `Σ sub-IEF = perdaIEF`, e que duas páginas diferentes (Dashboard vs Resumo vs Valores) recebem os mesmos números do motor para o mesmo input.
+- Memória do projeto atualizada: novo arquivo `mem://features/finance-engine` registrando que **toda página deve consumir `finance-engine.ts`** — proibido recalcular localmente.
+
+### Impacto visual
+
+Nenhuma mudança visual intencional. Os números do Resumo, Valores e Modal vão **passar a bater** com o Dashboard (que é a referência). Se algum card hoje exibe valor diferente do Dashboard, ele será corrigido — não o contrário.
+
+### Arquivos editados
+
+- **Novo**: `src/lib/finance-engine.ts`, `src/test/finance-engine.test.ts`, `mem://features/finance-engine.md`
+- **Editados**: `src/pages/Dashboard.tsx`, `src/pages/Valores.tsx`, `src/pages/Resumo.tsx`, `src/pages/Indices.tsx`, `src/pages/Mapa.tsx`, `src/components/LoteAnaliseModal.tsx`
+- **Atualizado**: `mem://index.md` (referência ao novo motor no Core)
+
+Aprove para eu implementar.

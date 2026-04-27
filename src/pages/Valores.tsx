@@ -3,6 +3,7 @@ import { useData } from '@/context/DataContext';
 import { groupByEquipamento } from '@/lib/grouping';
 import { EQUIP_CATALOG, equipLabel, getValorEquip } from '@/lib/equip-catalog';
 import { calcID, calcIEF } from '@/lib/calc-engine';
+import { computeFinanceForGroups } from '@/lib/finance-engine';
 import { IDRecord, EquipGroup } from '@/types';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useTheme } from '@/hooks/use-theme';
@@ -105,15 +106,16 @@ const ValoresPage: React.FC = () => {
 
   const groups = useMemo(() => groupByEquipamento(filtered), [filtered]);
 
-  const totals = useMemo(() => {
-    const valorTotal = groups.reduce((s, g) => s + g.valorTotal, 0);
-    const valorRecebido = groups.reduce((s, g) => s + g.valorRecebidoTotal, 0);
-    const desconto = valorTotal - valorRecebido;
-    const perdaIDF = groups.reduce((s, g) => s + g.perdaIDF, 0);
-    const perdaIEF = groups.reduce((s, g) => s + g.perdaIEF, 0);
-    const perdaICV = groups.reduce((s, g) => s + g.perdaICV, 0);
-    return { valorTotal, valorRecebido, desconto, perdaIDF, perdaIEF, perdaICV };
-  }, [groups]);
+  // Cérebro único — bate com Dashboard, Resumo e Modal de Análise.
+  const finance = useMemo(() => computeFinanceForGroups(groups, filtered), [groups, filtered]);
+  const totals = useMemo(() => ({
+    valorTotal: finance.valorContratado,
+    valorRecebido: finance.valorRecebido,
+    desconto: finance.descontoTotal,
+    perdaIDF: finance.perdaIDF,
+    perdaIEF: finance.perdaIEF,
+    perdaICV: finance.perdaICV,
+  }), [finance]);
 
   const chartData = useMemo(() =>
     [...groups].sort((a, b) => b.descontoTotal - a.descontoTotal).slice(0, 20).map(g => ({
