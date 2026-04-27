@@ -7,7 +7,8 @@ import { computeFinanceForGroups } from '@/lib/finance-engine';
 import { EquipGroup } from '@/types';
 import { pct, formatMoeda } from '@/lib/format';
 import { motion } from 'framer-motion';
-import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download } from 'lucide-react';
+import { FileText, AlertTriangle, TrendingUp, CheckCircle2, AlertCircle, Info, Download, FileSpreadsheet } from 'lucide-react';
+import { exportResumoToExcel } from '@/lib/excel-export';
 
 // Critérios alinhados ao Dashboard:
 //   ID < 0.60         → Crítico
