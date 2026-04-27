@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { EquipGroup, IDRecord } from '@/types';
 import { EQUIP_CATALOG, getFabricanteByCodigo } from '@/lib/equip-catalog';
+import { computeFinanceForGroups } from '@/lib/finance-engine';
 import { DollarSign, Percent, ShieldCheck, Activity, Tags, Sun, Moon, Camera, Send, ScanLine, FileText, Plus, Minus } from 'lucide-react';
 
 interface Props {
@@ -56,24 +57,20 @@ interface Resumo {
 }
 
 function calcResumo(groups: EquipGroup[], records: IDRecord[]): Resumo {
-  const validGroups = groups.filter(g => g.c_ID !== null);
-  const validIDs = records.map(getDisplayID).filter((v): v is number => v !== null);
-  const valorTotal = groups.reduce((s, g) => s + (g.valorTotal || 0), 0);
-  const desconto = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
-  const idMedio = validIDs.length > 0
-    ? validIDs.reduce((s, v) => s + v, 0) / validIDs.length
-    : 0;
+  // Cérebro único: totais financeiros e ID vêm do finance-engine.
+  const f = computeFinanceForGroups(groups, records);
 
-  // Calcular gaps médios para identificar piores indicadores
+  // Piores indicadores (cálculo local — apenas ranking visual, não financeiro).
+  const validGroups = groups.filter(g => g.c_ID !== null);
   const fields: Array<keyof EquipGroup> = ['c_IDF', 'c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt', 'c_ILPd', 'c_ILPn', 'c_ICV'];
   const keyMap: Record<string, string> = {
     c_IDF: 'IDF', c_ICId: 'ICId', c_ICIn: 'ICIn',
     c_IEVri: 'IEVri', c_IEVdt: 'IEVdt', c_ILPd: 'ILPd', c_ILPn: 'ILPn', c_ICV: 'ICV',
   };
-  const gaps = fields.map(f => {
-    const vals = validGroups.map(g => g[f] as number | null).filter((v): v is number => v !== null);
+  const gaps = fields.map(fld => {
+    const vals = validGroups.map(g => g[fld] as number | null).filter((v): v is number => v !== null);
     const m = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 1;
-    return { key: keyMap[f as string], gap: 1 - m, media: m };
+    return { key: keyMap[fld as string], gap: 1 - m, media: m };
   }).filter(x => x.gap > 0.01)
     .sort((a, b) => b.gap - a.gap);
 
@@ -83,7 +80,13 @@ function calcResumo(groups: EquipGroup[], records: IDRecord[]): Resumo {
     descricao: SUB_LABEL_SHORT[g.key]?.descricao ?? '',
   }));
 
-  return { count: groups.length, desconto, valorTotal, idMedio, piores };
+  return {
+    count: groups.length,
+    desconto: f.descontoTotal,
+    valorTotal: f.valorContratado,
+    idMedio: f.idMedioFaixa,
+    piores,
+  };
 }
 
 /* ─── Bloco "Piores Indicadores" ─── */
