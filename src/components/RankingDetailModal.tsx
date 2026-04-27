@@ -1,19 +1,64 @@
 import React from 'react';
 import { IDRecord } from '@/types';
-import { EQUIP_CATALOG } from '@/lib/equip-catalog';
-import { calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { EQUIP_CATALOG, getValorEquip } from '@/lib/equip-catalog';
+import { calcID, calcGainPotential, getRecommendations } from '@/lib/calc-engine';
+import { formatMoeda } from '@/lib/format';
+import { useData } from '@/context/DataContext';
 
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
   return Number(v).toFixed(d);
 }
 
+interface FaixaFinance {
+  valorFaixa: number;
+  valorRecebido: number;
+  perda: number;
+  pctPerda: number;
+  perdaIDF: number;
+  perdaIEF: number;
+  perdaICV: number;
+  hasID: boolean;
+}
+
+function computeFaixaFinance(r: IDRecord, numFaixasEquip: number): FaixaFinance {
+  const cat = EQUIP_CATALOG[r.equipamento];
+  const n = Math.max(1, numFaixasEquip);
+  const valorTotal = cat ? cat.valor : getValorEquip(r.equipamento, r.tipo) * n;
+  const valorFaixa = valorTotal / n;
+  const id = r.f_ID ?? r.c_ID;
+  const idf = r.f_IDF ?? r.c_IDF;
+  const ief = r.f_IEF ?? r.c_IEF;
+  const icv = r.f_ICV ?? r.c_ICV;
+  if (id === null || idf === null || ief === null || icv === null) {
+    return { valorFaixa, valorRecebido: 0, perda: 0, pctPerda: 0, perdaIDF: 0, perdaIEF: 0, perdaICV: 0, hasID: false };
+  }
+  const valorRecebido = valorFaixa * id;
+  const perda = valorFaixa - valorRecebido;
+  const pctPerda = valorFaixa > 0 ? perda / valorFaixa : 0;
+  const id_idf1 = calcID(r.tipo, 1.0, ief, icv) ?? id;
+  const id_ief1 = calcID(r.tipo, idf, 1.0, icv) ?? id;
+  const id_icv1 = calcID(r.tipo, idf, ief, 1.0) ?? id;
+  return {
+    valorFaixa, valorRecebido, perda, pctPerda,
+    perdaIDF: valorFaixa * Math.max(0, id_idf1 - id),
+    perdaIEF: valorFaixa * Math.max(0, id_ief1 - id),
+    perdaICV: valorFaixa * Math.max(0, id_icv1 - id),
+    hasID: true,
+  };
+}
+
 export function DetailModal({ r }: { r: IDRecord }) {
+  const { getActiveRecords } = useData();
+  const numFaixasEquip = getActiveRecords().filter(x => x.equipamento === r.equipamento).length || 1;
+  const fin = computeFaixaFinance(r, numFaixasEquip);
   const gain = calcGainPotential(r);
   const recos = getRecommendations(r);
   const cat = EQUIP_CATALOG[r.equipamento];
   const idColor = (r.c_ID ?? 0) < 0.6 ? 'text-red-600 dark:text-destructive' : (r.c_ID ?? 0) < 0.85 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
   const idfColor = r.c_IDF !== null && r.c_IDF < 0.95 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
+  const perdaColor = fin.pctPerda >= 0.4 ? 'text-red-600 dark:text-destructive' : fin.pctPerda >= 0.15 ? 'text-amber-600 dark:text-primary' : 'text-green-600 dark:text-emerald-400';
+  const perdaBorder = fin.pctPerda >= 0.4 ? 'border-red-200 bg-red-50 dark:border-red-500/30 dark:bg-red-500/5' : fin.pctPerda >= 0.15 ? 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/5' : 'border-green-200 bg-green-50 dark:border-emerald-500/25 dark:bg-emerald-500/5';
 
   return (
     <div>
@@ -81,6 +126,33 @@ export function DetailModal({ r }: { r: IDRecord }) {
         </div>
       </div>
 
+      <div className="mt-4 border border-border rounded-lg p-4">
+        <div className="text-xs font-bold text-primary mb-2">💰 Impacto Financeiro</div>
+        {fin.hasID ? (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              <FinCard label="Valor Contratado" value={formatMoeda(fin.valorFaixa)} desc="Valor da faixa no período" />
+              <FinCard label="Valor a Receber" value={formatMoeda(fin.valorRecebido)} desc={`Valor × ID (${(((r.f_ID ?? r.c_ID) ?? 0) * 100).toFixed(1)}%)`} />
+              <FinCard
+                label="Perda no Faturamento"
+                value={formatMoeda(fin.perda)}
+                desc={`${(fin.pctPerda * 100).toFixed(1)}% do contratado`}
+                valueClass={`font-mono text-lg font-bold ${perdaColor}`}
+                wrapperClass={`border rounded-lg p-3 text-center ${perdaBorder}`}
+              />
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-3 mb-1">Quanto cada índice está custando nesta faixa:</div>
+            <div className="grid grid-cols-3 gap-2">
+              <GainMoneyCard label="IDF=1.0" value={fin.perdaIDF} desc="Recuperável c/ disponibilidade 100%" />
+              <GainMoneyCard label="IEF=1.0" value={fin.perdaIEF} desc="Recuperável c/ eficiência 100%" />
+              <GainMoneyCard label="ICV=1.0" value={fin.perdaICV} desc="Recuperável c/ classificação 100%" />
+            </div>
+          </>
+        ) : (
+          <div className="text-xs text-muted-foreground">Faixa sem ID calculável — impacto financeiro indisponível.</div>
+        )}
+      </div>
+
       <div className="mt-4">
         <div className="text-sm font-bold mb-2">🎯 Recomendações</div>
         <div className="space-y-2">
@@ -145,6 +217,26 @@ function GainCard({ label, gain, desc }: { label: string; gain: number; desc: st
     <div className="bg-green-50 dark:bg-emerald-500/5 border border-green-200 dark:border-emerald-500/25 rounded-lg p-3 text-center">
       <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
       <div className="font-mono text-lg font-bold text-green-600 dark:text-emerald-400">+{fmt(gain)}</div>
+      <div className="text-[10px] text-muted-foreground">{desc}</div>
+    </div>
+  );
+}
+
+function FinCard({ label, value, desc, valueClass, wrapperClass }: { label: string; value: string; desc: string; valueClass?: string; wrapperClass?: string }) {
+  return (
+    <div className={wrapperClass ?? 'border border-border rounded-lg p-3 text-center bg-muted/30'}>
+      <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
+      <div className={valueClass ?? 'font-mono text-lg font-bold'}>{value}</div>
+      <div className="text-[10px] text-muted-foreground">{desc}</div>
+    </div>
+  );
+}
+
+function GainMoneyCard({ label, value, desc }: { label: string; value: number; desc: string }) {
+  return (
+    <div className="bg-green-50 dark:bg-emerald-500/5 border border-green-200 dark:border-emerald-500/25 rounded-lg p-3 text-center">
+      <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
+      <div className="font-mono text-base font-bold text-green-600 dark:text-emerald-400">+{formatMoeda(value)}</div>
       <div className="text-[10px] text-muted-foreground">{desc}</div>
     </div>
   );
