@@ -198,29 +198,75 @@ const LoteAnaliseModal: React.FC<Props> = ({ open, onOpenChange, groups, records
   const spliceResumo = useMemo(() => calcResumo(splice, spliceRecords), [splice, spliceRecords]);
   const focalleResumo = useMemo(() => calcResumo(focalle, focalleRecords), [focalle, focalleRecords]);
 
-  // Perdas por índice/subíndice (contrato inteiro — bate com o Dashboard)
+  // Perdas por índice/subíndice (contrato inteiro — bate com o Dashboard).
+  // Estratégia:
+  //  • Perda Total = soma dos descontos contratuais (g.descontoTotal).
+  //  • Perdas IDF/IEF/ICV (cards principais) = decomposição PROPORCIONAL
+  //    aditiva da Perda Total, baseada no ganho marginal de cada índice
+  //    (perdaIDF/IEF/ICV) — assim IDF+IEF+ICV = Perda Total exatamente.
+  //  • Sub-índices do IEF = ganho marginal real em R$. Para cada sub,
+  //    recalcula o IEF do equipamento como se aquele sub fosse 1.0
+  //    (mantendo os outros), recalcula o ID e mede o impacto financeiro.
+  //    Em seguida normaliza os 6 sub-cards para somar a Perda IEF.
   const perdas = useMemo(() => {
-    const perdaIDF = groups.reduce((s, g) => s + (g.perdaIDF || 0), 0);
-    const perdaIEF = groups.reduce((s, g) => s + (g.perdaIEF || 0), 0);
-    const perdaICV = groups.reduce((s, g) => s + (g.perdaICV || 0), 0);
     const total = groups.reduce((s, g) => s + (g.descontoTotal || 0), 0);
 
-    // Subíndices do IEF: gap × valorTotal por equipamento, somado
-    const subKeys: Array<keyof EquipGroup> = ['c_ICId', 'c_ICIn', 'c_IEVri', 'c_IEVdt', 'c_ILPd', 'c_ILPn'];
-    const subOut: Record<string, number> = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
-    const map: Record<string, string> = {
-      c_ICId: 'ICId', c_ICIn: 'ICIn', c_IEVri: 'IEVri',
-      c_IEVdt: 'IEVdt', c_ILPd: 'ILPd', c_ILPn: 'ILPn',
-    };
+    const rawIDF = groups.reduce((s, g) => s + (g.perdaIDF || 0), 0);
+    const rawIEF = groups.reduce((s, g) => s + (g.perdaIEF || 0), 0);
+    const rawICV = groups.reduce((s, g) => s + (g.perdaICV || 0), 0);
+    const rawSum = rawIDF + rawIEF + rawICV;
+
+    // Decomposição proporcional aditiva
+    const scale = rawSum > 0 ? total / rawSum : 0;
+    const perdaIDF = rawIDF * scale;
+    const perdaIEF = rawIEF * scale;
+    const perdaICV = rawICV * scale;
+
+    // Sub-índices do IEF: ganho marginal real (impacto no faturamento)
+    const subKeys = ['ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn'] as const;
+    const subRaw: Record<string, number> = { ICId: 0, ICIn: 0, IEVri: 0, IEVdt: 0, ILPd: 0, ILPn: 0 };
+
     groups.forEach(g => {
+      const idf = g.c_IDF, icv = g.c_ICV, idAtual = g.c_ID;
+      const valor = g.valorTotal || 0;
+      if (idf === null || icv === null || idAtual === null || valor === 0) return;
+
+      const subVals: Record<string, number | null> = {
+        ICId: g.c_ICId, ICIn: g.c_ICIn, IEVri: g.c_IEVri,
+        IEVdt: g.c_IEVdt, ILPd: g.c_ILPd, ILPn: g.c_ILPn,
+      };
+      // Se algum sub for null, usa 1.0 como neutro para o recálculo
+      const safe = (v: number | null | undefined) => (v === null || v === undefined ? 1 : v);
+      const ICId = safe(subVals.ICId), ICIn = safe(subVals.ICIn);
+      const IEVri = safe(subVals.IEVri), IEVdt = safe(subVals.IEVdt);
+      const ILPd = safe(subVals.ILPd), ILPn = safe(subVals.ILPn);
+
+      const calcIEFlocal = (a: number, b: number, c: number, d: number, e: number, f: number) =>
+        Math.min(1, Math.max(0, 0.8 * ((a + b) / 2) * ((c + d) / 2) + 0.2 * ((e + f) / 2)));
+      const calcIDlocal = (iefv: number) => idf * (0.9 * iefv + 0.1 * icv);
+
       subKeys.forEach(k => {
-        const v = g[k] as number | null;
-        if (v !== null && v !== undefined) {
-          subOut[map[k as string]] += Math.max(0, 1 - v) * (g.valorTotal || 0);
-        }
+        // Recalcula IEF substituindo apenas o sub k por 1.0
+        const a = k === 'ICId' ? 1 : ICId;
+        const b = k === 'ICIn' ? 1 : ICIn;
+        const c = k === 'IEVri' ? 1 : IEVri;
+        const d = k === 'IEVdt' ? 1 : IEVdt;
+        const e = k === 'ILPd' ? 1 : ILPd;
+        const f = k === 'ILPn' ? 1 : ILPn;
+        const iefNovo = calcIEFlocal(a, b, c, d, e, f);
+        const idNovo = calcIDlocal(iefNovo);
+        const ganho = Math.max(0, idNovo - idAtual);
+        subRaw[k] += ganho * valor;
       });
     });
-    return { main: { total, IDF: perdaIDF, IEF: perdaIEF, ICV: perdaICV }, sub: subOut };
+
+    // Normaliza para somar exatamente a Perda IEF
+    const subSum = subKeys.reduce((s, k) => s + subRaw[k], 0);
+    const subScale = subSum > 0 ? perdaIEF / subSum : 0;
+    const sub: Record<string, number> = {};
+    subKeys.forEach(k => { sub[k] = subRaw[k] * subScale; });
+
+    return { main: { total, IDF: perdaIDF, IEF: perdaIEF, ICV: perdaICV }, sub };
   }, [groups]);
 
   return (
