@@ -37,8 +37,10 @@ export interface FinanceTotals {
   descontoTotal: number;
   pctDesconto: number;
   // ID
-  idMedioFaixa: number;          // média simples por faixa (oficial p/ pagamento)
-  idMedioEquipamento: number;    // média simples por equipamento
+  idMedioFaixa: number;          // média simples por faixa, inclui zerados (oficial p/ pagamento)
+  idMedioFaixaSemZero: number;   // média operacional: ignora null e ID = 0
+  idMedioEquipamento: number;    // média simples por equipamento (inclui zerados)
+  idMedioEquipamentoSemZero: number; // média operacional por equipamento
   // Severidade
   faixasCriticas: number; faixasAlerta: number; faixasOk: number;
   equipCriticos: number;  equipAlerta: number;  equipOk: number;
