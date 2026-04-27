@@ -158,10 +158,16 @@ export default function ResumoPage() {
             Diagnóstico completo · Critérios alinhados ao Dashboard (Crítico &lt;60% · Alerta 60–85% · OK ≥85%) — Período: <span className="font-semibold text-foreground">{activePeriod || '—'}</span>
           </p>
         </motion.div>
-        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
-          <Download className="w-4 h-4" />
-          Exportar PDF
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportResumoToExcel(groups, stats, activePeriod)} className="gap-2">
+            <FileSpreadsheet className="w-4 h-4" />
+            Exportar Excel
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+            <Download className="w-4 h-4" />
+            Exportar PDF
+          </Button>
+        </div>
       </div>
 
       <div ref={contentRef}>
