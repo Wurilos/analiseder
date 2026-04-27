@@ -222,6 +222,26 @@ function GainCard({ label, gain, desc }: { label: string; gain: number; desc: st
   );
 }
 
+function FinCard({ label, value, desc, valueClass, wrapperClass }: { label: string; value: string; desc: string; valueClass?: string; wrapperClass?: string }) {
+  return (
+    <div className={wrapperClass ?? 'border border-border rounded-lg p-3 text-center bg-muted/30'}>
+      <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
+      <div className={valueClass ?? 'font-mono text-lg font-bold'}>{value}</div>
+      <div className="text-[10px] text-muted-foreground">{desc}</div>
+    </div>
+  );
+}
+
+function GainMoneyCard({ label, value, desc }: { label: string; value: number; desc: string }) {
+  return (
+    <div className="bg-green-50 dark:bg-emerald-500/5 border border-green-200 dark:border-emerald-500/25 rounded-lg p-3 text-center">
+      <div className="text-[10px] text-muted-foreground uppercase">{label}</div>
+      <div className="font-mono text-base font-bold text-green-600 dark:text-emerald-400">+{formatMoeda(value)}</div>
+      <div className="text-[10px] text-muted-foreground">{desc}</div>
+    </div>
+  );
+}
+
 function RawRow({ label, value }: { label: string; value: any }) {
   return (
     <div className="flex gap-2 items-center">
