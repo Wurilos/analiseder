@@ -40,9 +40,22 @@ export interface FinanceTotals {
   // Severidade
   faixasCriticas: number; faixasAlerta: number; faixasOk: number;
   equipCriticos: number;  equipAlerta: number;  equipOk: number;
-  // Perdas
+  // Perdas — visão CONTÁBIL (proporcional, soma = descontoTotal).
+  // Use nos cards principais que precisam fechar com a Perda Total.
   perdaIDF: number; perdaIEF: number; perdaICV: number;
   perdaSub: FinancePerdaSub;
+  // Perdas — visão de AUDITORIA (ponderada pelo valor de cada equipamento,
+  // ganho marginal isolado: "quanto este índice custa em R$, sozinho").
+  // NÃO somam descontoTotal — a diferença é a sobreposição (efeito multiplicativo).
+  audit: {
+    perdaIDF: number;        // Σ (ID se IDF=1 − ID atual) × valor_equip
+    perdaIEF: number;        // idem para IEF
+    perdaICV: number;        // idem para ICV
+    perdaSub: FinancePerdaSub; // sub-IEF SEM normalização (R$ reais isolados)
+    somaIsoladas: number;    // perdaIDF + perdaIEF + perdaICV (auditoria)
+    sobreposicao: number;    // somaIsoladas − descontoTotal
+    pctSobreposicao: number; // sobreposicao / descontoTotal
+  };
 }
 
 const getDisplayID = (r: { f_ID: number | null; c_ID: number | null }) =>
