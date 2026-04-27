@@ -190,7 +190,7 @@ function buildRelatorio(groups: EquipGroup[], stats: ResumoStats | null, periodo
     r++;
 
     // --- subheader: localização + financeiro
-    const loc = `${g.rodovia} km ${g.km}  ·  ${g.tipo}  ·  ${g.numFaixas} faixa(s)  ·  Lote ${g.lote || '—'}`;
+    const loc = `${g.rodovia} km ${g.km}  ·  ${g.tipo}  ·  ${g.numFaixas} faixa(s)  ·  Lote ${g.lote || '—'}  ·  Série ${g.serie ?? 'Pendente'}`;
     setCell(r, 0, loc, {
       font: { sz: 9, color: { rgb: '475569' } },
       fill: { fgColor: { rgb: MUTED_BG } },
@@ -402,7 +402,7 @@ function buildRelatorio(groups: EquipGroup[], stats: ResumoStats | null, periodo
 // ---------- aba "Dados" tabular (uma linha por equipamento) — para análise rápida
 function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   const headers = [
-    'Equipamento', 'Rodovia', 'KM', 'Tipo', 'Lote', 'Nº Faixas',
+    'Equipamento', 'Nº Série', 'Rodovia', 'KM', 'Tipo', 'Lote', 'Nº Faixas',
     'ID', 'IDF', 'IEF', 'ICV',
     'ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn',
     'Severidade',
@@ -411,7 +411,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
     'Observações',
   ];
   const rows = groups.map(g => [
-    g.equipamento, g.rodovia, g.km, g.tipo, g.lote || '', g.numFaixas,
+    g.equipamento, g.serie ?? 'Pendente', g.rodovia, g.km, g.tipo, g.lote || '', g.numFaixas,
     g.c_ID, g.c_IDF, g.c_IEF, g.c_ICV,
     g.c_ICId, g.c_ICIn, g.c_IEVri, g.c_IEVdt, g.c_ILPd, g.c_ILPn,
     severidadeLabel(g.c_ID),
@@ -435,14 +435,14 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   }
   // formatação por linha
   for (let r = 1; r <= rows.length; r++) {
-    for (let c = 6; c <= 15; c++) {
+    for (let c = 7; c <= 16; c++) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (ws[addr]) {
         (ws[addr] as any).z = '0.0%';
         (ws[addr] as any).s = { ...((ws[addr] as any).s || {}), border, alignment: { horizontal: 'right' }, font: { name: 'Consolas', sz: 10 } };
       }
     }
-    for (const c of [17, 18, 19, 21]) {
+    for (const c of [18, 19, 20, 22]) {
       const addr = XLSX.utils.encode_cell({ r, c });
       if (ws[addr]) {
         (ws[addr] as any).z = 'R$ #,##0.00';
@@ -450,8 +450,8 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
       }
     }
     // severidade colorida
-    const sevAddr = XLSX.utils.encode_cell({ r, c: 16 });
-    const sev = rows[r - 1][16] as string;
+    const sevAddr = XLSX.utils.encode_cell({ r, c: 17 });
+    const sev = rows[r - 1][17] as string;
     const c = sev === 'Crítico' ? { bg: RED_BG, fg: RED_FG }
            : sev === 'Alerta' ? { bg: AMBER_BG, fg: AMBER_FG }
            : sev === 'OK' ? { bg: GREEN_BG, fg: GREEN_FG }
@@ -465,7 +465,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
       };
     }
     // demais células de texto: borda + tamanho padrão
-    for (const c2 of [0, 1, 2, 3, 4, 5, 20, 22]) {
+    for (const c2 of [0, 1, 2, 3, 4, 5, 6, 21, 23]) {
       const addr = XLSX.utils.encode_cell({ r, c: c2 });
       if (ws[addr]) {
         (ws[addr] as any).s = { ...((ws[addr] as any).s || {}), border, font: { sz: 10 }, alignment: { vertical: 'center' } };
@@ -474,7 +474,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   }
 
   ws['!cols'] = [
-    { wch: 14 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 },
+    { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 8 }, { wch: 8 }, { wch: 10 }, { wch: 8 },
     { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
     { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 }, { wch: 8 },
     { wch: 12 },
