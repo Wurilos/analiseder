@@ -190,7 +190,7 @@ function buildRelatorio(groups: EquipGroup[], stats: ResumoStats | null, periodo
     r++;
 
     // --- subheader: localização + financeiro
-    const loc = `${g.rodovia} km ${g.km}  ·  ${g.tipo}  ·  ${g.numFaixas} faixa(s)  ·  Lote ${g.lote || '—'}`;
+    const loc = `${g.rodovia} km ${g.km}  ·  ${g.tipo}  ·  ${g.numFaixas} faixa(s)  ·  Lote ${g.lote || '—'}  ·  Série ${g.serie ?? 'Pendente'}`;
     setCell(r, 0, loc, {
       font: { sz: 9, color: { rgb: '475569' } },
       fill: { fgColor: { rgb: MUTED_BG } },
@@ -402,7 +402,7 @@ function buildRelatorio(groups: EquipGroup[], stats: ResumoStats | null, periodo
 // ---------- aba "Dados" tabular (uma linha por equipamento) — para análise rápida
 function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
   const headers = [
-    'Equipamento', 'Rodovia', 'KM', 'Tipo', 'Lote', 'Nº Faixas',
+    'Equipamento', 'Nº Série', 'Rodovia', 'KM', 'Tipo', 'Lote', 'Nº Faixas',
     'ID', 'IDF', 'IEF', 'ICV',
     'ICId', 'ICIn', 'IEVri', 'IEVdt', 'ILPd', 'ILPn',
     'Severidade',
@@ -411,7 +411,7 @@ function buildDados(groups: EquipGroup[]): XLSX.WorkSheet {
     'Observações',
   ];
   const rows = groups.map(g => [
-    g.equipamento, g.rodovia, g.km, g.tipo, g.lote || '', g.numFaixas,
+    g.equipamento, g.serie ?? 'Pendente', g.rodovia, g.km, g.tipo, g.lote || '', g.numFaixas,
     g.c_ID, g.c_IDF, g.c_IEF, g.c_ICV,
     g.c_ICId, g.c_ICIn, g.c_IEVri, g.c_IEVdt, g.c_ILPd, g.c_ILPn,
     severidadeLabel(g.c_ID),

@@ -212,7 +212,7 @@ export default function ResumoPage() {
                           {g.equipamento}
                         </CardTitle>
                         <CardDescription className="text-xs">
-                          {g.rodovia} km {g.km} · {g.tipo} · {g.numFaixas} faixa(s) · Lote {g.lote || '—'}
+                          {g.rodovia} km {g.km} · {g.tipo} · {g.numFaixas} faixa(s) · Lote {g.lote || '—'} · Série <span className="font-mono">{g.serie ?? 'Pendente'}</span>
                         </CardDescription>
                       </div>
                     </div>
