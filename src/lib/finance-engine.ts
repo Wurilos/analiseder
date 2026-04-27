@@ -174,6 +174,17 @@ export function computeFinanceForGroups(groups: EquipGroup[], records: IDRecord[
     for (const sk of subKeys) t.perdaSub[sk] = subRaw[sk] * k;
   }
 
+  // --- Auditoria (ponderada isolada, SEM normalização) — fonte oficial p/ cards de auditoria
+  t.audit.perdaIDF = rawIDF;
+  t.audit.perdaIEF = rawIEF;
+  t.audit.perdaICV = rawICV;
+  for (const sk of subKeys) t.audit.perdaSub[sk] = subRaw[sk];
+  t.audit.somaIsoladas = rawIDF + rawIEF + rawICV;
+  t.audit.sobreposicao = t.audit.somaIsoladas - t.descontoTotal;
+  t.audit.pctSobreposicao = t.descontoTotal > 0
+    ? t.audit.sobreposicao / t.descontoTotal
+    : 0;
+
   return t;
 }
 
