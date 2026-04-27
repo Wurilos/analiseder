@@ -1,46 +1,40 @@
-## Objetivo
+## Exportar Relatório Executivo em Excel (.xlsx)
 
-Diferenciar claramente os dois cards de ID Médio do Dashboard:
+Adicionar um botão **"Exportar Excel"** na página `Resumo`, ao lado do atual "Exportar PDF", gerando um arquivo `.xlsx` editável onde você poderá adicionar comentários, observações e imagens manualmente.
 
-1. **Card "ID Médio"** → média considerando apenas faixas/equipamentos com ID **válido e maior que zero** (exclui nulos **e** zerados).
-2. **Card "ID Médio (Todos Importados)"** → média de **todas** as faixas importadas (inclui zerados; nulos seguem fora porque não há valor numérico para somar).
+### O que será exportado
 
-Hoje os dois cards excluem apenas nulos — zerados entram em ambos, então o primeiro card fica artificialmente baixo e os dois ficam quase iguais.
+Arquivo `Relatorio_Executivo_<periodo>.xlsx` com **3 abas**:
 
-## Mudanças
+**Aba 1 — "Resumo Executivo"**
+- Cabeçalho: título, período ativo, data de geração
+- KPIs gerais: Equipamentos Críticos / Alerta / OK / Desconto Total
+- Linhas em branco reservadas para você inserir observações gerais e imagens
 
-### 1. `src/lib/finance-engine.ts`
-Adicionar dois campos novos em `FinanceTotals`, sem mexer nos existentes (que continuam servindo cálculos contábeis/pagamento):
+**Aba 2 — "Equipamentos"** (uma linha por equipamento)
+Colunas:
+- Equipamento, Rodovia, km, Tipo, Lote, Nº Faixas
+- ID, IDF, IEF, ICV (índices principais, em %)
+- ICId, ICIn, IEVri, IEVdt, ILPd, ILPn (subíndices, em %)
+- Severidade (Crítico/Alerta/OK)
+- Valor Contratado, Valor Recebido, Desconto (R$)
+- Principal Alavanca + Recuperação Potencial (R$)
+- **Coluna "Observações"** vazia para você preencher
+- **Coluna "Imagem"** vazia para inserir foto do equipamento
 
-- `idMedioFaixaSemZero: number` — média de `f_ID ?? c_ID` filtrando `null` **e** `0` (e ≤ 0 por segurança).
-- `numFaixasComIDPositivo: number` — denominador correspondente, para o subtítulo do card.
+Formatação: cabeçalho em negrito com fundo navy, células de severidade coloridas (vermelho/âmbar/verde), valores monetários em R$, percentuais com 1 casa decimal, congelar primeira linha, larguras ajustadas, autofiltro ativo.
 
-`idMedioFaixa` (já existente, inclui zerados) permanece intocado — é a base oficial do pagamento e não pode mudar.
+**Aba 3 — "Recomendações Detalhadas"**
+- Equipamento + Severidade + bloco de texto com todas as recomendações geradas (mesmo conteúdo do PDF), uma linha por recomendação, agrupadas por equipamento. Espaço para anexar imagens entre os blocos.
 
-### 2. `src/pages/Dashboard.tsx`
-- Card **"ID Médio"** (linha 440) passa a consumir `idMedioFaixaSemZero` (via novo memo local que filtra `getDisplayID(r) !== null && getDisplayID(r)! > 0`). Subtítulo: `"X de Y faixas com ID > 0"`.
-- Card **"ID Médio (Todos Importados)"** (linha 450) continua usando `avgAllIDs` (lógica atual, exclui apenas nulos). Ajustar o rótulo do subtítulo para deixar explícito: `"Inclui faixas com ID = 0"`.
-- Quando o toggle estiver em visão "Equipamento", aplicar a mesma regra: filtro `c_ID !== null && c_ID > 0` para o card principal.
+### Como ficará tecnicamente
 
-### 3. Testes — `src/test/finance-engine.test.ts`
-Adicionar caso garantindo que:
-- Faixa com ID = 0 entra em `idMedioFaixa` mas **não** em `idMedioFaixaSemZero`.
-- Faixa com ID = `null` fica fora de ambos.
+- Nova lib: **`xlsx`** (SheetJS) — já leve, mesma família usada no parser de upload, sem peso extra significativo.
+- Novo arquivo: `src/lib/excel-export.ts` com a função `exportResumoToExcel(groups, stats, periodo)` — isolando a lógica de montagem das planilhas, estilos e download.
+- `src/pages/Resumo.tsx`: adicionar botão "Exportar Excel" ao lado do PDF, chamando essa função.
+- A fonte dos dados continua sendo a mesma do PDF (`groups` + `computeFinanceForGroups`), garantindo paridade total entre os dois formatos.
+- Não haverá alterações em backend, banco, finance-engine, parser ou qualquer cálculo existente.
 
-### 4. Memória
-Atualizar `mem://features/finance-engine` registrando a nova métrica e a regra: "ID Médio (operacional) ignora zerados; ID Médio (Todos Importados) inclui zerados".
+### Fora do escopo
 
-## O que NÃO muda
-
-- `idMedioFaixa` (pagamento), severidade, perdas IDF/IEF/ICV, sub-IEF — toda a contabilidade financeira segue idêntica.
-- Cards de severidade (críticos/alerta/OK) seguem contando zerados como críticos (correto pelo edital).
-- Tabelas, ranking e exports não são alterados.
-
-## Resultado visual esperado
-
-| Card | Antes | Depois |
-|---|---|---|
-| ID Médio | Inclui zerados (puxa para baixo) | Apenas operacionais (>0) |
-| ID Médio (Todos Importados) | Inclui zerados | Inclui zerados (igual, mas rótulo deixa claro) |
-
-A diferença entre os dois cards passa a representar exatamente o impacto dos equipamentos zerados na média geral.
+- Inserir imagens automaticamente no .xlsx (SheetJS comunidade não suporta imagens embutidas de forma confiável). A coluna "Imagem" fica reservada para você arrastar fotos manualmente no Excel — que é o fluxo natural quando se quer adicionar evidências por equipamento.
