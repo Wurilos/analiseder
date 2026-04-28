@@ -78,6 +78,7 @@ const RankingPage: React.FC = () => {
   const [fRodovia, setFRodovia] = useState('');
   const [sortBy, setSortBy] = useState('id_asc');
   const [idxFilter, setIdxFilter] = useState('');
+  const [maintFilter, setMaintFilter] = useState<'' | 'only' | 'hide'>('');
   const [detail, setDetail] = useState<IDRecord | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('faixa');
   const [exporting, setExporting] = useState(false);
