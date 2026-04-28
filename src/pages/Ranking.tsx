@@ -78,6 +78,7 @@ const RankingPage: React.FC = () => {
   const [fRodovia, setFRodovia] = useState('');
   const [sortBy, setSortBy] = useState('id_asc');
   const [idxFilter, setIdxFilter] = useState('');
+  const [maintFilter, setMaintFilter] = useState<'' | 'only' | 'hide'>('');
   const [detail, setDetail] = useState<IDRecord | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>('faixa');
   const [exporting, setExporting] = useState(false);
@@ -97,6 +98,8 @@ const RankingPage: React.FC = () => {
     }
     if (fTipo) recs = recs.filter(r => r.tipo === fTipo);
     if (fRodovia) recs = recs.filter(r => r.rodovia === fRodovia);
+    if (maintFilter === 'only') recs = recs.filter(r => Boolean(obsMap[r.equipamento]));
+    else if (maintFilter === 'hide') recs = recs.filter(r => !obsMap[r.equipamento]);
     if (idxFilter) {
       const [field, op, valStr] = idxFilter.split('|');
       const val = parseFloat(valStr);
@@ -110,7 +113,7 @@ const RankingPage: React.FC = () => {
       });
     }
     return recs;
-  }, [records, search, fTipo, fRodovia, idxFilter]);
+  }, [records, search, fTipo, fRodovia, idxFilter, maintFilter, obsMap]);
 
   const sorted = useMemo(() => {
       const SORT_FIELDS: Record<string, string> = {
@@ -162,7 +165,7 @@ const RankingPage: React.FC = () => {
   const faixaCount = sorted.length;
   const equipamentoCount = equipGroups.length;
   const totalFaixas = records.length;
-  const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter);
+  const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter || maintFilter);
 
   const handleExportPDF = async () => {
     setExporting(true);
@@ -410,6 +413,12 @@ const RankingPage: React.FC = () => {
           <select value={fRodovia} onChange={e => setFRodovia(e.target.value)}>
             <option value="">Todas rodovias</option>
             {rodovias.map(r => <option key={r}>{r}</option>)}
+          </select>
+
+          <select value={maintFilter} onChange={e => setMaintFilter(e.target.value as '' | 'only' | 'hide')} title="Filtrar equipamentos em manutenção (com observação cadastrada)">
+            <option value="">Manutenção: todos</option>
+            <option value="only">🛠 Só em manutenção</option>
+            <option value="hide">Ocultar em manutenção</option>
           </select>
 
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
