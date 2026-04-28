@@ -165,7 +165,7 @@ const RankingPage: React.FC = () => {
   const faixaCount = sorted.length;
   const equipamentoCount = equipGroups.length;
   const totalFaixas = records.length;
-  const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter);
+  const hasFilters = Boolean(search || fTipo || fRodovia || idxFilter || maintFilter);
 
   const handleExportPDF = async () => {
     setExporting(true);
