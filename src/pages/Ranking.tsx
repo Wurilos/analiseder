@@ -425,6 +425,8 @@ const RankingPage: React.FC = () => {
               <option value="icin_asc">ICIn ↑</option>
               <option value="ievri_asc">IEVri ↑</option>
               <option value="ievdt_asc">IEVdt ↑</option>
+              <option value="ilpd_asc">ILPd ↑</option>
+              <option value="ilpn_asc">ILPn ↑</option>
             </optgroup>
             <optgroup label="Análise">
               <option value="gain_desc">{viewMode === 'faixa' ? 'Maior Ganho Potencial' : 'Maior Desconto'}</option>
