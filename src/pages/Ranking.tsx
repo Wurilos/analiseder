@@ -415,6 +415,12 @@ const RankingPage: React.FC = () => {
             {rodovias.map(r => <option key={r}>{r}</option>)}
           </select>
 
+          <select value={maintFilter} onChange={e => setMaintFilter(e.target.value as '' | 'only' | 'hide')} title="Filtrar equipamentos em manutenção (com observação cadastrada)">
+            <option value="">Manutenção: todos</option>
+            <option value="only">🛠 Só em manutenção</option>
+            <option value="hide">Ocultar em manutenção</option>
+          </select>
+
           <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
             <optgroup label="Índice de Desempenho">
               <option value="id_asc">ID ↑ (pior primeiro)</option>
