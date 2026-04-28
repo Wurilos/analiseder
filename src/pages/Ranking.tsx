@@ -98,6 +98,8 @@ const RankingPage: React.FC = () => {
     }
     if (fTipo) recs = recs.filter(r => r.tipo === fTipo);
     if (fRodovia) recs = recs.filter(r => r.rodovia === fRodovia);
+    if (maintFilter === 'only') recs = recs.filter(r => Boolean(obsMap[r.equipamento]));
+    else if (maintFilter === 'hide') recs = recs.filter(r => !obsMap[r.equipamento]);
     if (idxFilter) {
       const [field, op, valStr] = idxFilter.split('|');
       const val = parseFloat(valStr);
@@ -111,7 +113,7 @@ const RankingPage: React.FC = () => {
       });
     }
     return recs;
-  }, [records, search, fTipo, fRodovia, idxFilter]);
+  }, [records, search, fTipo, fRodovia, idxFilter, maintFilter, obsMap]);
 
   const sorted = useMemo(() => {
       const SORT_FIELDS: Record<string, string> = {
