@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useData } from '@/context/DataContext';
 import { EQUIP_CATALOG } from '@/lib/equip-catalog';
+import { groupByEquipamento } from '@/lib/grouping';
 import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -67,12 +68,16 @@ function useEquipData(lote: string, records: any[]) {
     const groups: Record<string, { codigo: string; endereco: string; id: number | null }[]> = {};
     const sums: Record<string, number> = {};
 
+    // Consolida ID por equipamento (mesma base do Ranking) — média das faixas, preferindo f_ID.
+    const equipGroups = groupByEquipamento(records);
+    const idByEquip: Record<string, number | null> = {};
+    equipGroups.forEach(g => { idByEquip[g.equipamento] = g.c_ID ?? null; });
+
     Object.entries(EQUIP_CATALOG).forEach(([codigo, info]) => {
       if (info.lote !== lote || !info.codMedicao) return;
       if (!groups[info.codMedicao]) groups[info.codMedicao] = [];
 
-      const rec = records.find(r => r.equipamento === codigo);
-      const id = rec ? (rec.f_ID ?? rec.c_ID ?? null) : null;
+      const id = idByEquip[codigo] ?? null;
 
       groups[info.codMedicao].push({ codigo, endereco: info.endereco, id });
 
