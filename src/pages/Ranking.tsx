@@ -628,6 +628,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
                 >
                   <td className="text-muted-foreground">{i + 1}</td>
                   <td className="font-mono text-primary font-bold">{displaySerie(g.equipamento, g.serie)}</td>
+                  <td className="font-mono text-[11px] text-muted-foreground">{displayCodMedicao(g.equipamento)}</td>
                   <td className="text-[11px]">
                     <div className="flex items-center gap-1.5">
                       <span className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}>▶</span>
