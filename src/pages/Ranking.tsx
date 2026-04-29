@@ -605,7 +605,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th>
+            <th>#</th><th>Série</th><th>Cód. DER</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th>
             <th>IDF</th><th>IEF</th><th>ICV</th>
             <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
             <th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th>
