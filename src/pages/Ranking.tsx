@@ -253,8 +253,8 @@ const RankingPage: React.FC = () => {
       }
 
       const headersHtml = isEquip
-        ? `<tr><th>#</th><th>Série</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th></tr>`
-        : `<tr><th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th></tr>`;
+        ? `<tr><th>#</th><th>Série</th><th>Cód. DER</th><th>Equipamento</th><th>Tipo</th><th>Faixas</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID Médio</th><th>ID Atual</th><th>Alavanca</th><th>Desconto</th></tr>`
+        : `<tr><th>#</th><th>Série</th><th>Cód. DER</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th><th>IDF</th><th>IEF</th><th>ICV</th><th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th><th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th></tr>`;
 
       const filtersInfo = [
         fTipo && `Tipo: ${fTipo}`,
