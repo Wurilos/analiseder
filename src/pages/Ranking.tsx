@@ -542,6 +542,7 @@ function FaixaTable({ sorted, onDetail, obsMap }: { sorted: IDRecord[]; onDetail
               >
                 <td className="text-muted-foreground">{i + 1}</td>
                 <td className="font-mono text-primary font-bold">{displaySerie(r.equipamento, r.serie)}</td>
+                <td className="font-mono text-[11px] text-muted-foreground">{displayCodMedicao(r.equipamento)}</td>
                 <td className="text-muted-foreground text-[11px]">
                   <span className="inline-flex items-center gap-1">
                     {r.equipamento}
