@@ -501,6 +501,8 @@ const RankingPage: React.FC = () => {
         ) : (
           <EquipTable groups={equipGroups} records={filteredRecords} onDetail={setDetail} obsMap={obsMap} />
         )}
+
+        <CodMedicaoSummary groups={equipGroups} />
       </div>
 
       <Dialog open={!!detail} onOpenChange={() => setDetail(null)}>
