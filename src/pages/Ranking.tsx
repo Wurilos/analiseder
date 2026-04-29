@@ -722,6 +722,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
       </table>
     </div>
   );
+}
 
 function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   const rows = useMemo(() => {
