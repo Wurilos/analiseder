@@ -21,6 +21,10 @@ function displaySerie(equipamento: string, serie: number | null | undefined): st
   return s > 0 ? String(s) : 'Pendente';
 }
 
+function displayCodMedicao(equipamento: string): string {
+  return EQUIP_CATALOG[equipamento]?.codMedicao || '—';
+}
+
 function fmt(v: number | null, d = 3) {
   if (v === null || v === undefined || isNaN(v as number)) return '—';
   return Number(v).toFixed(d);
