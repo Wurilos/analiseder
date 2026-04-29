@@ -722,6 +722,62 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
       </table>
     </div>
   );
+
+function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
+  const rows = useMemo(() => {
+    const map = new Map<string, { codigo: string; equipamentos: string[]; ids: number[] }>();
+    for (const g of groups) {
+      const cod = EQUIP_CATALOG[g.equipamento]?.codMedicao || '— sem código —';
+      if (!map.has(cod)) map.set(cod, { codigo: cod, equipamentos: [], ids: [] });
+      const entry = map.get(cod)!;
+      entry.equipamentos.push(g.equipamento);
+      if (g.c_ID !== null && g.c_ID !== undefined && !isNaN(g.c_ID)) entry.ids.push(g.c_ID);
+    }
+    return [...map.values()]
+      .map(e => ({
+        codigo: e.codigo,
+        qtd: e.equipamentos.length,
+        equipamentos: e.equipamentos,
+        soma: e.ids.reduce((s, v) => s + v, 0),
+        media: e.ids.length ? e.ids.reduce((s, v) => s + v, 0) / e.ids.length : null,
+      }))
+      .sort((a, b) => a.codigo.localeCompare(b.codigo));
+  }, [groups]);
+
+  if (!rows.length) return null;
+
+  return (
+    <div className="mt-6 border-t border-border pt-4 px-4 pb-4">
+      <h4 className="text-sm font-bold mb-1">Soma de IDs por Cód. DER</h4>
+      <p className="text-xs text-muted-foreground mb-3">
+        Agrupamento por código de medição contratual (DER). Soma e média dos IDs dos equipamentos associados.
+      </p>
+      <div className="table-wrap overflow-x-auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Cód. DER</th>
+              <th>Qtd. Equip.</th>
+              <th>Equipamentos</th>
+              <th>Soma IDs</th>
+              <th>Média ID</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(r => (
+              <tr key={r.codigo}>
+                <td className="font-mono font-semibold">{r.codigo}</td>
+                <td className="text-center font-mono">{r.qtd}</td>
+                <td className="text-[11px] text-muted-foreground">{r.equipamentos.join(', ')}</td>
+                <td className="font-mono font-bold">{r.soma.toFixed(3)}</td>
+                <td><span className={`badge ${idBadge(r.media)}`}>{fmt(r.media)}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 export default RankingPage;
