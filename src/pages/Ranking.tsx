@@ -231,6 +231,7 @@ const RankingPage: React.FC = () => {
           return `<tr>
             <td style="text-align:center">${i + 1}</td>
             <td style="text-align:center;font-weight:bold;color:#1e40af">${displaySerie(r.equipamento, r.serie)}</td>
+            <td style="text-align:center;font-family:monospace;font-size:7px">${displayCodMedicao(r.equipamento)}</td>
             <td style="text-align:left">${r.equipamento}</td>
             <td style="text-align:center">${r.tipo}</td>
             <td style="text-align:center">${r.faixa}</td>
