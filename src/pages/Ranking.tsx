@@ -518,7 +518,7 @@ function FaixaTable({ sorted, onDetail, obsMap }: { sorted: IDRecord[]; onDetail
       <table>
         <thead>
           <tr>
-            <th>#</th><th>Série</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
+            <th>#</th><th>Série</th><th>Cód. DER</th><th>Equip</th><th>Tipo</th><th>Faixa</th><th>Rodovia</th><th>Km</th>
             <th>IDF</th><th>IEF</th><th>ICV</th>
             <th>ICId</th><th>ICIn</th><th>IEVri</th><th>IEVdt</th><th>ILPd</th><th>ILPn</th>
             <th>ID</th><th>ID Atual</th><th>Causa Principal</th><th>Ganho</th><th>Ação</th>
