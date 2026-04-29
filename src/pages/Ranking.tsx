@@ -689,6 +689,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
                     <tr key={`${r.equipamento}-${r.faixa}-${fi}`} className="bg-blue-50/60 dark:bg-blue-950/20 border-l-2 border-l-primary/40 cursor-pointer hover:bg-blue-100/60 dark:hover:bg-blue-900/20" onClick={() => onDetail(r)}>
                       <td></td>
                       <td></td>
+                      <td></td>
                       <td className="text-[11px] text-muted-foreground pl-8">↳ Faixa {r.faixa}</td>
                       <td></td>
                       <td></td>
