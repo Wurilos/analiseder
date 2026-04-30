@@ -52,63 +52,35 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
   const printRef = useRef<HTMLDivElement>(null);
 
   const data = useMemo(() => {
-    // Município por equipamento, vindo da planilha (mais frequente entre as faixas)
+    // Município por equipamento (primeiro valor não vazio nas faixas)
     const municipioByEquip: Record<string, string> = {};
-    const faixasByEquip: Record<string, { faixa: string; id: number }[]> = {};
-
     records.forEach(r => {
       if (!r.equipamento) return;
-      // município: pega o primeiro não vazio
       if (!municipioByEquip[r.equipamento] && r.municipio) {
         municipioByEquip[r.equipamento] = r.municipio;
       }
-      const id = r.f_ID ?? r.c_ID;
-      if (id !== null && id !== undefined && r.faixa) {
-        if (!faixasByEquip[r.equipamento]) faixasByEquip[r.equipamento] = [];
-        faixasByEquip[r.equipamento].push({ faixa: r.faixa, id });
-      }
     });
 
-    const equipGroups = groupByEquipamento(records);
-    const idByEquip: Record<string, number | null> = {};
-    equipGroups.forEach(g => { idByEquip[g.equipamento] = g.c_ID ?? null; });
+    // ÚNICA fonte de valor: finance-engine (valorRecebidoTotal por equipamento).
+    // Mesma lógica que alimenta o card do Dashboard.
+    const equipGroups = groupByEquipamento(records).filter(g => {
+      const cat = EQUIP_CATALOG[g.equipamento];
+      return cat && cat.lote === lote && cat.codMedicao;
+    });
+
+    // % por município baseado em valorRecebidoTotal
+    const porMunicipio: Record<string, number> = {};
+    let totalFase34 = 0;
+    equipGroups.forEach(g => {
+      const valor = g.valorRecebidoTotal || 0;
+      totalFase34 += valor;
+      const m = normalizeMunicipio(municipioByEquip[g.equipamento] || '');
+      if (!m) return;
+      porMunicipio[m] = (porMunicipio[m] || 0) + valor;
+    });
 
     const linhas: LinhaAtesto[] = [];
-    Object.entries(EQUIP_CATALOG).forEach(([equip, info]) => {
-      if (info.lote !== lote || !info.codMedicao) return;
-      const id = idByEquip[equip] ?? 0;
-      const conjMes = Math.round((id ?? 0) * 100) / 100;
-      const faixasList = faixasByEquip[equip] || [];
-      const faixasStr = faixasList
-        .map(f => `${f.faixa} ${f.id.toFixed(3).replace('.', ',')}`)
-        .join(' / ') || '—';
-      linhas.push({
-        equip,
-        codMedicao: info.codMedicao,
-        endereco: info.endereco,
-        faixas: faixasStr,
-        resultado: id ?? 0,
-        conjMes,
-        municipio: municipioByEquip[equip] || '—',
-        valorUnit: info.valor,
-        valorTotal: Math.round(info.valor * conjMes * 100) / 100,
-      });
-    });
 
-    // Ordena por código de medição e endereço
-    linhas.sort((a, b) =>
-      a.codMedicao.localeCompare(b.codMedicao) || a.endereco.localeCompare(b.endereco)
-    );
-
-    const totalFase34 = linhas.reduce((s, l) => s + l.valorTotal, 0);
-
-    // % por município
-    const porMunicipio: Record<string, number> = {};
-    linhas.forEach(l => {
-      const m = normalizeMunicipio(l.municipio);
-      if (!m || m === '—') return;
-      porMunicipio[m] = (porMunicipio[m] || 0) + l.valorTotal;
-    });
     const municipios = Object.entries(porMunicipio)
       .map(([m, v]) => ({
         municipio: titleCase(m),
