@@ -172,8 +172,35 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
     ? `${formatDateShort(periodoInicio)} a ${formatDateShort(periodoFim)}`
     : '__/__/__ a __/__/__';
   const medicaoRef = numMedicao ? `${numMedicao}ª Medição Provisória` : '___ª Medição Provisória';
+  const medicaoNumLabel = numMedicao || '___';
   const loteNum = lote.replace('DR-', '');
   const contrato = lote === 'DR-08' ? '22.583-6' : '22.589-7';
+
+  // Cabeçalho de assinatura por lote
+  const fiscalConfig: Record<string, { cidade: string; orgao: string; nome: string; cargo: string }> = {
+    'DR-08': {
+      cidade: 'Ribeirão Preto',
+      orgao: 'DER/SP - Coordenadoria Geral Regional - CGR.08',
+      nome: '_______________________________',
+      cargo: 'Engº Fiscal do Contrato',
+    },
+    'DR-14': {
+      cidade: 'Barretos',
+      orgao: 'DER/SP - Coordenadoria Geral Regional - CGR.14 Barretos',
+      nome: 'Renato Bergamo Martines',
+      cargo: 'Engº Fiscal do Contrato',
+    },
+  };
+  const cfg = fiscalConfig[lote] || fiscalConfig['DR-14'];
+  const cidadeFiscal = cfg.cidade;
+  const orgaoFiscal = cfg.orgao;
+  const nomeFiscal = cfg.nome;
+  const cargoFiscal = cfg.cargo;
+
+  // Data por extenso (usa periodoFim como referência, fallback hoje)
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const refDate = periodoFim ? new Date(periodoFim + 'T00:00:00') : new Date();
+  const dataExtenso = `${refDate.getDate()} de ${meses[refDate.getMonth()]} de ${refDate.getFullYear()}`;
 
   const b = '1px solid #000';
 
@@ -230,7 +257,7 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
           <div style={{ marginTop: '14px', fontWeight: 'bold', fontSize: '10px' }}>
             Municípios abrangidos — % do faturamento (Fase 34)
           </div>
-          <table style={{ width: '60%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '9.5px' }}>
+          <table style={{ width: '70%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '9.5px' }}>
             <thead>
               <tr style={{ background: '#d9d9d9' }}>
                 <th style={{ ...thA, textAlign: 'left' }}>Município</th>
@@ -247,26 +274,28 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
                 </tr>
               ))}
               <tr style={{ background: '#f0f0f0', fontWeight: 'bold' }}>
-                <td style={{ ...tdA, textAlign: 'right' }} colSpan={2}>TOTAL</td>
+                <td style={{ ...tdA, textAlign: 'left' }}>TOTAL</td>
+                <td style={{ ...tdA, textAlign: 'right' }}>{formatBRL(data.totalFase34)}</td>
                 <td style={{ ...tdA, textAlign: 'right' }}>{data.somaPct.toFixed(2).replace('.', ',')}%</td>
               </tr>
             </tbody>
           </table>
 
-          {/* ── Atesto ── */}
-          <div style={{ marginTop: '18px', fontSize: '9.5px' }}>
-            Atesto para os devidos fins, a {medicaoRef}.
+          {/* ── Atesto / Assinatura (formato do anexo) ── */}
+          <div style={{ marginTop: '34px', fontSize: '10px' }}>
+            Atesto para os devidos fins, a&nbsp;&nbsp;<strong>{medicaoNumLabel}ª Medição Provisória</strong>
           </div>
 
-          <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'space-between', fontSize: '9px' }}>
-            <div style={{ textAlign: 'center', width: '45%' }}>
-              <div style={{ borderTop: b, paddingTop: '4px' }}>FISCAL DO CONTRATO</div>
-              <div>DER/SP</div>
+          <div style={{ marginTop: '32px', fontSize: '10px' }}>
+            {cidadeFiscal}, {dataExtenso}.
+          </div>
+
+          <div style={{ marginTop: '54px', textAlign: 'center', fontSize: '10px' }}>
+            <div style={{ borderTop: b, width: '60%', margin: '0 auto', paddingTop: '3px' }}>
+              {orgaoFiscal}
             </div>
-            <div style={{ textAlign: 'center', width: '45%' }}>
-              <div style={{ borderTop: b, paddingTop: '4px' }}>CONTRATADA</div>
-              <div>Splice Industria Comércio e Serviços Ltda</div>
-            </div>
+            <div>{nomeFiscal}</div>
+            <div>{cargoFiscal}</div>
           </div>
         </div>
       </CardContent>
