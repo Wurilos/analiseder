@@ -727,7 +727,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
 function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   const rows = useMemo(() => {
     const round2 = (v: number) => Math.round(v * 100) / 100;
-    const round3 = (v: number) => Math.round(v * 1000) / 1000;
+    const round3 = (v: number) => Math.round(v * 100) / 100;
     const map = new Map<string, {
       codigo: string;
       equipamentos: string[];
@@ -761,7 +761,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   if (!rows.length) return null;
 
   const totalQtd = rows.reduce((s, r) => s + r.qtd, 0);
-  const totalSoma = Math.round(rows.reduce((s, r) => s + r.soma, 0) * 1000) / 1000;
+  const totalSoma = Math.round(rows.reduce((s, r) => s + r.soma, 0) * 100) / 100;
   const totalFat = Math.round(rows.reduce((s, r) => s + r.faturamento, 0) * 100) / 100;
   const brl = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -789,7 +789,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
                 <td className="font-mono font-semibold">{r.codigo}</td>
                 <td className="text-center font-mono">{r.qtd}</td>
                 <td className="text-[11px] text-muted-foreground">{r.equipamentos.join(', ')}</td>
-                <td className="font-mono font-bold">{r.soma.toFixed(3)}</td>
+                <td className="font-mono font-bold">{r.soma.toFixed(2)}</td>
                 <td><span className={`badge ${idBadge(r.media)}`}>{fmt(r.media)}</span></td>
                 <td className="font-mono font-bold text-right">{brl(r.faturamento)}</td>
               </tr>
@@ -798,7 +798,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
               <td className="font-mono">TOTAL</td>
               <td className="text-center font-mono">{totalQtd}</td>
               <td></td>
-              <td className="font-mono">{totalSoma.toFixed(3)}</td>
+              <td className="font-mono">{totalSoma.toFixed(2)}</td>
               <td></td>
               <td className="font-mono text-right">{brl(totalFat)}</td>
             </tr>
