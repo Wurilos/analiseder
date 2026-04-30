@@ -11,6 +11,7 @@ import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import AtestoMunicipios from '@/components/AtestoMunicipios';
 
 // ════════════════════════════════════════════
 // DR-08 Data
@@ -448,6 +449,8 @@ export default function MedicaoPage() {
         <TabsList>
           <TabsTrigger value="DR-08">DR-08 (DER-621)</TabsTrigger>
           <TabsTrigger value="DR-14">DR-14 (Memória de Cálculo)</TabsTrigger>
+          <TabsTrigger value="ATESTO-08">Atesto DR-08 / Municípios</TabsTrigger>
+          <TabsTrigger value="ATESTO-14">Atesto DR-14 / Municípios</TabsTrigger>
         </TabsList>
 
         {/* ── Inputs ── */}
