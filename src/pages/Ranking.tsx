@@ -761,7 +761,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   if (!rows.length) return null;
 
   const totalQtd = rows.reduce((s, r) => s + r.qtd, 0);
-  const totalSoma = Math.round(rows.reduce((s, r) => s + r.soma, 0) * 1000) / 1000;
+  const totalSoma = Math.round(rows.reduce((s, r) => s + r.soma, 0) * 100) / 100;
   const totalFat = Math.round(rows.reduce((s, r) => s + r.faturamento, 0) * 100) / 100;
   const brl = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
