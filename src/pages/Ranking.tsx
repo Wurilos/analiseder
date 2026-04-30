@@ -726,32 +726,50 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
 
 function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   const rows = useMemo(() => {
-    const map = new Map<string, { codigo: string; equipamentos: string[]; ids: number[] }>();
+    const round2 = (v: number) => Math.round(v * 100) / 100;
+    const round3 = (v: number) => Math.round(v * 1000) / 1000;
+    const map = new Map<string, {
+      codigo: string;
+      equipamentos: string[];
+      ids: number[];
+      faturamento: number;
+    }>();
     for (const g of groups) {
       const cod = EQUIP_CATALOG[g.equipamento]?.codMedicao || '— sem código —';
-      if (!map.has(cod)) map.set(cod, { codigo: cod, equipamentos: [], ids: [] });
+      if (!map.has(cod)) map.set(cod, { codigo: cod, equipamentos: [], ids: [], faturamento: 0 });
       const entry = map.get(cod)!;
       entry.equipamentos.push(g.equipamento);
-      if (g.c_ID !== null && g.c_ID !== undefined && !isNaN(g.c_ID)) entry.ids.push(g.c_ID);
+      const id = g.c_ID;
+      if (id !== null && id !== undefined && !isNaN(id)) entry.ids.push(id);
+      entry.faturamento += g.valorRecebidoTotal || 0;
     }
     return [...map.values()]
-      .map(e => ({
-        codigo: e.codigo,
-        qtd: e.equipamentos.length,
-        equipamentos: e.equipamentos,
-        soma: e.ids.reduce((s, v) => s + v, 0),
-        media: e.ids.length ? e.ids.reduce((s, v) => s + v, 0) / e.ids.length : null,
-      }))
+      .map(e => {
+        const soma = e.ids.reduce((s, v) => s + v, 0);
+        return {
+          codigo: e.codigo,
+          qtd: e.equipamentos.length,
+          equipamentos: e.equipamentos,
+          soma: round3(soma),
+          media: e.ids.length ? round3(soma / e.ids.length) : null,
+          faturamento: round2(e.faturamento),
+        };
+      })
       .sort((a, b) => a.codigo.localeCompare(b.codigo));
   }, [groups]);
 
   if (!rows.length) return null;
 
+  const totalQtd = rows.reduce((s, r) => s + r.qtd, 0);
+  const totalSoma = Math.round(rows.reduce((s, r) => s + r.soma, 0) * 1000) / 1000;
+  const totalFat = Math.round(rows.reduce((s, r) => s + r.faturamento, 0) * 100) / 100;
+  const brl = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   return (
     <div className="mt-6 border-t border-border pt-4 px-4 pb-4">
       <h4 className="text-sm font-bold mb-1">Soma de IDs por Cód. DER</h4>
       <p className="text-xs text-muted-foreground mb-3">
-        Agrupamento por código de medição contratual (DER). Soma e média dos IDs dos equipamentos associados.
+        Agrupamento por código de medição contratual (DER). Soma e média dos IDs e faturamento por código.
       </p>
       <div className="table-wrap overflow-x-auto">
         <table>
@@ -762,6 +780,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
               <th>Equipamentos</th>
               <th>Soma IDs</th>
               <th>Média ID</th>
+              <th>Faturamento (R$)</th>
             </tr>
           </thead>
           <tbody>
@@ -772,8 +791,17 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
                 <td className="text-[11px] text-muted-foreground">{r.equipamentos.join(', ')}</td>
                 <td className="font-mono font-bold">{r.soma.toFixed(3)}</td>
                 <td><span className={`badge ${idBadge(r.media)}`}>{fmt(r.media)}</span></td>
+                <td className="font-mono font-bold text-right">{brl(r.faturamento)}</td>
               </tr>
             ))}
+            <tr className="bg-muted/40 font-bold">
+              <td className="font-mono">TOTAL</td>
+              <td className="text-center font-mono">{totalQtd}</td>
+              <td></td>
+              <td className="font-mono">{totalSoma.toFixed(3)}</td>
+              <td></td>
+              <td className="font-mono text-right">{brl(totalFat)}</td>
+            </tr>
           </tbody>
         </table>
       </div>
