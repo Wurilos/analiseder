@@ -727,7 +727,7 @@ function EquipTable({ groups, records, onDetail, obsMap }: { groups: EquipGroup[
 function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
   const rows = useMemo(() => {
     const round2 = (v: number) => Math.round(v * 100) / 100;
-    const round3 = (v: number) => Math.round(v * 1000) / 1000;
+    const round3 = (v: number) => Math.round(v * 100) / 100;
     const map = new Map<string, {
       codigo: string;
       equipamentos: string[];
