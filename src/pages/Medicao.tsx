@@ -11,6 +11,7 @@ import { FileDown, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+import AtestoMunicipios from '@/components/AtestoMunicipios';
 
 // ════════════════════════════════════════════
 // DR-08 Data
@@ -448,6 +449,8 @@ export default function MedicaoPage() {
         <TabsList>
           <TabsTrigger value="DR-08">DR-08 (DER-621)</TabsTrigger>
           <TabsTrigger value="DR-14">DR-14 (Memória de Cálculo)</TabsTrigger>
+          <TabsTrigger value="ATESTO-08">Atesto DR-08 / Municípios</TabsTrigger>
+          <TabsTrigger value="ATESTO-14">Atesto DR-14 / Municípios</TabsTrigger>
         </TabsList>
 
         {/* ── Inputs ── */}
@@ -761,6 +764,32 @@ export default function MedicaoPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* ATESTO DR-08 — % por Município */}
+        {/* ══════════════════════════════════════════ */}
+        <TabsContent value="ATESTO-08">
+          <AtestoMunicipios
+            lote="DR-08"
+            records={records}
+            numMedicao={numMedicao}
+            periodoInicio={periodoInicio}
+            periodoFim={periodoFim}
+          />
+        </TabsContent>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* ATESTO DR-14 — % por Município */}
+        {/* ══════════════════════════════════════════ */}
+        <TabsContent value="ATESTO-14">
+          <AtestoMunicipios
+            lote="DR-14"
+            records={records}
+            numMedicao={numMedicao}
+            periodoInicio={periodoInicio}
+            periodoFim={periodoFim}
+          />
         </TabsContent>
       </Tabs>
     </div>
