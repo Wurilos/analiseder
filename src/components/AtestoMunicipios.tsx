@@ -273,8 +273,8 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
 }
 
 const thA: React.CSSProperties = {
-  padding: '4px 5px', border: '1px solid #000', textAlign: 'center', verticalAlign: 'middle', fontWeight: 'bold',
+  padding: '4px 5px', border: 'none', textAlign: 'center', verticalAlign: 'middle', fontWeight: 'bold',
 };
 const tdA: React.CSSProperties = {
-  padding: '3px 5px', border: '1px solid #000', textAlign: 'center', verticalAlign: 'middle',
+  padding: '3px 5px', border: 'none', textAlign: 'center', verticalAlign: 'middle',
 };
