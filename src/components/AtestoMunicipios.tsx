@@ -229,11 +229,10 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
           <div style={{ marginTop: '14px', fontWeight: 'bold', fontSize: '10px' }}>
             Municípios abrangidos — % do faturamento (Fase 34)
           </div>
-          <table style={{ width: '70%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '9.5px' }}>
+          <table style={{ width: '55%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '9.5px' }}>
             <thead>
               <tr style={{ background: '#d9d9d9' }}>
                 <th style={{ ...thA, textAlign: 'left' }}>Município</th>
-                <th style={{ ...thA, textAlign: 'right' }}>Valor (R$)</th>
                 <th style={{ ...thA, textAlign: 'right' }}>%</th>
               </tr>
             </thead>
@@ -241,13 +240,11 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
               {data.municipios.map((m, i) => (
                 <tr key={i}>
                   <td style={{ ...tdA, textAlign: 'left' }}>{m.municipio}</td>
-                  <td style={{ ...tdA, textAlign: 'right' }}>{formatBRL(m.valor)}</td>
                   <td style={{ ...tdA, textAlign: 'right', fontWeight: 'bold' }}>{m.pct.toFixed(2).replace('.', ',')}%</td>
                 </tr>
               ))}
               <tr style={{ background: '#f0f0f0', fontWeight: 'bold' }}>
                 <td style={{ ...tdA, textAlign: 'left' }}>TOTAL</td>
-                <td style={{ ...tdA, textAlign: 'right' }}>{formatBRL(data.totalFase34)}</td>
                 <td style={{ ...tdA, textAlign: 'right' }}>{data.somaPct.toFixed(2).replace('.', ',')}%</td>
               </tr>
             </tbody>
