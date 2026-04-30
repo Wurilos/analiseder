@@ -798,7 +798,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
               <td className="font-mono">TOTAL</td>
               <td className="text-center font-mono">{totalQtd}</td>
               <td></td>
-              <td className="font-mono">{totalSoma.toFixed(3)}</td>
+              <td className="font-mono">{totalSoma.toFixed(2)}</td>
               <td></td>
               <td className="font-mono text-right">{brl(totalFat)}</td>
             </tr>
