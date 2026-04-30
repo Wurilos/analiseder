@@ -739,7 +739,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
       if (!map.has(cod)) map.set(cod, { codigo: cod, equipamentos: [], ids: [], faturamento: 0 });
       const entry = map.get(cod)!;
       entry.equipamentos.push(g.equipamento);
-      const id = g.f_ID ?? g.c_ID;
+      const id = g.c_ID;
       if (id !== null && id !== undefined && !isNaN(id)) entry.ids.push(id);
       entry.faturamento += g.valorRecebidoTotal || 0;
     }
