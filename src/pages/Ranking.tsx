@@ -789,7 +789,7 @@ function CodMedicaoSummary({ groups }: { groups: EquipGroup[] }) {
                 <td className="font-mono font-semibold">{r.codigo}</td>
                 <td className="text-center font-mono">{r.qtd}</td>
                 <td className="text-[11px] text-muted-foreground">{r.equipamentos.join(', ')}</td>
-                <td className="font-mono font-bold">{r.soma.toFixed(3)}</td>
+                <td className="font-mono font-bold">{r.soma.toFixed(2)}</td>
                 <td><span className={`badge ${idBadge(r.media)}`}>{fmt(r.media)}</span></td>
                 <td className="font-mono font-bold text-right">{brl(r.faturamento)}</td>
               </tr>
