@@ -765,6 +765,32 @@ export default function MedicaoPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* ATESTO DR-08 — % por Município */}
+        {/* ══════════════════════════════════════════ */}
+        <TabsContent value="ATESTO-08">
+          <AtestoMunicipios
+            lote="DR-08"
+            records={records}
+            numMedicao={numMedicao}
+            periodoInicio={periodoInicio}
+            periodoFim={periodoFim}
+          />
+        </TabsContent>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* ATESTO DR-14 — % por Município */}
+        {/* ══════════════════════════════════════════ */}
+        <TabsContent value="ATESTO-14">
+          <AtestoMunicipios
+            lote="DR-14"
+            records={records}
+            numMedicao={numMedicao}
+            periodoInicio={periodoInicio}
+            periodoFim={periodoFim}
+          />
+        </TabsContent>
       </Tabs>
     </div>
   );
