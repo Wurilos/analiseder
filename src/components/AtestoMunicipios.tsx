@@ -172,8 +172,35 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
     ? `${formatDateShort(periodoInicio)} a ${formatDateShort(periodoFim)}`
     : '__/__/__ a __/__/__';
   const medicaoRef = numMedicao ? `${numMedicao}ª Medição Provisória` : '___ª Medição Provisória';
+  const medicaoNumLabel = numMedicao || '___';
   const loteNum = lote.replace('DR-', '');
   const contrato = lote === 'DR-08' ? '22.583-6' : '22.589-7';
+
+  // Cabeçalho de assinatura por lote
+  const fiscalConfig: Record<string, { cidade: string; orgao: string; nome: string; cargo: string }> = {
+    'DR-08': {
+      cidade: 'Ribeirão Preto',
+      orgao: 'DER/SP - Coordenadoria Geral Regional - CGR.08',
+      nome: '_______________________________',
+      cargo: 'Engº Fiscal do Contrato',
+    },
+    'DR-14': {
+      cidade: 'Barretos',
+      orgao: 'DER/SP - Coordenadoria Geral Regional - CGR.14 Barretos',
+      nome: 'Renato Bergamo Martines',
+      cargo: 'Engº Fiscal do Contrato',
+    },
+  };
+  const cfg = fiscalConfig[lote] || fiscalConfig['DR-14'];
+  const cidadeFiscal = cfg.cidade;
+  const orgaoFiscal = cfg.orgao;
+  const nomeFiscal = cfg.nome;
+  const cargoFiscal = cfg.cargo;
+
+  // Data por extenso (usa periodoFim como referência, fallback hoje)
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const refDate = periodoFim ? new Date(periodoFim + 'T00:00:00') : new Date();
+  const dataExtenso = `${refDate.getDate()} de ${meses[refDate.getMonth()]} de ${refDate.getFullYear()}`;
 
   const b = '1px solid #000';
 
