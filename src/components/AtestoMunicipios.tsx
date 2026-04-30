@@ -226,43 +226,6 @@ export default function AtestoMunicipios({ lote, records, numMedicao, periodoIni
             </tbody>
           </table>
 
-          {/* ── Tabela detalhada ── */}
-          <div style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '10px' }}>FASE 34 — SERVIÇOS TERCEIRIZADOS</div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '4px', fontSize: '8px' }}>
-            <thead>
-              <tr style={{ background: '#d9d9d9' }}>
-                <th style={thA}>Item</th>
-                <th style={thA}>Local</th>
-                <th style={thA}>Período</th>
-                <th style={{ ...thA, textAlign: 'left' }}>Faixas / Detalhe</th>
-                <th style={thA}>Resultado</th>
-                <th style={thA}>Conj. Mês</th>
-                <th style={{ ...thA, textAlign: 'left' }}>Município</th>
-                <th style={{ ...thA, textAlign: 'right' }}>Valor Unitário (R$)</th>
-                <th style={{ ...thA, textAlign: 'right' }}>Valor Total (R$)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.linhas.map((l, i) => (
-                <tr key={i}>
-                  <td style={tdA}>{l.codMedicao}</td>
-                  <td style={tdA}>{l.endereco}</td>
-                  <td style={tdA}>{l.resultado > 0 ? '28 dias' : '—'}</td>
-                  <td style={{ ...tdA, textAlign: 'left' }}>{l.faixas}</td>
-                  <td style={tdA}>{l.resultado.toFixed(3).replace('.', ',')}</td>
-                  <td style={tdA}>{l.conjMes.toFixed(2).replace('.', ',')}</td>
-                  <td style={{ ...tdA, textAlign: 'left' }}>{titleCase(l.municipio || '—')}</td>
-                  <td style={{ ...tdA, textAlign: 'right' }}>{formatBRL(l.valorUnit)}</td>
-                  <td style={{ ...tdA, textAlign: 'right', fontWeight: 'bold' }}>{formatBRL(l.valorTotal)}</td>
-                </tr>
-              ))}
-              <tr style={{ background: '#f0f0f0', fontWeight: 'bold' }}>
-                <td colSpan={8} style={{ ...tdA, textAlign: 'right' }}>TOTAL FASE 34</td>
-                <td style={{ ...tdA, textAlign: 'right' }}>{formatBRL(data.totalFase34)}</td>
-              </tr>
-            </tbody>
-          </table>
-
           {/* ── Resumo % por município ── */}
           <div style={{ marginTop: '14px', fontWeight: 'bold', fontSize: '10px' }}>
             Municípios abrangidos — % do faturamento (Fase 34)
